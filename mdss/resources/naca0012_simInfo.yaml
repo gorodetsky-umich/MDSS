@@ -1,6 +1,5 @@
 out_dir: output
 hpc: 'no'
-run_as_subprocess: 'yes'
 nproc: 4
 hpc_info:
   cluster: GL
@@ -14,19 +13,20 @@ hierarchies:
 - name: 2d_clean
   cases:
   - name: NACA0012
+    problem: Aero
     meshes_folder_path: ./grids/
     mesh_files:
     - naca0012_L0.cgns
     geometry_info:
       chordRef: 1.0
       areaRef: 1.0
-    solver_parameters:
+    aero_options:
+      printIterations: true
       useANKSolver: true
-      nSubiterTurb: 20
+      nSubiterTurb: 10
       useNKSolver: false
-      NKSwitchTol: 1.0e-06
-      ANKCoupledSwitchTol: 0.001
-      ANKSecondOrdSwitchTol: 1.0e-12
+      ANKCoupledSwitchTol: 1.0e-3
+      ANKSecondOrdSwitchTol: 1.0e-8
       L2Convergence: 1.0e-08
       nCycles: 150000
     exp_sets:

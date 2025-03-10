@@ -92,7 +92,7 @@ class Top(Multipoint):
             ################################################################################
             tacs_config = tacs_setup(self.sim_info['structural_properties'], self.sim_info['load_info'], self.sim_info['tacs_out_dir'])
 
-            struct_builder = TacsBuilder(mesh_file=self.sim_info['struct_mesh_fpath'], element_callback=tacs_config.element_callback,
+            struct_builder = TacsBuilder(mesh_file=self.sim_info['struct_mesh_fpath'], element_callback=tacs_config.element_callback, coupling_loads=[MPhysVariables.Structures.Loads.AERODYNAMIC],
                                         problem_setup=tacs_config.problem_setup)
             struct_builder.initialize(self.comm)
 
@@ -212,6 +212,7 @@ def run_problem(case_info_fpath, exp_info_fpath, ref_level_dir, aoa_csv_str, aer
         structural_properties.update(case_info['struct_options']['structural_properties']) # Update default with user given values
         laod_info.update(case_info['struct_options']['load_info']) # Update load info with user given values
         solver_options.update(case_info['struct_options']['solver_options']) # Update solver optiuons with user given values
+        print(structural_properties)
 
     aero_options.update(case_info['aero_options']) # Update aero_options with user given values
     geometry_info = case_info['geometry_info']

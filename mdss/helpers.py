@@ -282,7 +282,7 @@ def submit_job_on_hpc(sim_info, yaml_file_path, comm):
 ################################################################################
 # Helper Functions for running the simulations as subprocesses
 ################################################################################
-def run_as_subprocess(sim_info, case_info_fpath, exp_info_fpath, ref_out_dir, aoa_list, aero_grid_fpath, comm, struct_mesh_fpath=None):
+def run_as_subprocess(sim_info, case_info_fpath, exp_info_fpath, ref_out_dir, aoa_csv_string, aero_grid_fpath, comm, struct_mesh_fpath=None):
     """
     Executes a set of Angles of Attack using mpirun for local machine and srun for HPC(Great Lakes).
 
@@ -296,8 +296,8 @@ def run_as_subprocess(sim_info, case_info_fpath, exp_info_fpath, ref_out_dir, ao
         Path to the experimental info yaml file
     - **ref_out_dir** : str  
         Path to the refinement level directory
-    - **aoa_list** : list  
-        A list of angles of attack that to be simulated in this subprocess
+    - **aoa_csv_string** : str 
+        A list of angles of attack, in the form of csv string, that to be simulated in this subprocess
     - **aero_grid_fpath** : 
         Path to the aero grid file that to be used for this simulation
     - **nproc** : int  
@@ -321,9 +321,6 @@ def run_as_subprocess(sim_info, case_info_fpath, exp_info_fpath, ref_out_dir, ao
     - The generated Python script and YAML input file are specific to each simulation run.
     - Captures and displays `stdout` and `stderr` from the subprocess for troubleshooting.
     """
-
-    # Convert list of aoa to comma separated aoa string
-    aoa_csv_string = ",".join(map(str, [float(aoa) for aoa in aoa_list]))
     out_dir = os.path.abspath(sim_info['out_dir'])
     python_fname = os.path.join(out_dir, "script_for_subprocess.py")
 

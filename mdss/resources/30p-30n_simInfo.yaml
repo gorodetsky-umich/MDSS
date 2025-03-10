@@ -1,6 +1,5 @@
 out_dir: output
 hpc: 'no'
-run_as_subprocess: 'yes'
 nproc: 8
 hpc_info:
   cluster: GL
@@ -13,6 +12,7 @@ hpc_info:
 hierarchies:
 - name: 2d_high_lift
   cases:
+  - problem: Aero
   - name: 30p-30n
     meshes_folder_path: ../grids
     mesh_files:

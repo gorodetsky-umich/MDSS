@@ -11,6 +11,7 @@ import matplotlib.cm as cm
 from mpi4py import MPI
 
 from mdss.helpers import load_yaml_file, load_csv_data, check_input_yaml, submit_job_on_hpc, run_as_subprocess
+from mdss.aerostruct import run_problem as run_aerostructural
 
 comm = MPI.COMM_WORLD
 
@@ -49,6 +50,7 @@ class run_sim():
         self.sim_info = load_yaml_file(self.info_file, comm)
         self.out_dir = os.path.abspath(self.sim_info['out_dir'])
         self.final_out_file = os.path.join(self.out_dir, "overall_sim_info.yaml") # Setting the overall simulation info file.
+        self.subprocess_flag = 1
         
 
         # Create the output directory if it doesn't exist
@@ -103,7 +105,7 @@ class run_sim():
                 if not os.path.exists(case_out_dir): # Create the directory if it doesn't exist
                     if comm.rank == 0:
                         os.makedirs(case_out_dir)
-                
+                comm.Barrier()
                 # Save case info yaml file in the case_out_dir to pass in subprocess
                 case_info_fpath = os.path.join(case_out_dir, "case_info.yaml")
                 with open(case_info_fpath, 'w') as case_info_fhandle:
@@ -116,7 +118,7 @@ class run_sim():
                     if not os.path.exists(exp_out_dir): # Create the directory if it doesn't exist
                         if comm.rank == 0:
                             os.makedirs(exp_out_dir)
-                    
+                    comm.Barrier()
                     # Save case info yaml file in the case_out_dir to pass in subprocess
                     exp_info_fpath = os.path.join(exp_out_dir, "exp_info.yaml")
                     with open(exp_info_fpath, 'w') as exp_info_fhandle:
@@ -135,7 +137,7 @@ class run_sim():
                     
                     # Extract the Angle of attacks for which the simulation has to be run
                     aoa_list = exp_info['aoa_list']
-
+                    aoa_csv_string = ",".join(map(str, [float(aoa) for aoa in aoa_list]))
                     exp_sim_info = {} # Creating experimental level sim info dictionary for overall sim info file
 
                     for ii, mesh_file in enumerate(case_info['mesh_files']): # Loop for refinement levels
@@ -148,7 +150,7 @@ class run_sim():
                         FList = [] # Fail flag list
 
                         refinement_level_dict = {} # Creating refinement level sim info dictionary for overall sim info file
-                        refinement_out_dir = os.path.join(exp_out_dir, refinement_level)
+                        refinement_out_dir = os.path.join(exp_out_dir, f"{mesh_file}")
                         if not os.path.exists(refinement_out_dir): # Create the directory if it doesn't exist
                             if comm.rank == 0:
                                 os.makedirs(refinement_out_dir)
@@ -163,9 +165,10 @@ class run_sim():
 
                         # Run subprocess
                         # Initially running all the aoa in a subprocess. However the optimal number of aoa for single subprocess should be determined and modified accordingly.
-
-                        run_as_subprocess(sim_info_copy, case_info_fpath, exp_info_fpath, refinement_out_dir, aoa_list, aero_grid_fpath, comm, struct_mesh_file)
-
+                        if self.subprocess_flag == 1:
+                            run_as_subprocess(sim_info_copy, case_info_fpath, exp_info_fpath, refinement_out_dir, aoa_csv_string, aero_grid_fpath, comm, struct_mesh_file)
+                        elif self.subprocess_flag == 0:
+                            run_aerostructural(case_info_fpath, exp_info_fpath, refinement_out_dir, aoa_csv_string, aero_grid_fpath, struct_mesh_file)
                         failed_aoa_list = [] # Initiate a list to store a list of aoa failed in this refinement level
                 
                         for aoa in aoa_list: # loop for angles of attack reads the info, adds additional info if needed for the output file for each aoa
@@ -252,11 +255,13 @@ class run_sim():
                     sim_out_info['hierarchies'][hierarchy]['cases'][case]['exp_sets'][exp_set]['sim_info'] = exp_sim_info
 
                     if os.path.exists(exp_info_fpath): # Remove the exp_info yaml file
-                        os.remove(exp_info_fpath)
+                        if comm.rank==0:
+                            os.remove(exp_info_fpath)
                 ################################# End of experiment_set loop ########################################
                 
                 if os.path.exists(case_info_fpath): # Remove the case_info yaml file
-                    os.remove(case_info_fpath)
+                    if comm.rank==0:
+                        os.remove(case_info_fpath)
             ################################# End of case loop ########################################
         ################################# End of hierarchy loop ########################################
 
@@ -358,7 +363,7 @@ class run_sim():
                     exp_out_dir = exp_info['sim_info']['exp_set_out_dir']
                     sim_data = {}
                     for ii, mesh_file in enumerate(case_info['mesh_files']): # Loop for refinement levels
-                        refinement_level_dir = os.path.join(exp_out_dir, f"L{ii}")
+                        refinement_level_dir = os.path.join(exp_out_dir, f"{mesh_file}")
                         ADflow_out_file = os.path.join(refinement_level_dir, "ADflow_output.csv")
                         sim_data = load_csv_data(ADflow_out_file, comm)
                         if sim_data is not None:  # Only plot if data loaded successfully
