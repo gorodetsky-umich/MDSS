@@ -20,7 +20,7 @@ except:
 import openmdao.api as om
 from mpi4py import MPI
 
-from mdss.helpers import load_yaml_file, ProblemType
+from mdss.helpers import *
 from mdss.templates import default_aero_options_aerodynamic, default_aero_options_aerostructural, default_structural_properties, default_solver_options
 
 
@@ -92,7 +92,9 @@ class Top(Multipoint):
             ################################################################################
             tacs_config = tacs_setup(self.sim_info['structural_properties'], self.sim_info['load_info'], self.sim_info['tacs_out_dir'])
 
-            struct_builder = TacsBuilder(mesh_file=self.sim_info['struct_mesh_fpath'], element_callback=tacs_config.element_callback, coupling_loads=[MPhysVariables.Structures.Loads.AERODYNAMIC],
+            struct_builder = TacsBuilder(mesh_file=self.sim_info['struct_mesh_fpath'], 
+                                        element_callback=tacs_config.element_callback, 
+                                        coupling_loads=[MPhysVariables.Structures.Loads.AERODYNAMIC], 
                                         problem_setup=tacs_config.problem_setup)
             struct_builder.initialize(self.comm)
 
@@ -212,7 +214,6 @@ def run_problem(case_info_fpath, exp_info_fpath, ref_level_dir, aoa_csv_str, aer
         structural_properties.update(case_info['struct_options']['structural_properties']) # Update default with user given values
         laod_info.update(case_info['struct_options']['load_info']) # Update load info with user given values
         solver_options.update(case_info['struct_options']['solver_options']) # Update solver optiuons with user given values
-        print(structural_properties)
 
     aero_options.update(case_info['aero_options']) # Update aero_options with user given values
     geometry_info = case_info['geometry_info']
@@ -263,12 +264,8 @@ def run_problem(case_info_fpath, exp_info_fpath, ref_level_dir, aoa_csv_str, aer
                     aoa_sim_info = yaml.safe_load(aoa_file)
                 fail_flag = aoa_sim_info['fail_flag']
                 if fail_flag == 0:
-                    if comm.rank == 0:
-                        print(f"{'-'*50}")
-                        print(f"{'NOTICE':^50}")
-                        print(f"{'-'*50}")
-                        print(f"Skipping Angle of Attack (AoA): {float(aoa):<5} | Reason: Existing successful simulation found")
-                        print(f"{'-'*50}")
+                    msg = f"Skipping Angle of Attack (AoA): {float(aoa):<5} | Reason: Existing successful simulation found"
+                    print_msg(msg, 'notice', comm)
                     continue # Continue to next loop if there exists a successful simulation
             except:
                 fail_flag = 1
@@ -355,5 +352,3 @@ def run_problem(case_info_fpath, exp_info_fpath, ref_level_dir, aoa_csv_str, aer
             aoa_out_dic.update(struct_info_dict)
         with open(aoa_info_file, 'w') as interim_out_yaml:
             yaml.dump(aoa_out_dic, interim_out_yaml, sort_keys=False)
-
-

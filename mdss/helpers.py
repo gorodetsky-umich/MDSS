@@ -66,6 +66,27 @@ class MachineType(Enum):
 ################################################################################
 # Helper Functions
 ################################################################################
+def print_msg(msg, msg_type, comm):
+    '''
+    Prints a formatted message
+
+    Inputs
+    ------
+    - **msg**: str
+        Message to print.
+    - **msg_type**: str
+        Type of the message to print. Eg., notice, warning etc.,
+    - **comm**: MPI communicator
+        An MPI communicator object to handle parallelism.
+    '''
+    if comm.rank == 0:
+        print(f"{'-'*50}")
+        if msg_type is not None:
+            print(f"{msg_type.upper():^50}")
+            print(f"{'-'*50}")
+        print(f"{msg}")
+        print(f"{'-'*50}")
+
 def load_yaml_file(yaml_file, comm):
     """
     Loads a YAML file and returns its content as a dictionary.

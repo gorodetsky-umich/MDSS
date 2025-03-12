@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 from mpi4py import MPI
 
-from mdss.helpers import load_yaml_file, load_csv_data, check_input_yaml, submit_job_on_hpc, run_as_subprocess
+from mdss.helpers import *
 from mdss.aerostruct import run_problem as run_aerostructural
 
 comm = MPI.COMM_WORLD
@@ -41,10 +41,8 @@ class run_sim():
     def __init__(self, info_file):
         # Validate the input yaml file
         check_input_yaml(info_file)
-        if comm.rank == 0:
-            print(f"{'-' * 50}")
-            print("YAML file validation is successful")
-            print(f"{'-' * 50}")
+        msg = f"YAML file validation is successful"
+        print_msg(msg, None, comm)
 
         self.info_file = info_file
         self.sim_info = load_yaml_file(self.info_file, comm)
@@ -337,8 +335,8 @@ class run_sim():
                     try:
                         exp_data = load_csv_data(exp_info['exp_data'], comm)
                     except:
-                        if comm.rank == 0:
-                            print(f"Warning: Experimental data location is not specified or the data is not readable.")
+                        msg = f"Experimental data location is not specified or the data is not readable.\nContinuing to plot without experimental data."
+                        print_msg(msg, 'warning', comm)
                         exp_data = None
 
                     if exp_data is not None: # Only plot if data loaded successfully
@@ -352,10 +350,6 @@ class run_sim():
                         
                         axs[0].plot(exp_data['Alpha'], exp_data['CL'], label='Experimental', color='black', linestyle='--', marker='o')
                         axs[1].plot(exp_data['Alpha'], exp_data['CD'], label='Experimental', color='black', linestyle='--', marker='o')
-                        
-                    else:
-                        if comm.rank == 0:
-                            print("Continuing to plot without experimental data.")
 
                     num_levels = len(case_info['mesh_files'])  # Total refinement levels
                     colors = cm.viridis(np.linspace(0, 1, num_levels))  # Generate unique colors for each level

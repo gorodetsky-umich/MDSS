@@ -67,6 +67,35 @@ class update_info_file():
                 if case_info['name'] in case_names:
                     case_info['aero_options'].update(aero_options_updt)
     
+    def aero_meshes(self, mesh_files, case_names, option,  meshes_folder_path=None):
+        '''
+        Adds mesh files to specifies cases and optionally modifies the path to the folder contating meshes, when provided.
+        Inputs
+        ------
+        - **mesh_files**: list[str]
+            A list containing the mesh file names to append or modify or remove.
+        - **case_names**: list[str]
+            A list containing the names of the cases to modify.
+        - **option**: str
+            'a' to append (add the given aoa to the existing list)
+            'm' to modify the list (to overwrite)
+            'r' to remove the aoa from the file.
+        - **meshes_folder_path**: str, optional
+            Path to the folder containing meshes
+        '''
+        for hierarchy, hierarchy_info in enumerate(self.sim_info['hierarchies']): # loop for Hierarchy level
+            for case, case_info in enumerate(hierarchy_info['cases']): # loop for cases in hierarchy
+                if case_info['name'] in case_names:
+                    if option == 'a':
+                        case_info['mesh_files'].append(mesh_files)
+                    elif option == 'm':
+                        case_info['mesh_files'] = [mesh_file for mesh_file in case_info['mesh_files']]
+                    elif option == 'r':
+                        case_info['mesh_files']= [mesh_file for mesh_file in case_info['mesh_files'] if mesh_file not in mesh_files]
+                    if meshes_folder_path is not None:
+                        case_info['meshes_folder_path'] = meshes_folder_path
+
+    
     def aoa(self, aoa_list, case_names, exp_sets, option):
         '''
         Inputs
@@ -106,7 +135,7 @@ class update_info_file():
         '''
         if comm.rank == 0:
             if new_fname is None:
-                new_fname = self.sim_info
+                new_fname = self.info_file
             with open(new_fname, 'w') as info_file_fhandle:
                 yaml.dump(self.sim_info, info_file_fhandle, sort_keys=False)
 
