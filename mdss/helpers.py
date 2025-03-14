@@ -66,7 +66,7 @@ class MachineType(Enum):
 ################################################################################
 # Helper Functions
 ################################################################################
-def print_msg(msg, msg_type, comm):
+def print_msg(msg, msg_type, comm=None):
     '''
     Prints a formatted message
 
@@ -79,7 +79,7 @@ def print_msg(msg, msg_type, comm):
     - **comm**: MPI communicator
         An MPI communicator object to handle parallelism.
     '''
-    if comm.rank == 0:
+    if comm is None or comm.rank == 0 :
         print(f"{'-'*50}")
         if msg_type is not None:
             print(f"{msg_type.upper():^50}")
@@ -162,7 +162,7 @@ def check_input_yaml(yaml_file):
     """
     Validates the structure of the input YAML file against predefined templates.
 
-    This function checks whether the input YAML file conforms to the expected template structure. It validates each section, including simulation, HPC, hierarchies, cases, and experimental sets.
+    This function checks whether the input YAML file conforms to the expected template structure. It validates each section, including simulation, HPC, hierarchies, cases, and scenarios.
 
     Inputs
     ----------
@@ -221,9 +221,9 @@ def check_input_yaml(yaml_file):
 
                 struct_options = case_info['struct_options']
                 yc.ref_struct_options.model_validate(struct_options)
-                yc.ref_structural_properties.model_validate(struct_options['structural_properties'])
+                yc.ref_struct_properties.model_validate(struct_options['struct_properties'])
                 yc.ref_load_info.model_validate(struct_options['load_info'])
-                struct_mesh_file = case_info['struct_options']['struct_mesh_fpath']
+                struct_mesh_file = case_info['struct_options']['mesh_fpath']
                 if not os.path.isfile(struct_mesh_file):
                     raise FileNotFoundError(f"Structural Mesh: {struct_mesh_file} does not exist. Please provide a valid path")
 
@@ -233,8 +233,8 @@ def check_input_yaml(yaml_file):
                 if not os.path.isfile(aero_mesh_file):
                     raise FileNotFoundError(f"Aero Mesh: {aero_mesh_file} does not exist. Please provide a valid path")
 
-            for exp_set, exp_info in enumerate(case_info['exp_sets']): # loop for experimental datasets that may present
-                yc.ref_exp_set_info.model_validate(exp_info)
+            for scenario, scenario_info in enumerate(case_info['scenarios']): # loop for scenarios that may present
+                yc.ref_scenario_info.model_validate(scenario_info)
 
 def submit_job_on_hpc(sim_info, yaml_file_path, comm):
     """
@@ -303,7 +303,7 @@ def submit_job_on_hpc(sim_info, yaml_file_path, comm):
 ################################################################################
 # Helper Functions for running the simulations as subprocesses
 ################################################################################
-def run_as_subprocess(sim_info, case_info_fpath, exp_info_fpath, ref_out_dir, aoa_csv_string, aero_grid_fpath, comm, struct_mesh_fpath=None):
+def run_as_subprocess(sim_info, case_info_fpath, scenario_info_fpath, ref_out_dir, aoa_csv_string, aero_grid_fpath, comm, struct_mesh_fpath=None):
     """
     Executes a set of Angles of Attack using mpirun for local machine and srun for HPC(Great Lakes).
 
@@ -313,8 +313,8 @@ def run_as_subprocess(sim_info, case_info_fpath, exp_info_fpath, ref_out_dir, ao
         Dictionary containing simulation details, such as output directory, job name, and other metadata.
     - **case_info_fpath** : str  
         Path to the case info yaml file
-    - **exp_info_fpath** : str  
-        Path to the experimental info yaml file
+    - **scenario_info_fpath** : str  
+        Path to the scenario info yaml file
     - **ref_out_dir** : str  
         Path to the refinement level directory
     - **aoa_csv_string** : str 
@@ -366,7 +366,7 @@ def run_as_subprocess(sim_info, case_info_fpath, exp_info_fpath, ref_out_dir, ao
             
         elif sim_info['hpc'] == 'yes':
             run_cmd = ['srun', python_version]
-        run_cmd.extend([python_fname, '--caseInfoFile', case_info_fpath, '--expInfoFile', exp_info_fpath, 
+        run_cmd.extend([python_fname, '--caseInfoFile', case_info_fpath, '--scenarioInfoFile', scenario_info_fpath, 
                 '--refLevelDir', ref_out_dir, '--aoaList', aoa_csv_string, '--aeroGrid', aero_grid_fpath, '--structMesh', struct_mesh_fpath])
         p = subprocess.Popen(run_cmd, 
             env=env,
@@ -386,3 +386,70 @@ def run_as_subprocess(sim_info, case_info_fpath, exp_info_fpath, ref_out_dir, ao
         
         print(f"Completed")
         print(f"{'-' * 30}")
+
+################################################################################
+# Helper Functions to update openmdao instance
+################################################################################
+class update_om_instance:
+    '''
+    Modifies some options in the openmdao instance
+
+    Methods
+    -------
+    **outdir()**
+        Modifies the output directory to save the output files from aero and structural solvers.
+
+    **aero_options()**
+        Updates the aero_options in the aero solver.
+
+    Inputs
+    ----------
+    - **prob** : openmdao instance
+        An instance openmdao class to be modified
+    '''
+    def __init__(self, prob, scenario, problem):
+        self.prob = prob
+        self.scenario = scenario
+        self.scenario_attr = getattr(self.prob.model, self.scenario)
+        # Assign problem type
+        try:
+            self.problem_type = ProblemType.from_string(problem)  # Convert string to enum
+        except ValueError as e:
+            print(e)
+
+    def outdir(self, new_outdir):
+        '''
+        Inputs:
+        -------
+        - **new_outdir**: str
+            New output directory to save the output files
+        '''
+        if self.problem_type == ProblemType.AERODYNAMIC:
+            self.scenario_attr.coupling.options['solver'].options['outputDirectory'] = new_outdir
+        elif self.problem_type == ProblemType.AEROSTRUCTURAL:
+            self.scenario_attr.coupling.aero.options['solver'].options['outputDirectory'] = new_outdir
+            self.scenario_attr.struct_post.eval_funcs.sp.setOption('outputdir', new_outdir)
+    
+    def aero_options(self, new_aero_options):
+        # Currently do not work
+        '''
+        Inputs:
+        -------
+        - **new_aero_options**: dict
+            New aero_options to update
+        '''
+        if self.problem_type == ProblemType.AERODYNAMIC:
+            self.scenario_attr.aero_post.options['solver'].options.update(new_aero_options)
+        elif self.problem_type == ProblemType.AEROSTRUCTURAL:
+            for key, value in new_aero_options.items():
+                try:
+                    print(key, value)
+                    self.scenario_attr.aero_post.options['aero_solver'].options[key] = value
+                    self.scenario_attr.coupling.aero.options['solver'].options[key] = value
+                except:
+                    print_msg(f"{key} not found", 'warning')
+
+
+
+
+        

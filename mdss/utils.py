@@ -34,7 +34,7 @@ class update_info_file():
         Modifies the aero options in the input file
 
     **aoa**
-        Appends, removes and modifies the Angles of Attack listed in `exp_set`.
+        Appends, removes and modifies the Angles of Attack listed in `scenario`.
 
     **write_mod_info_file()**
         Writes the modified input file.
@@ -96,7 +96,7 @@ class update_info_file():
                         case_info['meshes_folder_path'] = meshes_folder_path
 
     
-    def aoa(self, aoa_list, case_names, exp_sets, option):
+    def aoa(self, aoa_list, case_names, scenario_names, option):
         '''
         Inputs
         ----------
@@ -106,8 +106,8 @@ class update_info_file():
         - **case_names**: list[str]
             A list containing the names of the cases to modify.
         
-        - **exp_sets**: list[int]
-            A list containing the `exp_sets` to modify.
+        - **scenario_names**: list[int]
+            A list containing the name of the scenarios to modify.
 
         - **option**: str
             'a' to append (add the given aoa to the existing list)
@@ -117,14 +117,14 @@ class update_info_file():
         for hierarchy, hierarchy_info in enumerate(self.sim_info['hierarchies']): # loop for Hierarchy level
             for case, case_info in enumerate(hierarchy_info['cases']): # loop for cases in hierarchy
                 if case_info['name'] in case_names:
-                    for exp_set, exp_info in enumerate(case_info['exp_sets']): # loop for experimental datasets that may present
-                        if exp_set in exp_sets:
+                    for scenario, scenario_info in enumerate(case_info['scenarios']): # loop for scenarios that may present
+                        if scenario_info['name'] in scenario_names:
                             if option == 'a':
-                                exp_info['aoa_list'] = list(set(exp_info['aoa_list']) | set(aoa_list))  # Convert both to sets to remove duplicates, then back to a list
+                                scenario_info['aoa_list'] = list(set(scenario_info['aoa_list']) | set(aoa_list))  # Convert both to sets to remove duplicates, then back to a list
                             elif option == 'm':
-                                exp_info['aoa_list'] = [aoa for aoa in exp_info['aoa_list']]
+                                scenario_info['aoa_list'] = [aoa for aoa in scenario_info['aoa_list']]
                             elif option == 'r':
-                                exp_info['aoa_list']= [aoa for aoa in exp_info['aoa_list'] if aoa not in aoa_list]
+                                scenario_info['aoa_list']= [aoa for aoa in scenario_info['aoa_list'] if aoa not in aoa_list]
     
     def write_mod_info_file(self, new_fname=None):
         '''
@@ -145,7 +145,7 @@ def get_sim_data(info_file):
 
     This function processes a YAML file with simulation information and creates a
     nested dictionary (`sim_data`) with details about simulation hierarchies, cases,
-    experiment sets, refinement levels, and angles of attack.
+    scenarios, refinement levels, and angles of attack.
 
     Inputs
     ------
@@ -200,33 +200,33 @@ def get_sim_data(info_file):
             if case_name not in sim_data[hierarchy_name]:
                 sim_data[hierarchy_name][case_name] = {}
 
-            # Loop through experiment sets in the case
-            for exp_index, exp_info in enumerate(case_info['exp_sets']):
-                exp_set_key = f"exp_set_{exp_index}"
-                if exp_set_key not in sim_data[hierarchy_name][case_name]:
-                    sim_data[hierarchy_name][case_name][exp_set_key] = {}
+            # Loop through scenarios in the case
+            for scenario_index, scenario_info in enumerate(case_info['scenarios']):
+                scenario_name = scenario_info['name']
+                if scenario_info['name'] not in sim_data[hierarchy_name][case_name]:
+                    sim_data[hierarchy_name][case_name][scenario_name] = {}
 
                 # Loop through mesh files
                 for ii, mesh_file in enumerate(case_info['mesh_files']):
                     refinement_level = f"L{ii}"
-                    failed_aoa = exp_info['sim_info'][refinement_level]['failed_aoa']
-                    if refinement_level not in sim_data[hierarchy_name][case_name][exp_set_key]:
-                        sim_data[hierarchy_name][case_name][exp_set_key][refinement_level] = {}
+                    failed_aoa = scenario_info['sim_info'][refinement_level]['failed_aoa']
+                    if refinement_level not in sim_data[hierarchy_name][case_name][scenario_name]:
+                        sim_data[hierarchy_name][case_name][scenario_name][refinement_level] = {}
 
                     # Loop through angles of attack
-                    for aoa in exp_info['aoa_list']:
+                    for aoa in scenario_info['aoa_list']:
                         if aoa not in failed_aoa:
                             aoa_key = f"aoa_{float(aoa)}"
-                            cl = exp_info['sim_info'][refinement_level][aoa_key].get("cl")
-                            cd = exp_info['sim_info'][refinement_level][aoa_key].get("cd")
+                            cl = scenario_info['sim_info'][refinement_level][aoa_key].get("cl")
+                            cd = scenario_info['sim_info'][refinement_level][aoa_key].get("cd")
 
                             # Populate the dictionary
-                            if aoa_key not in sim_data[hierarchy_name][case_name][exp_set_key][refinement_level]:
-                                sim_data[hierarchy_name][case_name][exp_set_key][refinement_level][aoa_key] = {}
+                            if aoa_key not in sim_data[hierarchy_name][case_name][scenario_name][refinement_level]:
+                                sim_data[hierarchy_name][case_name][scenario_name][refinement_level][aoa_key] = {}
 
-                            sim_data[hierarchy_name][case_name][exp_set_key][refinement_level][aoa_key]['cl'] = cl
-                            sim_data[hierarchy_name][case_name][exp_set_key][refinement_level][aoa_key]['cd'] = cd
-                    sim_data[hierarchy_name][case_name][exp_set_key][refinement_level]['failed_aoa'] = failed_aoa
+                            sim_data[hierarchy_name][case_name][scenario_name][refinement_level][aoa_key]['cl'] = cl
+                            sim_data[hierarchy_name][case_name][scenario_name][refinement_level][aoa_key]['cd'] = cd
+                    sim_data[hierarchy_name][case_name][scenario_name][refinement_level]['failed_aoa'] = failed_aoa
 
     return sim_data
 
@@ -324,7 +324,7 @@ def run_case(case, case_info):
 
     sim_info['hierarchies'][0]['cases'][0]['meshes_folder_path'] = case_info['meshes_folder_path']
     sim_info['hierarchies'][0]['cases'][0]['mesh_files'] = case_info['mesh_files']
-    sim_info['hierarchies'][0]['cases'][0]['exp_sets'][0]['aoa_list'] = case_info['aoa_list']
+    sim_info['hierarchies'][0]['cases'][0]['scenarios'][0]['aoa_list'] = case_info['aoa_list']
     try: # As solver parameters are optional.
         sim_info['hierarchies'][0]['cases'][0]['meshes_folder_path'].update(case_info['solver_parameters'])
     except:
@@ -381,7 +381,7 @@ def run_naca0012(case_info):
     - Uses the `run_case` function with 'naca0012' as the case name.
     """
     sim_data = run_case('naca0012', case_info)
-    case_data = sim_data['2d_clean']['NACA0012']['exp_set_0']
+    case_data = sim_data['2d_clean']['NACA0012']['cruise_1']
     return case_data
 
 def run_30p30n(case_info):
@@ -403,7 +403,7 @@ def run_30p30n(case_info):
     - Uses the `run_case` function with '30p-30n' as the case name.
     """
     sim_data = run_case('30p-30n', case_info)
-    case_data = sim_data['2d_high_lift']['30p-30n']['exp_set_0']
+    case_data = sim_data['2d_high_lift']['30p-30n']['cruise_1']
 
     return case_data
 
@@ -487,7 +487,7 @@ class run_custom_sim():
         # Update Info
         self.sim_info['hierarchies'][0]['cases'][0]['meshes_folder_path'] = case_info['meshes_folder_path']
         self.sim_info['hierarchies'][0]['cases'][0]['mesh_files'] = case_info['mesh_files']
-        self.sim_info['hierarchies'][0]['cases'][0]['exp_sets'][0]['aoa_list'] = case_info['aoa_list']
+        self.sim_info['hierarchies'][0]['cases'][0]['scenarios'][0]['aoa_list'] = case_info['aoa_list']
         if 'aero_options' in case_info.keys():
             self.sim_info['hierarchies'][0]['cases'][0]['aero_options'].update(case_info['aero_options'])
         if 'struct_options' in case_info.keys():

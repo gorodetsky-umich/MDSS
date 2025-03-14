@@ -1,5 +1,4 @@
 out_dir: output
-run_as_subprocess: 'no'
 hpc: 'yes'
 hpc_info:
   cluster: GL
@@ -13,7 +12,8 @@ hierarchies:
 - name: 2d_clean
   cases:
   - name: NACA0012
-    meshes_folder_path: ./grids/
+    problem: Aero
+    meshes_folder_path: ../grids/
     mesh_files:
     - naca0012_L0.cgns
     geometry_info:
@@ -28,11 +28,12 @@ hierarchies:
       ANKSecondOrdSwitchTol: 1.0e-12
       L2Convergence: 1.0e-08
       nCycles: 150000
-    exp_sets:
-    - aoa_list:
+    scenarios:
+    - name: cruise_1
+      aoa_list:
       - 0
       - 5
       Re: 1000000.0
       mach: 0.7
       Temp: 298.0
-      exp_data: exp_data/naca0012.txt
+      exp_data: ../exp_data/naca0012.txt

@@ -1,19 +1,11 @@
 out_dir: output
 hpc: 'no'
-nproc: 8
-hpc_info:
-  cluster: GL
-  job_name: 30p-30n
-  nodes: 1
-  nproc: 8
-  time: 01:00:00
-  account_name: 
-  email_id: 
+nproc: 8 
 hierarchies:
 - name: 2d_high_lift
   cases:
-  - problem: Aero
   - name: 30p-30n
+    problem: Aero
     meshes_folder_path: ../grids
     mesh_files:
     - 30p-30n_overset_L0.cgns
@@ -33,10 +25,11 @@ hierarchies:
       nCycles: 150000
       liftIndex: 2
       nearWallDist: 0.01
-    exp_sets:
-    - aoa_list:
-      - 5
-      - 10
+    scenarios:
+    - name: cruise_1
+      aoa_list:
+        - 5
+        - 10
       Re: 9000000.0
       mach: 0.2
       Temp: 298.0

@@ -28,13 +28,14 @@ class ref_case_info(BaseModel):
     geometry_info: dict
     aero_options: dict=None
     struct_options: dict=None
-    exp_sets: list
+    scenarios: list
 
 class ref_geometry_info(BaseModel):
     chordRef: float
     areaRef: float
 
-class ref_exp_set_info(BaseModel):
+class ref_scenario_info(BaseModel):
+    name: str
     aoa_list: list[float]
     Re: float
     mach: float
@@ -45,11 +46,12 @@ class ref_exp_set_info(BaseModel):
 # Aerostructural Specific
 ################################################################################
 class ref_struct_options(BaseModel):
-    struct_mesh_fpath: str
-    structural_properties: dict=None
+    isym: int
+    mesh_fpath: str
+    properties: dict=None
     load_info: dict
     
-class ref_structural_properties(BaseModel):
+class ref_struct_properties(BaseModel):
     # Material properties
     rho: float=None     # Density in kg/m^3
     E: float=None       # Young's modulus in N/m^2

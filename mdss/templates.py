@@ -82,7 +82,7 @@ default_aero_options_aerostructural = {
 ################################################################################
 # Default structural properties for aerostructural problems
 ################################################################################
-default_structural_properties = {
+default_struct_properties = {
     # Material Properties
     'rho': 2500.0,      # Density in kg/m^3
     'E': 70.0e9,        # Young's modulus in N/m^2
@@ -100,7 +100,7 @@ default_structural_properties = {
 default_solver_options = {
     'linear_solver_options': {
         'atol': 1e-08, # absolute error tolerance
-        'err_on_non_converge': False, # When True, AnalysisError will be raised if not convereged
+        'err_on_non_converge': True, # When True, AnalysisError will be raised if not convereged
         'maxiter': 25, # maximum number of iterations
         'rtol': 1e-8, # relative error tolerance
         'use_aitken': True, # set to True to use Aitken
@@ -109,10 +109,18 @@ default_solver_options = {
     'nonlinear_solver_options': {
         'atol': 1e-08, # absolute error tolerance
         'err_on_non_converge': True, # When True, AnalysisError will be raised if not convereged
+        'reraise_child_analysiserror': True, # When the option is true, a solver will reraise any AnalysisError that arises during subsolve; when false, it will continue solving.
         'maxiter': 25, # maximum number of iterations
         'rtol': 1e-08, # relative error tolerance
         'use_aitken': True, # set to True to use Aitken
     }
+}
+
+################################################################################
+# Default structural options for aerostructural problems
+################################################################################
+default_struct_options = {
+    'iysm': 1, # y-symmetry
 }
 
 ################################################################################
@@ -124,7 +132,7 @@ from mdss.aerostruct import run_problem
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--caseInfoFile", type=str)
-parser.add_argument("--expInfoFile", type=str)
+parser.add_argument("--scenarioInfoFile", type=str)
 parser.add_argument("--refLevelDir", type=str)
 parser.add_argument("--aoaList", type=str)
 parser.add_argument("--aeroGrid", type=str)
@@ -132,7 +140,7 @@ parser.add_argument("--structMesh", type=str)
 
 args = parser.parse_args()
 
-run_problem(args.caseInfoFile, args.expInfoFile, args.refLevelDir, args.aoaList, args.aeroGrid, args.structMesh)
+run_problem(args.caseInfoFile, args.scenarioInfoFile, args.refLevelDir, args.aoaList, args.aeroGrid, args.structMesh)
 """
 
 ################################################################################

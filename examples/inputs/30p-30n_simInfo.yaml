@@ -1,11 +1,11 @@
 out_dir: output
 hpc: 'no'
-run_as_subprocess: 'yes'
-nproc: 4
+nproc: 8
 hierarchies:
 - name: 2d_high_lift
   cases:
   - name: 30p-30n
+    problem: Aero
     meshes_folder_path: ../grids
     mesh_files:
     - 30p-30n_overset_L0.cgns
@@ -14,7 +14,7 @@ hierarchies:
     geometry_info:
       chordRef: 1.0
       areaRef: 1.0
-    solver_parameters:
+    aero_options:
       useANKSolver: true
       nSubiterTurb: 20
       useNKSolver: false
@@ -25,8 +25,9 @@ hierarchies:
       nCycles: 150000
       liftIndex: 2
       nearWallDist: 0.01
-    exp_sets:
-    - aoa_list:
+    scenarios:
+    - name: cruise_1
+      aoa_list:
       - 5
       - 10
       Re: 9000000.0

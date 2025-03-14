@@ -1,11 +1,12 @@
 out_dir: output
 hpc: 'no'
-run_as_subprocess: 'no'
+nproc: '8'
 hierarchies:
 - name: 2d_clean
   cases:
   - name: NACA0012
-    meshes_folder_path: ./grids
+    problem: Aero
+    meshes_folder_path: ../grids
     mesh_files:
     - naca0012_L0.cgns
     geometry_info:
@@ -20,18 +21,20 @@ hierarchies:
       ANKSecondOrdSwitchTol: 1.0e-12
       L2Convergence: 1.0e-08
       nCycles: 150000
-    exp_sets:
-    - aoa_list:
+    scenarios:
+    - name: cruise_1
+      aoa_list:
       - 0
       - 5
       Re: 3900000.0
       mach: 0.3
       Temp: 298.0
-      exp_data: ./exp_data/naca0012.csv
+      exp_data: ../exp_data/naca0012.csv
 - name: 2d_high_lift
   cases:
   - name: 30p-30n
-    meshes_folder_path: ./grids
+    problem: Aero
+    meshes_folder_path: ../grids
     mesh_files:
     - 30p-30n_overset_L0.cgns
     - 30p-30n_overset_L1.cgns
@@ -50,11 +53,12 @@ hierarchies:
       nCycles: 150000
       liftIndex: 2
       nearWallDist: 0.01
-    exp_sets:
-    - aoa_list:
+    scenarios:
+    - name: cruise_1
+      aoa_list:
       - 5
       - 10
       Re: 9000000.0
       mach: 0.2
       Temp: 298.0
-      exp_data: ./exp_data/30p-30n.csv
+      exp_data: ../exp_data/30p-30n.csv

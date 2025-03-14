@@ -1,14 +1,6 @@
 out_dir: output
 hpc: 'no'
 nproc: 4
-hpc_info:
-  cluster: GL
-  job_name: naca0012
-  nodes: 1
-  nproc: 8
-  time: 01:00:00
-  account_name: 
-  email_id: 
 hierarchies:
 - name: 2d_clean
   cases:
@@ -29,8 +21,9 @@ hierarchies:
       ANKSecondOrdSwitchTol: 1.0e-8
       L2Convergence: 1.0e-08
       nCycles: 150000
-    exp_sets:
-    - aoa_list:
+    scenarios:
+    - name: cruise_1
+      aoa_list:
       - 0
       - 5
       Re: 1000000.0
