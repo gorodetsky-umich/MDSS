@@ -109,7 +109,7 @@ default_solver_options = {
     'nonlinear_solver_options': {
         'atol': 1e-08, # absolute error tolerance
         'err_on_non_converge': True, # When True, AnalysisError will be raised if not convereged
-        'reraise_child_analysiserror': True, # When the option is true, a solver will reraise any AnalysisError that arises during subsolve; when false, it will continue solving.
+        'reraise_child_analysiserror': False, # When the option is true, a solver will reraise any AnalysisError that arises during subsolve; when false, it will continue solving.
         'maxiter': 25, # maximum number of iterations
         'rtol': 1e-08, # relative error tolerance
         'use_aitken': True, # set to True to use Aitken

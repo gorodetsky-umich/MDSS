@@ -84,7 +84,7 @@ class Top(Multipoint):
             ################################################################################
             aero_builder = ADflowBuilder(self.sim_info['aero_options'], scenario="aerostructural")
             aero_builder.initialize(self.comm)
-            aero_builder.err_on_convergence_fail = True
+            aero_builder.err_on_convergence_fail = False
             self.add_subsystem("mesh_aero", aero_builder.get_mesh_coordinate_subsystem())
             ################################################################################
             # TACS Setup
