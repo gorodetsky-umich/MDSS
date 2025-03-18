@@ -156,17 +156,25 @@ class Top(Multipoint):
     def configure(self): # Set Angle of attack
         super().configure() # Updates solver options to the problem
         scenario_attr = getattr(self, self.sim_info['scenario_name']) # get a common atrribute for scenarios
+        ################################################################################
+        # Aeroproblem setup
+        ################################################################################
         aoa = 0.0 # Set Angle of attack. Will be changed when running the problem
-        ap = AeroProblem(
-            name=self.sim_info['scenario_name'],
-            # Experimental Conditions 
-            mach = self.sim_info['mach'], reynolds=self.sim_info['Re'], reynoldsLength=self.sim_info['chordRef'], T=self.sim_info['Temp'],
-            # Geometry Info
-            alpha=aoa, 
-            areaRef=self.sim_info['areaRef'],
-            chordRef=self.sim_info['chordRef'],
-            evalFuncs=["cl", "cd"],
-        )
+        ap_inputs = {
+            'alpha': aoa, 
+            'reynoldsLength': self.sim_info['chordRef'],
+            'chordRef': self.sim_info['chordRef'],
+            'areaRef': self.sim_info['areaRef'],
+            'eval_funcs': ['cl', 'cd']
+        }
+        # Define arguments required for aero problem
+        add_ap_args = {'name', 'mach', 'altitude', 'reynolds', 'reynoldsLength', 'T', 'rho', 'P', 'V'}
+        # Update ap_inputs with filtered values, converting everything except 'name' to float
+        ap_inputs.update({
+            key: float(self.sim_info['scenario_info'][key]) if key != "name" else self.sim_info['scenario_info'][key]
+            for key in add_ap_args if key in self.sim_info['scenario_info']
+        })
+        ap = AeroProblem(**ap_inputs)
         ap.addDV("alpha", value=aoa, name="aoa", units="deg")
 
         if self.problem_type == ProblemType.AEROSTRUCTURAL:
@@ -213,7 +221,14 @@ def run_problem(case_info_fpath, scenario_info_fpath, ref_level_dir, aoa_csv_str
         structural_properties.update(default_struct_properties.copy()) # Assign default structural properties
         structural_properties.update(case_info['struct_options']['struct_properties']) # Update default with user given values
         laod_info.update(case_info['struct_options']['load_info']) # Update load info with user given values
-        solver_options.update(case_info['struct_options']['solver_options']) # Update solver optiuons with user given values
+        try:
+            solver_options['linear_solver_options'].update(case_info['struct_options']['solver_options']['linear_solver_options']) # Update solver options with user given values
+        except:
+            pass
+        try:
+            solver_options['nonlinear_solver_options'].update(case_info['struct_options']['solver_options']['nonlinear_solver_options'])
+        except:
+            pass
         try:
             isym = case_info['struct_options']['isym']
         except:
@@ -233,9 +248,7 @@ def run_problem(case_info_fpath, scenario_info_fpath, ref_level_dir, aoa_csv_str
             'aero_options': aero_options,
             'chordRef': geometry_info['chordRef'],
             'areaRef': geometry_info['areaRef'],
-            'mach': scenario_info['mach'],
-            'Re': scenario_info['Re'],
-            'Temp': scenario_info['Temp'],
+            'scenario_info': scenario_info,
             
             # Add Structural Info
             'isym': isym,
@@ -245,7 +258,7 @@ def run_problem(case_info_fpath, scenario_info_fpath, ref_level_dir, aoa_csv_str
             'load_info': laod_info,
             'solver_options': solver_options,
         }
-    
+    print(solver_options)
     ################################################################################
     # OpenMDAO setup
     ################################################################################

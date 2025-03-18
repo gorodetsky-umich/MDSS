@@ -134,8 +134,6 @@ class run_sim():
                         print(f"{'Hierarchy':<20}: {hierarchy_info['name']}")
                         print(f"{'Case Name':<20}: {case_info['name']}")
                         print(f"{'Scenario':<20}: {scenario_info['name']}")
-                        print(f"{'Reynolds Number (Re)':<20}: {scenario_info['Re']}")
-                        print(f"{'Mach Number':<20}: {scenario_info['mach']}")
                         print(f"{'=' * 30}")
                     
                     # Extract the Angle of attacks for which the simulation has to be run

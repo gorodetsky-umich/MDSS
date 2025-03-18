@@ -33,7 +33,7 @@ hierarchies:
       aoa_list:
       - 0
       - 5
-      Re: 1000000.0
+      reynolds: 1000000.0
       mach: 0.7
-      Temp: 298.0
+      T: 298.0
       exp_data: ../exp_data/naca0012.txt

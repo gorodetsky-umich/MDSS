@@ -1,5 +1,6 @@
 # This is a yaml configuration file to aid yaml file validation using pydantic
-from pydantic import BaseModel
+from pydantic import BaseModel, model_validator, ValidationError
+from typing import Optional
 
 class ref_sim_info(BaseModel):
     hierarchies: list[dict]
@@ -37,10 +38,40 @@ class ref_geometry_info(BaseModel):
 class ref_scenario_info(BaseModel):
     name: str
     aoa_list: list[float]
-    Re: float
-    mach: float
-    Temp: float
-    exp_data: str=None
+    mach: Optional[float] = None
+    altitude: Optional[float] = None
+    reynolds: Optional[float] = None
+    T: Optional[float] = None
+    P: Optional[float] = None
+    rho: Optional[float] = None
+    V: Optional[float] = None
+    exp_data: Optional[str] = None
+
+    @model_validator(mode='before')
+    def check_valid_conditions(cls, values):
+        # Define valid parameter combinations
+        valid_combinations = [
+            {'mach', 'altitude'},
+            {'mach', 'reynolds', 'T'},
+            {'V', 'reynolds', 'T'},
+            {'mach', 'T', 'P'},
+            {'mach', 'T', 'rho'},
+            {'mach', 'P', 'rho'},
+            {'V', 'rho', 'T'},
+            {'V', 'rho', 'P'},
+            {'V', 'T', 'P'}
+        ]
+
+        # Extract provided parameters
+        provided_params = {key for key, value in values.items() if value is not None}
+
+        # Check if provided parameters match any valid combination
+        if not any(combination <= provided_params for combination in valid_combinations):
+            raise ValueError(
+                f"Invalid parameter combination: {provided_params}. "
+                f"Must match one of the following combinations: {valid_combinations}"
+            )
+        return values
 
 ################################################################################
 # Aerostructural Specific
