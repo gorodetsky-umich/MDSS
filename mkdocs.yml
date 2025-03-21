@@ -1,8 +1,9 @@
-site_name: Multi-Disciplinary Simulation Suite (MDSS)
+site_name: Multi-Disciplinary Simulation Suite
 repo_url: https://github.com/gorodetsky-umich/mdss.git
 repo_name: mdss
 theme:
   name: material
+  logo: assets/logo.svg
   features:
     - navigation.tabs
     - navigation.sections
@@ -21,13 +22,13 @@ theme:
       toggle:
         icon: material/toggle-switch-off-outline 
         name: Switch to dark mode
-      primary: blue grey
+      primary: indigo
       accent: blue
     - scheme: slate 
       toggle:
         icon: material/toggle-switch
         name: Switch to light mode    
-      primary: blue grey
+      primary: indigo
       accent: blue
 
 
@@ -56,7 +57,7 @@ nav:
     - outputs: tutorials/outputs.md
     - Usage: tutorials/usage.md
     - Test Cases: tutorials/test_cases.md
-  - Source Overview: reference/
+  - Source Documentation: reference/
   - Additional Information: additionalInfo.md
 
 markdown_extensions:
@@ -75,4 +76,4 @@ markdown_extensions:
   - md_in_html
 
 extra_css:
-  - styles/extra.css
+  - assets/extra.css

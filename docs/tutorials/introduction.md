@@ -4,21 +4,20 @@ The `mdss` package is a Python-based tool designed to streamline the execution a
 This package is particularly suited for projects involving multiple configurations or test cases, ensuring that simulation results are stored and categorized systematically.
 
 ### Key Features
-- Automates the execution of multiple simulation cases.
-- Allows the user to choose to run the simulations as subprocesses.
-- Utilizes YAML configuration files for defining simulation parameters and organizing cases.
-- Stores simulation data in a structured directory hierarchy for ease of access and analysis.
-- Supports post-processing with methods for comparing results to experimental data and generating plots.
+- Automates the execution of multiple aerodynamic and aerostructural simulations in sequence, reducing manual intervention.
+- Streamlines simulation management using ADflow and TACS via Mphys and OpenMDAO.
+- Provides built-in utilities for comparison plots, modifying input files, and managing simulation results efficiently.
+- Enables efficient case setup and result storage for systematic analysis.
 
 ### Inputs
 
 The `mdss` package requires an **YAML Configuration File** as an input
 
-    **A YAML file specifying:**
+**A YAML file specifying:**
 
-    - Simulation hierarchy.
-    - Mesh files and solver parameters.
-    - Experimental conditions (e.g., Reynolds number, Mach number, and angle of attack).
+- Simulation hierarchy.
+- Mesh files and solver parameters.
+- Scenarios (e.g., Reynolds number, Mach number, and angle of attack).
 
 ### Outputs
 
@@ -26,7 +25,7 @@ The outputs of `mdss` are stored in directories organized according to the simul
 
 1. **Simulation Data:**
 
-    Results such as C_L, C_D, and Wall Time are saved in CSV and YAML formats.
+    Results such as C<sub>L</sub>, C<sub>D</sub>, and Wall Time are saved in CSV and YAML formats.
 
 2. **Hierarchical Directory Structure:**
 
@@ -41,7 +40,7 @@ The outputs of `mdss` are stored in directories organized according to the simul
 The package organizes simulation data into a clear and logical hierarchy. An example of this structure, that has been used in the tutorials is shown below:
 
 ```
-Aero Problem
+Project
     |
     |---- 2D Clean
     |       |
@@ -56,12 +55,16 @@ Aero Problem
     |       |---- NASA CRM clean Configuration
     |
     |---- 3D High-Lift
+    |       |
+    |       |---- DLR High-Lift Configuration
+    |
+    |---- 3D Wing-Aerostructural
             |
-            |---- DLR High-Lift Configuration
+            |---- Mach Aero Wing
 ```
 Explanation of the Hierarchy:
 
-1. **Aero Problem:** Categorizes the type of aerodynamic analysis, such as clean flow or high-lift studies, in 2D or 3D configurations.
+1. **Project:** Categorizes the type of aerodynamic and aerostructural analysis, such as clean flow or high-lift studies, in 2D or 3D configurations.
 
 2. **2D Clean:** Simulations for 2D configurations without high-lift devices (e.g., NACA 0012 airfoil).
 
@@ -70,3 +73,5 @@ Explanation of the Hierarchy:
 4. **3D Clean:** Simulations for 3D configurations without high-lift devices (e.g., NASA Common Research Model Clean Configuration).
 
 5. **3D High-Lift:** Simulations for 3D configurations with high-lift devices (e.g., DLR High-Lift Configuration).
+
+6. **3D Wing-Aerostructural:** Aerostructural simulations of a wing (e.g., the Mach Aero Wing used in tutorials in MACH AERO framework of the mdolab).

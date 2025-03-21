@@ -13,7 +13,8 @@ The framework requires tools developed by NASA (OpenMDAO and MPhys) and the MDO 
 - [`IDWarp`](https://github.com/mdolab/idwarp)
 - [`ADflow`](https://github.com/mdolab/adflow)
 - [`pyOptSparse`](https://github.com/mdolab/pyoptsparse)
-- `TACS` (optional)
+- [`TACS`](https://github.com/smdogroup/tacs) (Required for aerostructural simulations)
+- [`funtofem`](https://github.com/smdogroup/funtofem) (Required for aerostructural simulations)
 
 These software packages may have additional third-party dependencies like PETSc and OpenMPI. A detailed guide on the additional dependencies required is available [here](https://mdolab-mach-aero.readthedocs-hosted.com/en/latest/installInstructions/installFromScratch.html).
 
@@ -81,7 +82,7 @@ Docker is highly recommended for ease of installation:
 
 To manually install all dependencies, we will refer to the instructions found in the [Scratch Installation Guide](https://mdolab-mach-aero.readthedocs-hosted.com/en/latest/installInstructions/installFromScratch.html).
 
-(Sanjan needs tio fix the local install bash file, unable to identify issue with petsc. Will do soon.)
+(Sanjan needs to fix the local install bash file, unable to identify issue with petsc. Will do soon.)
 
 ### HPC Systems (Great Lakes)
 

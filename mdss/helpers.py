@@ -67,7 +67,7 @@ class MachineType(Enum):
 # Helper Functions
 ################################################################################
 def print_msg(msg, msg_type, comm=None):
-    '''
+    """
     Prints a formatted message
 
     Inputs
@@ -76,16 +76,39 @@ def print_msg(msg, msg_type, comm=None):
         Message to print.
     - **msg_type**: str
         Type of the message to print. Eg., notice, warning etc.,
-    - **comm**: MPI communicator
+    - **comm**: MPI communicator, optional
         An MPI communicator object to handle parallelism.
-    '''
-    if comm is None or comm.rank == 0 :
+    
+    Outputs
+    -------
+    **None**
+    """
+    if comm is None or comm.rank == 0:
         print(f"{'-'*50}")
         if msg_type is not None:
             print(f"{msg_type.upper():^50}")
             print(f"{'-'*50}")
         print(f"{msg}")
         print(f"{'-'*50}")
+
+def make_dir(dir_path, comm=None):
+    """
+    Checks if the directory already exists and create when it does not.
+
+    Inputs
+    ------
+    - **dir_path:** str,
+        Path to the directory to create.
+     - **comm**: MPI communicator, optional
+        An MPI communicator object to handle parallelism.
+
+    Outputs
+    -------
+    **None**
+    """
+    if not os.path.exists(dir_path): # Create the directory if it doesn't exist
+        if comm is None or comm.rank == 0:
+            os.makedirs(dir_path)
 
 def load_yaml_file(yaml_file, comm):
     """
@@ -199,8 +222,8 @@ def check_input_yaml(yaml_file):
             problem_type = case_info['problem']
             try:
                 problem_type = ProblemType.from_string(case_info['problem'])  # Convert string to enum
-            except ValueError as e:
-                print(e)
+            except ValueError:
+                raise ValueError(f"Invalid problem type: {case_info['problem']}")
 
             if problem_type == ProblemType.AEROSTRUCTURAL: # If the problem is aerostructural, validate structural properties and load info
                 # Check if modules required for aerostructural probelm is available.
@@ -268,11 +291,10 @@ def submit_job_on_hpc(sim_info, yaml_file_path, comm):
     out_file = os.path.join(out_dir, f"{hpc_info['job_name']}_job_out.txt")
     
     if hpc_info['cluster'] == 'GL':
-        # Set default time if not provided
-        job_time = hpc_info.get('time', '1:00:00')
+        job_time = hpc_info.get('time', '1:00:00')  # Set default time if not provided
         mem_per_cpu = hpc_info.get('mem_per_cpu', '1000m')
 
-        # Fill in the template with values from hpc_info and other parameters
+        # Fill in the template of the job script(can be found in `templates.py`) with values from hpc_info, provided by the user
         job_script = gl_job_script.format(
             job_name=hpc_info['job_name'],
             nodes=hpc_info['nodes'],
@@ -286,18 +308,16 @@ def submit_job_on_hpc(sim_info, yaml_file_path, comm):
             yaml_file_path=yaml_file_path
         )
         
-        # Define the path for the job script
-        job_script_path = os.path.join(out_dir, f"{hpc_info['job_name']}_job_file.sh")
+        job_script_path = os.path.join(out_dir, f"{hpc_info['job_name']}_job_file.sh") # Define the path for the job script
 
         if comm.rank==0:
-            with open(job_script_path, "w") as file: # Save the script to the specified file
+            with open(job_script_path, "w") as file: # Save the job script to be submitted on great lakes
                 file.write(job_script)
 
-            with open(python_fname, "w") as file: # Open the file in write mode
+            with open(python_fname, "w") as file: # Write the python file(can be found in `templates.py`) to be run using the above created job script.
                 file.write(python_code_for_hpc)
             
-            subprocess.run(["sbatch", job_script_path])
-
+            subprocess.run(["sbatch", job_script_path]) # Subprocess to submit the job script on Great Lakes
         return
     
 ################################################################################
@@ -310,7 +330,7 @@ def run_as_subprocess(sim_info, case_info_fpath, scenario_info_fpath, ref_out_di
     Inputs
     ------
     - **sim_info** : dict  
-        Dictionary containing simulation details, such as output directory, job name, and other metadata.
+        Dictionary containing simulation details, such as output directory, job name, and nproc.
     - **case_info_fpath** : str  
         Path to the case info yaml file
     - **scenario_info_fpath** : str  
