@@ -1,5 +1,5 @@
 out_dir: output
-hpc: 'no'
+machine_type: local
 nproc: 8
 hierarchies:
 - name: 2d_high_lift

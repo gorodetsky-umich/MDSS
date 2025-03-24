@@ -1,5 +1,5 @@
 out_dir: output
-hpc: 'no'
+machine_type: local
 nproc: 8
 hierarchies:
 - name: 3d_aerostruct
@@ -26,12 +26,16 @@ hierarchies:
       L2ConvergenceRel: 0.001
       nCycles: 10000
     struct_options:
-      isym: 2
+      isym: 1
+      t: 0.01
       mesh_fpath: ../grids/wingbox.bdf
-      struct_properties:
-        t: 0.01
+      properties:
+        ys: 400.0e6
       load_info:
-        load_type: cruise
+        g: 
+          - 0.0
+          - 10.0
+          - 0.0
       solver_options: 
         nonlinear_solver_options:
           maxiter: 30

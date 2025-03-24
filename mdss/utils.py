@@ -12,6 +12,7 @@ from typing import Optional, Literal
 
 from mdss.run_sim import run_sim
 from mdss.helpers import *
+from mdss.yaml_config import check_input_yaml
 
 
 comm = MPI.COMM_WORLD

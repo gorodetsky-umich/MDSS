@@ -4,7 +4,6 @@ import importlib.resources as resources
 import re
 from enum import Enum
 import os, subprocess, shutil
-import mdss.yaml_config as yc
 from mdss.templates import gl_job_script, python_code_for_subprocess, python_code_for_hpc
 
 ################################################################################
@@ -56,12 +55,12 @@ class MachineType(Enum):
         self.aliases = aliases
 
     @classmethod
-    def from_string(cls, problem_name):
+    def from_string(cls, machine_name):
         # Match a string to the correct enum member based on aliases
         for member in cls:
-            if problem_name in member.aliases:
+            if machine_name in member.aliases:
                 return member
-        raise ValueError(f"Unknown problem type: {problem_name}")
+        raise ValueError(f"Unknown machine type: {machine_name}")
 
 ################################################################################
 # Helper Functions
@@ -181,84 +180,6 @@ def load_csv_data(csv_file, comm):
             print(f"An unexpected error occurred: {e}")
     return None # In case of error, return none.
 
-def check_input_yaml(yaml_file):
-    """
-    Validates the structure of the input YAML file against predefined templates.
-
-    This function checks whether the input YAML file conforms to the expected template structure. It validates each section, including simulation, HPC, hierarchies, cases, and scenarios.
-
-    Inputs
-    ----------
-    - **yaml_file** : str
-        Path to the YAML file to be validated.
-
-    Outputs
-    ------
-    **ValidationError**
-        If the YAML file does not conform to the expected structure.
-
-    Notes
-    -----
-    - Uses `ref_sim_info`, `ref_hpc_info`, and other reference pydantic models listed in `yaml_config.py` for validation.
-    - Ensures hierarchical consistency by iterating through all levels of the YAML structure.
-    """
-    with open(yaml_file, 'r') as file:
-        sim_info = yaml.safe_load(file)
-
-    yc.ref_sim_info.model_validate(sim_info)
-
-    if sim_info['hpc'] == 'yes':
-        yc.ref_hpc_info.model_validate(sim_info['hpc_info'])
-    else:
-        if 'nproc' not in sim_info or not isinstance(sim_info['nproc'], int):
-            raise ValueError("Error: 'nproc' must be provided as an integer in sim_info when not running on HPC.")
-
-    for hierarchy, hierarchy_info in enumerate(sim_info['hierarchies']): # loop for Hierarchy level
-        yc.ref_hierarchy_info.model_validate(hierarchy_info)
-        for case, case_info in enumerate(hierarchy_info['cases']): # loop for cases in hierarchy
-            yc.ref_case_info.model_validate(case_info)
-            yc.ref_geometry_info.model_validate(case_info['geometry_info'])
-            # Assign problem type
-            problem_type = case_info['problem']
-            try:
-                problem_type = ProblemType.from_string(case_info['problem'])  # Convert string to enum
-            except ValueError:
-                raise ValueError(f"Invalid problem type: {case_info['problem']}")
-
-            if problem_type == ProblemType.AEROSTRUCTURAL: # If the problem is aerostructural, validate structural properties and load info
-                # Check if modules required for aerostructural probelm is available.
-                try:
-                    from tacs.mphys import TacsBuilder
-                    from funtofem.mphys import MeldBuilder
-                except ImportError:
-                    try:
-                        subprocess.run(
-                            f"{sim_info['python_version']} -c 'from tacs.mphys import TacsBuilder; from funtofem.mphys import MeldBuilder'", 
-                            shell=True, check=True
-                        )
-                    except:
-                        raise ModuleNotFoundError(
-                            "TACS and FuntoFEM packages are required for aerostructural problems. "
-                            "If available in another Python environment, specify its path in the input YAML under 'python_version'."
-                        )
-
-                struct_options = case_info['struct_options']
-                yc.ref_struct_options.model_validate(struct_options)
-                yc.ref_struct_properties.model_validate(struct_options['struct_properties'])
-                yc.ref_load_info.model_validate(struct_options['load_info'])
-                struct_mesh_file = case_info['struct_options']['mesh_fpath']
-                if not os.path.isfile(struct_mesh_file):
-                    raise FileNotFoundError(f"Structural Mesh: {struct_mesh_file} does not exist. Please provide a valid path")
-
-
-            for ii, mesh_file in enumerate(case_info['mesh_files']): # Loop for refinement levels to check if the grid files exist
-                aero_mesh_file  = os.path.join(os.path.abspath(case_info['meshes_folder_path']), mesh_file)
-                if not os.path.isfile(aero_mesh_file):
-                    raise FileNotFoundError(f"Aero Mesh: {aero_mesh_file} does not exist. Please provide a valid path")
-
-            for scenario, scenario_info in enumerate(case_info['scenarios']): # loop for scenarios that may present
-                yc.ref_scenario_info.model_validate(scenario_info)
-
 def submit_job_on_hpc(sim_info, yaml_file_path, comm):
     """
     Generates and submits job script on an HPC cluster.
@@ -364,6 +285,7 @@ def run_as_subprocess(sim_info, case_info_fpath, scenario_info_fpath, ref_out_di
     """
     out_dir = os.path.abspath(sim_info['out_dir'])
     python_fname = os.path.join(out_dir, "script_for_subprocess.py")
+    machine_type = MachineType.from_string(sim_info['machine_type'])
 
     if not os.path.exists(python_fname): # Saves the python script, that is used to run subprocess in the output directory, if the file do not exist already.
         if comm.rank==0:
@@ -380,11 +302,11 @@ def run_as_subprocess(sim_info, case_info_fpath, scenario_info_fpath, ref_out_di
     if comm.rank==0:
         print(f"{'-' * 30}")
         print(f"Starting subprocess for the following aoa: {aoa_csv_string}")
-        if sim_info['hpc'] != 'yes':
+        if machine_type==MachineType.LOCAL:
             nproc = sim_info['nproc']
             run_cmd = ['mpirun', '-np', str(nproc), python_version]
             
-        elif sim_info['hpc'] == 'yes':
+        elif machine_type==MachineType.HPC:
             run_cmd = ['srun', python_version]
         run_cmd.extend([python_fname, '--caseInfoFile', case_info_fpath, '--scenarioInfoFile', scenario_info_fpath, 
                 '--refLevelDir', ref_out_dir, '--aoaList', aoa_csv_string, '--aeroGrid', aero_grid_fpath, '--structMesh', struct_mesh_fpath])

@@ -1,5 +1,5 @@
 out_dir: output
-hpc: 'yes'
+machine_type: hpc
 hpc_info:
   cluster: GL
   job_name: naca0012

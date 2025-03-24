@@ -71,11 +71,7 @@ class Top(Multipoint):
     def __init__(self, sim_info):
         super().__init__()
         self.sim_info = sim_info
-        # Assign problem type
-        try:
-            self.problem_type = ProblemType.from_string(sim_info['problem'])  # Convert string to enum
-        except ValueError as e:
-            print(e)
+        self.problem_type = ProblemType.from_string(sim_info['problem'])  # Convert string to enum
 
     def setup(self):
         if self.problem_type == ProblemType.AEROSTRUCTURAL: # TACS setup only for aerostructural scenario
@@ -102,7 +98,7 @@ class Top(Multipoint):
             ################################################################################
             # Transfer Scheme Setup
             ################################################################################
-            isym = 1  # y-symmetry
+            isym = int(self.sim_info['isym'])  # y-symmetry
             ldxfer_builder = MeldBuilder(aero_builder, struct_builder, isym=isym)
             ldxfer_builder.initialize(self.comm)
 
@@ -165,7 +161,7 @@ class Top(Multipoint):
             'reynoldsLength': self.sim_info['chordRef'],
             'chordRef': self.sim_info['chordRef'],
             'areaRef': self.sim_info['areaRef'],
-            'eval_funcs': ['cl', 'cd']
+            'evalFuncs': ['cl', 'cd']
         }
         # Define arguments required for aero problem
         add_ap_args = {'name', 'mach', 'altitude', 'reynolds', 'reynoldsLength', 'T', 'rho', 'P', 'V'}
@@ -198,16 +194,11 @@ def run_problem(case_info_fpath, scenario_info_fpath, ref_level_dir, aoa_csv_str
     case_info = load_yaml_file(case_info_fpath, comm)
     scenario_info = load_yaml_file(scenario_info_fpath, comm)
     aoa_list = [float(x) for x in aoa_csv_str.split(',')]
-
-    # Assign problem type
-    try:
-        problem_type = ProblemType.from_string(case_info['problem'])  # Convert string to enum
-    except ValueError as e:
-        print(e)
+    problem_type = ProblemType.from_string(case_info['problem'])  # Convert string to enum
     
     # Initialize the structrual info dictionaries which remains empty for aerodynamic problems
     structural_properties = {}
-    laod_info = {}
+    load_info = {}
     solver_options = {}
     isym=None
 
@@ -216,30 +207,24 @@ def run_problem(case_info_fpath, scenario_info_fpath, ref_level_dir, aoa_csv_str
     if problem_type == ProblemType.AERODYNAMIC:
         aero_options = default_aero_options_aerodynamic.copy() # Assign default options for aerodynamic case
     elif problem_type == ProblemType.AEROSTRUCTURAL:
+        isym = case_info['struct_options']['isym']
         solver_options = default_solver_options
         aero_options = default_aero_options_aerostructural.copy() # Assign default aero_options for aerostructural case
         structural_properties.update(default_struct_properties.copy()) # Assign default structural properties
-        structural_properties.update(case_info['struct_options']['struct_properties']) # Update default with user given values
-        laod_info.update(case_info['struct_options']['load_info']) # Update load info with user given values
-        try:
-            solver_options['linear_solver_options'].update(case_info['struct_options']['solver_options']['linear_solver_options']) # Update solver options with user given values
-        except:
-            pass
-        try:
-            solver_options['nonlinear_solver_options'].update(case_info['struct_options']['solver_options']['nonlinear_solver_options'])
-        except:
-            pass
-        try:
-            isym = case_info['struct_options']['isym']
-        except:
-            isym = default_struct_options['isym']
-    try:
-        aero_options.update(case_info['aero_options']) # Update aero_options with user given values
-    except:
-        pass
+        load_info = default_load_info.copy()
+        structural_properties.update({'t': case_info['struct_options']['t']}) # Update thickness with user given values
+        # Update default values with user given data 
+        struct_options = case_info.get('struct_options', {})
+        structural_properties.update(struct_options.get('properties', {}))
+        load_info.update(struct_options.get('load_info', {}))
+        solver_options_updt = struct_options.get('solver_options', {})
+        solver_options['linear_solver_options'].update(solver_options_updt.get('linear_solver_options', {}))
+        solver_options['nonlinear_solver_options'].update(solver_options_updt.get('nonlinear_solver_options', {}))
+
     geometry_info = case_info['geometry_info']
 
-    # Update Grid file
+    # Update aero_options file
+    aero_options.update(case_info.get('aero_options', {}))
     aero_options['gridFile'] = aero_grid_fpath # Add aero_grid file path to aero_options
         
     sim_info = {
@@ -255,7 +240,7 @@ def run_problem(case_info_fpath, scenario_info_fpath, ref_level_dir, aoa_csv_str
             'tacs_out_dir': ref_level_dir,
             'struct_mesh_fpath': struct_mesh_fpath,
             'structural_properties': structural_properties,
-            'load_info': laod_info,
+            'load_info': load_info,
             'solver_options': solver_options,
         }
     print(solver_options)
@@ -321,11 +306,7 @@ def run_problem(case_info_fpath, scenario_info_fpath, ref_level_dir, aoa_csv_str
             'case':case_info['name'],
             'problem': case_info['problem'],
             'aero_mesh_fpath': aero_grid_fpath,
-            'scenario_info': {
-                'Re': scenario_info['Re'],
-                'mach': scenario_info['mach'],
-                'Temp': scenario_info['Temp'],
-                },
+            'scenario_info': scenario_info,
             'cl': float(prob[f"{sim_info['scenario_name']}.aero_post.cl"][0]),
             'cd': float(prob[f"{sim_info['scenario_name']}.aero_post.cd"][0]),
             'wall_time': f"{aoa_run_time:.2f} sec",
@@ -340,7 +321,7 @@ def run_problem(case_info_fpath, scenario_info_fpath, ref_level_dir, aoa_csv_str
             struct_info_dict = {
                 'struct_mesh_fpath': struct_mesh_fpath,
                 'structural_properties': structural_properties,
-                'load_info': laod_info,
+                'load_info': load_info,
                 'solver_options': solver_options
             }
             aoa_out_dic.update(struct_info_dict)

@@ -11,6 +11,7 @@ import matplotlib.cm as cm
 from mpi4py import MPI
 
 from mdss.helpers import *
+from mdss.yaml_config import check_input_yaml
 from mdss.aerostruct import run_problem as run_aerostructural
 
 comm = MPI.COMM_WORLD
@@ -27,7 +28,7 @@ class run_sim():
         Sets up and runs the OpenMDAO problem for all hierarchies, cases, and refinement levels in subprocesses.
 
     **run()**
-        Helps to execute the simulation on either a local machine or an HPC system.
+        Helps to execute the simulation on either a local machine or an HPC.
 
     **post_process()**
         Generates plots comparing experimental data (if available) with ADflow simulation results.
@@ -49,6 +50,7 @@ class run_sim():
         self.out_dir = os.path.abspath(self.sim_info['out_dir'])
         self.final_out_file = os.path.join(self.out_dir, "overall_sim_info.yaml") # Setting the overall simulation info file.
         self.subprocess_flag = 1
+        self.machine_type = MachineType.from_string(self.sim_info['machine_type'])  # Convert string to enum
         
 
         # Create the output directory if it doesn't exist
@@ -260,20 +262,20 @@ class run_sim():
     ################################################################################
     def run(self):
         """
-        Executes the simulation on either a local machine or an HPC system. 
+        Executes the simulation on either a local machine or an HPC. 
 
-        This method checks the simulation settings from the input YAML file. Based on the `hpc` flag, it either runs the simulation locally or generates an HPC job script for execution.
+        This method checks the simulation settings from the input YAML file. Based on the machine_type, it either runs the simulation locally or generates an HPC job script for execution.
 
         Notes
         -----
-        - For local execution (`hpc: no`), it directly calls `run_problem()`.
-        - For HPC execution (`hpc: yes`), it creates a Python file and a job script, then submits the job.
+        - For local execution, it directly calls `run_problem()`.
+        - For HPC execution, it creates a Python file and a job script, then submits the job.
         """
         sim_info_copy = copy.deepcopy(self.sim_info)
-        if sim_info_copy['hpc'] == "no": # Running on a local machine
+        if self.machine_type == MachineType.LOCAL: # Running on a local machine
             self.run_problem()
 
-        elif sim_info_copy['hpc'] == "yes": # Running on a HPC currently supports Great Lakes.
+        elif self.machine_type == MachineType.HPC: # Running on a HPC currently supports Great Lakes.
             submit_job_on_hpc(sim_info_copy, self.info_file, comm) # Submit job script
 
             

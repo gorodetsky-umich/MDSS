@@ -89,9 +89,6 @@ default_struct_properties = {
     'nu': 0.30,         # Poisson's ratio
     'kcorr': 5.0/6.0,   # Shear correction factor
     'ys': 350.0e6,      # Yeild stress
-
-    # Shell Thickness
-    't': 0.01,          # in m
 }
 
 ################################################################################
@@ -121,6 +118,14 @@ default_solver_options = {
 ################################################################################
 default_struct_options = {
     'iysm': 1, # y-symmetry
+}
+
+################################################################################
+# Default load info for aerostructural problems
+################################################################################
+default_load_info = {
+    'g': [0.0, -9.81, 0.0], # acceleration due to gravity in m/s^2
+    'inertial_load_factor': 1.0 # inertial load factor, times of 'g'
 }
 
 ################################################################################
