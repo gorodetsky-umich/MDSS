@@ -165,6 +165,14 @@ def load_csv_data(csv_file, comm):
 """
     try:
         df = pd.read_csv(csv_file)
+        df.columns = df.columns.str.strip()  # Remove extra whitespace in column names
+        for col in ['Alpha', 'CL', 'CD']:
+            if col in df.columns:
+                df[col] = pd.to_numeric(df[col], errors='coerce')
+        # Drop rows that have NaN in any of the expected columns
+        required_cols = [col for col in ['Alpha', 'CL', 'CD'] if col in df.columns]
+        df = df.dropna(subset=required_cols)
+
         return df
     except FileNotFoundError:
         if comm.rank == 0:
@@ -244,7 +252,7 @@ def submit_job_on_hpc(sim_info, yaml_file_path, comm):
 ################################################################################
 # Helper Functions for running the simulations as subprocesses
 ################################################################################
-def run_as_subprocess(sim_info, case_info_fpath, scenario_info_fpath, ref_out_dir, aoa_csv_string, aero_grid_fpath, comm, struct_mesh_fpath=None):
+def run_as_subprocess(sim_info, case_info_fpath, scenario_info_fpath, ref_out_dir, aoa_csv_string, aero_grid_fpath, struct_mesh_fpath, comm, record_flag=False):
     """
     Executes a set of Angles of Attack using mpirun for local machine and srun for HPC(Great Lakes).
 
@@ -261,13 +269,13 @@ def run_as_subprocess(sim_info, case_info_fpath, scenario_info_fpath, ref_out_di
     - **aoa_csv_string** : str 
         A list of angles of attack, in the form of csv string, that to be simulated in this subprocess
     - **aero_grid_fpath** : 
-        Path to the aero grid file that to be used for this simulation
-    - **nproc** : int  
-        Number of processors to use for the subprocess execution.
+        Path to the aero grid file that to be used for this simulation.
+    - **struct_mesh_fpath**: str
+        Path to the structural mesh file that to be used. Pass str(None) when running aero problem.
     - **comm** : MPI communicator  
         An MPI communicator object to handle parallelism.
-    - **struct_mesh_fpath**: str
-        Path to the structural mesh file that to be used. Required only for aerostructural problems.
+    - **record_flag**: bool=False, Optional
+        Optional flag, strores ouput of the subprocess in a text file.
 
     Outputs
     -------
@@ -286,6 +294,8 @@ def run_as_subprocess(sim_info, case_info_fpath, scenario_info_fpath, ref_out_di
     out_dir = os.path.abspath(sim_info['out_dir'])
     python_fname = os.path.join(out_dir, "script_for_subprocess.py")
     machine_type = MachineType.from_string(sim_info['machine_type'])
+    subprocess_out_file = os.path.join(os.path.dirname(scenario_info_fpath), "subprocess_out.txt")
+    shell = False
 
     if not os.path.exists(python_fname): # Saves the python script, that is used to run subprocess in the output directory, if the file do not exist already.
         if comm.rank==0:
@@ -310,16 +320,21 @@ def run_as_subprocess(sim_info, case_info_fpath, scenario_info_fpath, ref_out_di
             run_cmd = ['srun', python_version]
         run_cmd.extend([python_fname, '--caseInfoFile', case_info_fpath, '--scenarioInfoFile', scenario_info_fpath, 
                 '--refLevelDir', ref_out_dir, '--aoaList', aoa_csv_string, '--aeroGrid', aero_grid_fpath, '--structMesh', struct_mesh_fpath])
+
         p = subprocess.Popen(run_cmd, 
             env=env,
             stdout=subprocess.PIPE,  # Capture standard output
             stderr=subprocess.PIPE,  # Capture standard error
-            text=True  # Ensure output is in text format, not bytes
+            text=True,  # Ensure output is in text format, not bytes
             )
         
         # Read and print the output and error messages
         stdout, stderr = p.communicate()
-
+        # Write output to file manually
+        if record_flag is True:
+            with open(subprocess_out_file, 'a') as f:
+                f.write(stdout)
+                f.write(stderr)
         # Print subprocess outptut
         print("Subprocess Output:", stdout)
         print("Subprocess Error:", stderr)
@@ -374,12 +389,12 @@ class update_om_instance:
     
     def aero_options(self, new_aero_options):
         # Currently do not work
-        '''
+        """
         Inputs:
         -------
         - **new_aero_options**: dict
             New aero_options to update
-        '''
+        """
         if self.problem_type == ProblemType.AERODYNAMIC:
             self.scenario_attr.aero_post.options['solver'].options.update(new_aero_options)
         elif self.problem_type == ProblemType.AEROSTRUCTURAL:
@@ -391,7 +406,136 @@ class update_om_instance:
                 except:
                     print_msg(f"{key} not found", 'warning')
 
+################################################################################
+# Function to perform deep update
+################################################################################
+def deep_update(base_dict, update_dict):
+    """
+    Recursively updates the base_dict with values from update_dict.
 
+    For keys present in both dictionaries:
+        - If the values are both dicts, perform a recursive deep update.
+        - Otherwise, the value from `update_dict` overwrites the one in `base_dict`.
 
+    Inputs:
+    -------
+    - base_dict: dict
+        The dictionary to be updated.
+    - update_dict: dict
+        The dictionary whose values will be merged into base_dict.
+    """
+    for key, value in update_dict.items():
+        if key in base_dict:
+            # Handle dict of dicts
+            if isinstance(base_dict[key], dict) and isinstance(value, dict):
+                deep_update(base_dict[key], value)
+            # Handle list of dicts with 'name' keys
+            elif isinstance(base_dict[key], list) and isinstance(value, list):
+                if all(isinstance(i, dict) for i in base_dict[key] + value):
+                    # Merge list items based on 'name' key
+                    base_items = {item['name']: item for item in base_dict[key]}
+                    for item in value:
+                        name = item['name']
+                        if name in base_items:
+                            deep_update(base_items[name], item)
+                        else:
+                            base_dict[key].append(item)
+                else:
+                    base_dict[key] = value  # fallback
+            else:
+                base_dict[key] = value
+        else:
+            base_dict[key] = value
+
+################################################################################
+# Additional Data Types
+################################################################################
+class DeepDict(dict):
+    """
+    A subclass of Python's built-in dict that supports recursive (deep) updates
+    and merging of nested dictionaries.
+
+    This class provides a `deep_update` method that merges nested dictionaries
+    without overwriting inner dictionaries, as well as a static `merge` method
+    and support for the `+` operator to perform deep merging.
+
+    Example:
+    --------
+
+        >>> d1 = DeepDict({'a': {'x': 1}, 'b': 2})
+        >>> d2 = {'a': {'y': 3}, 'c': 4}
+        >>> d1.deep_update(d2)
+        >>> print(d1)
+        {'a': {'x': 1, 'y': 3}, 'b': 2, 'c': 4}
+
+        >>> d3 = DeepDict({'p': {'q': 1}})
+        >>> d4 = {'p': {'r': 2}}
+        >>> merged = d3 + d4
+        >>> print(merged)
+        {'p': {'q': 1, 'r': 2}}
+    """
+
+    def deep_update(self, other):
+        """
+        Recursively updates the dictionary with another dictionary.
+
+        For keys present in both dictionaries:
+            - If the values are both dicts, perform a recursive deep update.
+            - Otherwise, the value from `other` overwrites the one in `self`.
+
+        Inputs:
+        -------
+        - *other*: dict
+            Dictionary to merge into this one.
+        """
+        for key, value in other.items():
+            if (
+                key in self and isinstance(self[key], dict)
+                and isinstance(value, dict)
+            ):
+                if not isinstance(self[key], DeepDict):
+                    self[key] = DeepDict(self[key])
+                self[key].deep_update(value)
+            else:
+                self[key] = value
+
+    @staticmethod
+    def merge(dict1, dict2):
+        """
+        Returns a new DeepDict that is the deep merge of `dict1` and `dict2`.
+
+        The original dictionaries remain unmodified.
+
+        Inputs:
+        -------
+        - *dict1*: dict
+            The base dictionary.
+        - *dict12*: dict
+            The dictionary to merge into the base.
+
+        Outputs:
+        --------
+        - *DeepDict*: A new dictionary that is the deep merge of both.
+        """
+        result = DeepDict(dict1)
+        result.deep_update(dict2)
+        return result
+
+    def __add__(self, other):
+        """
+        Implements the + operator to perform a deep merge of two dictionaries.
+
+        Inputs:
+        -------
+        - *other*: dict
+            The dictionary to merge with.
+
+        Outputs:
+        --------
+        - *DeepDict*: A new DeepDict instance with the merged contents.
+        """
+        if not isinstance(other, dict):
+            raise TypeError("Can only add another dict or DeepDict")
+        return DeepDict.merge(self, other)
 
         

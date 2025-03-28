@@ -58,23 +58,19 @@ hierarchies: # list, List of hierarchies
     ##########################################################################
     struct_options: # dict, structural options,
       isym: # int, direction of symmetry
+      t: # float, Shell Thickness in m
       mesh_fpath: # str, path to the structural mesh file
       struct_properties: # dict, a dictionary containing structural properties
         # Material Properties
-        'rho': # float, Density in kg/m^3
-        'E': # float, Young's modulus in N/m^2
-        'nu': # float, Poisson's ratio
-        'kcorr': # float, Shear correction factor
-        'ys': # float, Yeild stress in N/m^2
+        rho: # float, Density in kg/m^3
+        E: # float, Young's modulus in N/m^2
+        nu: # float, Poisson's ratio
+        kcorr: # float, Shear correction factor
+        ys: # float, Yeild stress in N/m^2
 
-        # thickness
-        't': # float, Shell Thickness in m
-      
       load_info: # dict, 
-        load_type: # str, type of the load cruise/maneuver
-        turn_off_gravity: # str, yes/no
         g: # list, g-vector in m/s^2, the default is [0, -9.81, 0]
-        inertial_load_factor: # float, times of 'g', required only if load type is maneuver
+        inertial_load_factor: # float, times of 'g'.
 
       solver_options: # dict, solver options for coupling. Check solver options section for more info
 

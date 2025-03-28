@@ -243,7 +243,6 @@ def run_problem(case_info_fpath, scenario_info_fpath, ref_level_dir, aoa_csv_str
             'load_info': load_info,
             'solver_options': solver_options,
         }
-    print(solver_options)
     ################################################################################
     # OpenMDAO setup
     ################################################################################

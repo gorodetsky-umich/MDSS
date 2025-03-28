@@ -50,10 +50,7 @@ class ref_scenario_info(BaseModel):
 
         # Check if provided parameters match any valid combination
         if not any(combination <= provided_params for combination in valid_combinations):
-            raise ValidationError(
-                f"Invalid parameter combination: {provided_params}. "
-                f"Must match one of the following combinations: {valid_combinations}"
-            )
+            raise ValueError(f"Invalid parameter combination: {provided_params}.\nMust match one of the following combinations: {valid_combinations}")
         return values
 
 ################################################################################

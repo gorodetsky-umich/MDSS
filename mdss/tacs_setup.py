@@ -11,8 +11,6 @@ class tacs_setup():
 
     # Callback function used to setup TACS element objects and DVs
     def element_callback(self, dvNum, compID, compDescript, elemDescripts, specialDVs, **kwargs):
-        #print(self.structural_properties)
-        print(self.load_info)
         # Get Structural Properties
         # Material properties
         rho = self.structural_properties['rho']     # density (kg/m^3)
