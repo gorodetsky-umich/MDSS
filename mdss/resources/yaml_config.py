@@ -6,7 +6,8 @@ import os
 import subprocess
 import niceplots
 
-from mdss.helpers import ProblemType, MachineType
+from mdss.utils.helpers import ProblemType, MachineType
+
 class ref_hpc_info(BaseModel):
     cluster: str
     job_name: str
@@ -186,7 +187,6 @@ class ref_plot_options(BaseModel):
             )
         return values
 
-
 def check_input_yaml(yaml_file):
     """
     Validates the structure of the input YAML file against predefined templates.
@@ -211,6 +211,4 @@ def check_input_yaml(yaml_file):
     with open(yaml_file, 'r') as file:
         sim_info = yaml.safe_load(file)
     
-    ref_sim_info.model_validate(sim_info)
-                
-                
+    ref_sim_info.model_validate(sim_info)               

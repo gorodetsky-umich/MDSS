@@ -10,9 +10,9 @@ import random
 from pydantic import BaseModel
 from typing import Optional, Literal
 
-from mdss.run_sim import run_sim
-from mdss.helpers import *
-from mdss.yaml_config import check_input_yaml
+from mdss.src.main import simulation
+from mdss.utils.helpers import *
+from mdss.resources.yaml_config import check_input_yaml
 
 
 comm = MPI.COMM_WORLD
@@ -350,7 +350,7 @@ def run_case(case, case_info):
     comm.Barrier()
 
     # Execute simulation
-    sim = run_sim(new_input_file)
+    sim = simulation(new_input_file)
     sim.run()
     sim_data = get_sim_data(new_input_file, run_flag=RunFlag.skip)
 
@@ -521,7 +521,7 @@ class run_custom_sim():
 
         comm.Barrier()
         # Execute simulation
-        sim = run_sim(new_input_file)
+        sim = simulation(new_input_file)
         sim.subprocess_flag = 0 
         sim.run()
         sim_data = get_sim_data(new_input_file)

@@ -1,10 +1,7 @@
-import yaml
+# Imports
+import yaml, os
 import pandas as pd
-import importlib.resources as resources
-import re
 from enum import Enum
-import os, subprocess, shutil
-from mdss.templates import gl_job_script, python_code_for_subprocess, python_code_for_hpc
 
 ################################################################################
 # Problem types as enum
@@ -187,162 +184,7 @@ def load_csv_data(csv_file, comm):
         if comm.rank == 0:
             print(f"An unexpected error occurred: {e}")
     return None # In case of error, return none.
-
-def submit_job_on_hpc(sim_info, yaml_file_path, comm):
-    """
-    Generates and submits job script on an HPC cluster.
-
-    This function reads a slurm job script template, updates it with specific HPC parameters and file paths, saves the customized script to the output directory, and submits the job on the HPC cluster.
-
-    Inputs
-    ------
-    - **sim_info** : dict
-        Dictionary containing simulation details details.
-    - **yaml_file_path** : str
-        Path to the YAML file containing simulation information.
-    - **comm** : MPI communicator  
-        An MPI communicator object to handle parallelism.
-
-
-    Outputs
-    -------
-    - **None**
-
-    Notes
-    -----
-    - Supports customization for the GL cluster with Slurm job scheduling.
-    - Uses regex to update the job script with provided parameters.
-    - Ensures that the correct Python and YAML file paths are embedded in the job script.
-    """
-    out_dir = os.path.abspath(sim_info['out_dir'])
-    hpc_info = sim_info['hpc_info'] # Extract HPC info
-    python_fname = os.path.join(out_dir, "run_sim.py") # Python script to be run on on HPC
-    out_file = os.path.join(out_dir, f"{hpc_info['job_name']}_job_out.txt")
     
-    if hpc_info['cluster'] == 'GL':
-        job_time = hpc_info.get('time', '1:00:00')  # Set default time if not provided
-        mem_per_cpu = hpc_info.get('mem_per_cpu', '1000m')
-
-        # Fill in the template of the job script(can be found in `templates.py`) with values from hpc_info, provided by the user
-        job_script = gl_job_script.format(
-            job_name=hpc_info['job_name'],
-            nodes=hpc_info['nodes'],
-            nproc=hpc_info['nproc'],
-            mem_per_cpu=mem_per_cpu,
-            time=job_time,
-            account_name=hpc_info['account_name'],
-            email_id=hpc_info['email_id'],
-            out_file=out_file,
-            python_file_path=python_fname,
-            yaml_file_path=yaml_file_path
-        )
-        
-        job_script_path = os.path.join(out_dir, f"{hpc_info['job_name']}_job_file.sh") # Define the path for the job script
-
-        if comm.rank==0:
-            with open(job_script_path, "w") as file: # Save the job script to be submitted on great lakes
-                file.write(job_script)
-
-            with open(python_fname, "w") as file: # Write the python file(can be found in `templates.py`) to be run using the above created job script.
-                file.write(python_code_for_hpc)
-            
-            subprocess.run(["sbatch", job_script_path]) # Subprocess to submit the job script on Great Lakes
-        return
-    
-################################################################################
-# Helper Functions for running the simulations as subprocesses
-################################################################################
-def run_as_subprocess(sim_info, case_info_fpath, scenario_info_fpath, ref_out_dir, aoa_csv_string, aero_grid_fpath, struct_mesh_fpath, comm, record_flag=False):
-    """
-    Executes a set of Angles of Attack using mpirun for local machine and srun for HPC(Great Lakes).
-
-    Inputs
-    ------
-    - **sim_info** : dict  
-        Dictionary containing simulation details, such as output directory, job name, and nproc.
-    - **case_info_fpath** : str  
-        Path to the case info yaml file
-    - **scenario_info_fpath** : str  
-        Path to the scenario info yaml file
-    - **ref_out_dir** : str  
-        Path to the refinement level directory
-    - **aoa_csv_string** : str 
-        A list of angles of attack, in the form of csv string, that to be simulated in this subprocess
-    - **aero_grid_fpath** : 
-        Path to the aero grid file that to be used for this simulation.
-    - **struct_mesh_fpath**: str
-        Path to the structural mesh file that to be used. Pass str(None) when running aero problem.
-    - **comm** : MPI communicator  
-        An MPI communicator object to handle parallelism.
-    - **record_flag**: bool=False, Optional
-        Optional flag, strores ouput of the subprocess in a text file.
-
-    Outputs
-    -------
-    - **None**  
-        This function does not return any value but performs the following actions:
-        1. Creates necessary directories and input files.
-        2. Launches a subprocess to execute the simulation using `mpirun` or `srun`.
-        3. Prints standard output and error logs from the subprocess for debugging.
-
-    Notes
-    -----
-    - The function ensures the proper setup of the simulation environment for the given angle of attack.
-    - The generated Python script and YAML input file are specific to each simulation run.
-    - Captures and displays `stdout` and `stderr` from the subprocess for troubleshooting.
-    """
-    out_dir = os.path.abspath(sim_info['out_dir'])
-    python_fname = os.path.join(out_dir, "script_for_subprocess.py")
-    machine_type = MachineType.from_string(sim_info['machine_type'])
-    subprocess_out_file = os.path.join(os.path.dirname(scenario_info_fpath), "subprocess_out.txt")
-    shell = False
-
-    if not os.path.exists(python_fname): # Saves the python script, that is used to run subprocess in the output directory, if the file do not exist already.
-        if comm.rank==0:
-            with open(python_fname, "w") as file: # Open the file in write mode
-                file.write(python_code_for_subprocess)
-
-    env = os.environ.copy()
-    
-    python_version = sim_info.get('python_version', 'python') # Update python with user defined version or defaults to current python version
-    if shutil.which(python_version) is None: # Check if the python executable exists
-        python_version = 'python'
-        if comm.rank == 0:
-            print(f"Warning: {python_version} not found! Falling back to default 'python'.")
-    if comm.rank==0:
-        print(f"{'-' * 30}")
-        print(f"Starting subprocess for the following aoa: {aoa_csv_string}")
-        if machine_type==MachineType.LOCAL:
-            nproc = sim_info['nproc']
-            run_cmd = ['mpirun', '-np', str(nproc), python_version]
-            
-        elif machine_type==MachineType.HPC:
-            run_cmd = ['srun', python_version]
-        run_cmd.extend([python_fname, '--caseInfoFile', case_info_fpath, '--scenarioInfoFile', scenario_info_fpath, 
-                '--refLevelDir', ref_out_dir, '--aoaList', aoa_csv_string, '--aeroGrid', aero_grid_fpath, '--structMesh', struct_mesh_fpath])
-
-        p = subprocess.Popen(run_cmd, 
-            env=env,
-            stdout=subprocess.PIPE,  # Capture standard output
-            stderr=subprocess.PIPE,  # Capture standard error
-            text=True,  # Ensure output is in text format, not bytes
-            )
-        
-        # Read and print the output and error messages
-        stdout, stderr = p.communicate()
-        # Write output to file manually
-        if record_flag is True:
-            with open(subprocess_out_file, 'a') as f:
-                f.write(stdout)
-                f.write(stderr)
-        # Print subprocess outptut
-        print("Subprocess Output:", stdout)
-        print("Subprocess Error:", stderr)
-
-        p.wait() # Wait for subprocess to end
-        
-        print(f"Completed")
-        print(f"{'-' * 30}")
 
 ################################################################################
 # Helper Functions to update openmdao instance
@@ -450,92 +292,92 @@ def deep_update(base_dict, update_dict):
 ################################################################################
 # Additional Data Types
 ################################################################################
-class DeepDict(dict):
-    """
-    A subclass of Python's built-in dict that supports recursive (deep) updates
-    and merging of nested dictionaries.
+# class DeepDict(dict):
+#     """
+#     A subclass of Python's built-in dict that supports recursive (deep) updates
+#     and merging of nested dictionaries.
 
-    This class provides a `deep_update` method that merges nested dictionaries
-    without overwriting inner dictionaries, as well as a static `merge` method
-    and support for the `+` operator to perform deep merging.
+#     This class provides a `deep_update` method that merges nested dictionaries
+#     without overwriting inner dictionaries, as well as a static `merge` method
+#     and support for the `+` operator to perform deep merging.
 
-    Example:
-    --------
+#     Example:
+#     --------
 
-        >>> d1 = DeepDict({'a': {'x': 1}, 'b': 2})
-        >>> d2 = {'a': {'y': 3}, 'c': 4}
-        >>> d1.deep_update(d2)
-        >>> print(d1)
-        {'a': {'x': 1, 'y': 3}, 'b': 2, 'c': 4}
+#         >>> d1 = DeepDict({'a': {'x': 1}, 'b': 2})
+#         >>> d2 = {'a': {'y': 3}, 'c': 4}
+#         >>> d1.deep_update(d2)
+#         >>> print(d1)
+#         {'a': {'x': 1, 'y': 3}, 'b': 2, 'c': 4}
 
-        >>> d3 = DeepDict({'p': {'q': 1}})
-        >>> d4 = {'p': {'r': 2}}
-        >>> merged = d3 + d4
-        >>> print(merged)
-        {'p': {'q': 1, 'r': 2}}
-    """
+#         >>> d3 = DeepDict({'p': {'q': 1}})
+#         >>> d4 = {'p': {'r': 2}}
+#         >>> merged = d3 + d4
+#         >>> print(merged)
+#         {'p': {'q': 1, 'r': 2}}
+#     """
 
-    def deep_update(self, other):
-        """
-        Recursively updates the dictionary with another dictionary.
+#     def deep_update(self, other):
+#         """
+#         Recursively updates the dictionary with another dictionary.
 
-        For keys present in both dictionaries:
-            - If the values are both dicts, perform a recursive deep update.
-            - Otherwise, the value from `other` overwrites the one in `self`.
+#         For keys present in both dictionaries:
+#             - If the values are both dicts, perform a recursive deep update.
+#             - Otherwise, the value from `other` overwrites the one in `self`.
 
-        Inputs:
-        -------
-        - *other*: dict
-            Dictionary to merge into this one.
-        """
-        for key, value in other.items():
-            if (
-                key in self and isinstance(self[key], dict)
-                and isinstance(value, dict)
-            ):
-                if not isinstance(self[key], DeepDict):
-                    self[key] = DeepDict(self[key])
-                self[key].deep_update(value)
-            else:
-                self[key] = value
+#         Inputs:
+#         -------
+#         - *other*: dict
+#             Dictionary to merge into this one.
+#         """
+#         for key, value in other.items():
+#             if (
+#                 key in self and isinstance(self[key], dict)
+#                 and isinstance(value, dict)
+#             ):
+#                 if not isinstance(self[key], DeepDict):
+#                     self[key] = DeepDict(self[key])
+#                 self[key].deep_update(value)
+#             else:
+#                 self[key] = value
 
-    @staticmethod
-    def merge(dict1, dict2):
-        """
-        Returns a new DeepDict that is the deep merge of `dict1` and `dict2`.
+#     @staticmethod
+#     def merge(dict1, dict2):
+#         """
+#         Returns a new DeepDict that is the deep merge of `dict1` and `dict2`.
 
-        The original dictionaries remain unmodified.
+#         The original dictionaries remain unmodified.
 
-        Inputs:
-        -------
-        - *dict1*: dict
-            The base dictionary.
-        - *dict12*: dict
-            The dictionary to merge into the base.
+#         Inputs:
+#         -------
+#         - *dict1*: dict
+#             The base dictionary.
+#         - *dict12*: dict
+#             The dictionary to merge into the base.
 
-        Outputs:
-        --------
-        - *DeepDict*: A new dictionary that is the deep merge of both.
-        """
-        result = DeepDict(dict1)
-        result.deep_update(dict2)
-        return result
+#         Outputs:
+#         --------
+#         - *DeepDict*: A new dictionary that is the deep merge of both.
+#         """
+#         result = DeepDict(dict1)
+#         result.deep_update(dict2)
+#         return result
 
-    def __add__(self, other):
-        """
-        Implements the + operator to perform a deep merge of two dictionaries.
+#     def __add__(self, other):
+#         """
+#         Implements the + operator to perform a deep merge of two dictionaries.
 
-        Inputs:
-        -------
-        - *other*: dict
-            The dictionary to merge with.
+#         Inputs:
+#         -------
+#         - *other*: dict
+#             The dictionary to merge with.
 
-        Outputs:
-        --------
-        - *DeepDict*: A new DeepDict instance with the merged contents.
-        """
-        if not isinstance(other, dict):
-            raise TypeError("Can only add another dict or DeepDict")
-        return DeepDict.merge(self, other)
+#         Outputs:
+#         --------
+#         - *DeepDict*: A new DeepDict instance with the merged contents.
+#         """
+#         if not isinstance(other, dict):
+#             raise TypeError("Can only add another dict or DeepDict")
+#         return DeepDict.merge(self, other)
 
-        
+                
