@@ -9,11 +9,13 @@ import yaml
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 from matplotlib.lines import Line2D
+from matplotlib.legend import Legend
 import niceplots
 from mpi4py import MPI
 
 from mdss.helpers import *
-from mdss.yaml_config import check_input_yaml
+from mdss.templates import def_plot_options
+from mdss.yaml_config import check_input_yaml, ref_plot_options
 from mdss.aerostruct import run_problem as run_aerostructural
 
 comm = MPI.COMM_WORLD
@@ -314,7 +316,7 @@ class post_process:
     - *_get_marker_style(idx)*  
         Returns a marker style based on the index, used to distinguish between scenarios visually.
     """
-    def __init__(self, out_dir: str):
+    def __init__(self, out_dir: str, plot_options: dict={}):
         self.out_dir = os.path.abspath(out_dir)
         self.final_out_file = os.path.join(self.out_dir, "overall_sim_info.yaml") # Setting the overall simulation info file.
         try:
@@ -325,7 +327,9 @@ class post_process:
             raise FileNotFoundError("")
 
         # Additional Options
-        self.niceplots_style = "james-light"
+        plot_options = def_plot_options
+        plot_options.update(plot_options)
+        self.plot_options = ref_plot_options.model_validate(plot_options)
         
     def gen_case_plots(self):
         """
@@ -365,15 +369,7 @@ class post_process:
                     scenario_legend_entry = self._add_scenario_level_plots(axs, scenario_info['name'], scenario_info.get('exp_data', None), case_info['mesh_files'], scenario_out_dir, **plot_args)
                     scenario_legend_entries.append(scenario_legend_entry)
                 ################################# End of Scenario loop ########################################
-                plt.legend()
-                niceplots.adjust_spines(axs[0])
-                niceplots.adjust_spines(axs[1])
-                # Add common legend for scenarios outside plot
-                fig.legend(handles=scenario_legend_entries,
-                        loc='center right',
-                        title='Scenarios',
-                        bbox_to_anchor=(1.15, 0.5),
-                        frameon=False)
+                self._set_legends(fig, axs, scenario_legend_entries)
                 fig_name = os.path.join(os.path.dirname(scenario_out_dir), case_info['name'])
                 niceplots.save_figs(fig, fig_name, ["png"], format_kwargs={"png": {"dpi": 400}}, bbox_inches="tight")
 
@@ -442,17 +438,7 @@ class post_process:
         if not found_scenarios:
             return ValueError("None of the scenarios are found")
 
-        plt.legend()
-        niceplots.adjust_spines(axs[0])
-        niceplots.adjust_spines(axs[1])
-        fig.tight_layout(rect=[0, 0, 1, 0.92])  # Shrinks subplot area to make room above
-        # Add common legend for scenarios outside plot
-        fig.legend(handles=scenario_legend_entries,
-                loc='upper center',
-                bbox_to_anchor=(0.5, 0.98),  # slightly below suptitle
-                ncol=len(scenario_legend_entries),
-                title='Scenarios',
-                frameon=False)
+        self._set_legends(fig, axs, scenario_legend_entries)
         fig_name = os.path.join(self.out_dir, plt_name)
         niceplots.save_figs(fig, fig_name, ["png"], format_kwargs={"png": {"dpi": 400}}, bbox_inches="tight")
                     
@@ -569,10 +555,11 @@ class post_process:
         markersize = kwargs.get('markersize', 10)
 
         kwargs['linestyle'] = '--' # Modify the linestyle
-
+        #kwargs['label'] = f"{scenario_label}, Experimental" # Set label for experimental data
+        kwargs['label'] = None
         self._add_plot_from_csv(axs, exp_data, **kwargs) # To add experimental data to the plot
 
-        colors = cm.viridis(np.linspace(0, 1, len(mesh_files)))  # Generate unique colors for each level
+        colors = niceplots.get_colors_list() # Get colors from nice plots
 
         for ii, mesh_file in enumerate(mesh_files): # Loop for refinement levels
             refinement_level_dir = os.path.join(scenario_out_dir, f"{mesh_file}")
@@ -613,7 +600,9 @@ class post_process:
         - Subplots are preconfigured with axis titles, labels, and grids.
         """
         if niceplots_style is None:
-            niceplots_style = self.niceplots_style
+            niceplots_style = self.plot_options.niceplots_style
+        
+        figsize = self.plot_options.figsize
 
         plt.style.use(niceplots.get_style(niceplots_style))
         fig, axs = plt.subplots(1, 2, figsize=(14, 6))
@@ -629,6 +618,34 @@ class post_process:
             ax.grid(True)
 
         return fig, axs
+    
+    def _set_legends(self, fig, axs, scenario_legend_entries):
+
+        mesh_handles, mesh_labels = axs[0].get_legend_handles_labels()
+        # Create the legends
+        scenario_legend = Legend(fig, handles=scenario_legend_entries,
+                                labels=[h.get_label() for h in scenario_legend_entries],
+                                loc='center left',
+                                bbox_to_anchor=(1.0, 0.25),
+                                title='Scenarios',
+                                frameon=True,
+                                fontsize=10,
+                                labelspacing=0.3)
+
+        mesh_legend = Legend(fig, handles=mesh_handles,
+                            labels=mesh_labels,
+                            loc='center left',
+                            bbox_to_anchor=(1.0, 0.75),
+                            title='Meshes',
+                            frameon=True,
+                            fontsize=10,
+                            labelspacing=0.3)
+
+        fig.add_artist(scenario_legend)
+        fig.add_artist(mesh_legend)
+        niceplots.adjust_spines(axs[0])
+        niceplots.adjust_spines(axs[1])
+        fig.tight_layout(rect=[0, 0, 0.95, 1])
 
     def _get_marker_style(self, idx):
         """

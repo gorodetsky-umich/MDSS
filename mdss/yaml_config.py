@@ -4,6 +4,7 @@ from typing import Optional
 import yaml
 import os
 import subprocess
+import niceplots
 
 from mdss.helpers import ProblemType, MachineType
 class ref_hpc_info(BaseModel):
@@ -166,8 +167,25 @@ class ref_sim_info(BaseModel):
         return self
     
     
+################################################################################
+# Plot Options
+################################################################################
+class ref_plot_options(BaseModel):
+    niceplots_style: str
+    figsize: tuple[float, float]
 
-            
+    @model_validator(mode='before')
+    def check_valid_conditions(cls, values):
+        valid_styles = niceplots.get_available_styles() # Define valid styles
+        style = values.get('niceplots_style')
+        if style not in valid_styles:
+            raise ValueError(
+                f"Invalid niceplots style: '{style}'.\n"
+                f"Must be one of: {valid_styles}.\n"
+                f"See: https://mdolab-niceplots.readthedocs-hosted.com/en/latest/index.html"
+            )
+        return values
+
 
 def check_input_yaml(yaml_file):
     """
