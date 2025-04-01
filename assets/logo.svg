@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0  0 300 100">
+  <!-- Definitions for gradients and patterns -->
+  <defs>
+    <!-- Lighter Gradient for MDSS text -->
+    <linearGradient id="textGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1E5D94" />  <!-- Deep Blue -->
+      <stop offset="25%" stop-color="#3A91C3" />  <!-- Brighter Blue -->
+      <stop offset="50%" stop-color="#5BBFFA" />  <!-- Strong Cyan -->
+      <stop offset="75%" stop-color="#70D1FF" />  <!-- Bright Cyan -->
+      <stop offset="100%" stop-color="#FFC107" />  <!-- Rich Gold -->
+    </linearGradient>
+    
+    <!-- Finer Mesh pattern for text -->
+    <pattern id="finerMeshPattern" width="4" height="4" patternUnits="userSpaceOnUse">
+      <path d="M 4 0 L 0 4" fill="none" stroke="#2C3E50" stroke-width="0.5" opacity="0.1" />
+      <path d="M 0 0 L 4 4" fill="none" stroke="#2C3E50" stroke-width="0.5" opacity="0.1" />
+    </pattern>
+  </defs>
+  
+  <!-- MDSS Text with Gradient and Finer Mesh -->
+  <g transform="translate(150, 75)">
+    <!-- Text shadow for depth -->
+    <text x="0" y="0" font-family="Arial, sans-serif" font-size="80" font-weight="bold" text-anchor="middle" fill="#3A5F80" filter="blur(3px)">MDSS</text>
+    
+    <!-- Main text with lighter gradient -->
+    <text x="0" y="0" font-family="Arial, sans-serif" font-size="80" font-weight="bold" text-anchor="middle" fill="url(#textGradient)">MDSS</text>
+    
+    <!-- Finer Mesh overlay on text -->
+    <text x="0" y="0" font-family="Arial, sans-serif" font-size="80" font-weight="bold" text-anchor="middle" fill="none" stroke="url(#finerMeshPattern)" stroke-width="0.5" opacity="0.3">MDSS</text>
+  </g>
+</svg>

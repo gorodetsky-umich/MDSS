@@ -1,3 +1,9 @@
+:root {
+    --md-primary: #546E7A;  /* Blue Grey */
+    --md-accent: #1976D2;  /* Blue */
+    --md-secondary: #1F669D; 
+}
+
 /* Justify all paragraph text globally */
 p {
     text-align: justify;
@@ -79,3 +85,25 @@ h1, h2, h3, h4, h5, h6 {
 ul, ol, p {
     margin-top: 0.1em; /* Adjust this value as needed */
 }
+
+/* Align the logo and title in the header */
+.md-header__button.md-logo {
+    display: flex;
+    align-items: center;
+}
+
+/* Adjust logo size */
+.md-header__button.md-logo img {
+    height: 50px; /* Adjust size as needed */
+    width: auto;
+    margin-right: 1px; /* Space between logo and title */
+    vertical-align: middle; /* Ensure logo aligns with text */
+}
+
+.md-header__title {
+    display: flex;
+    align-items: center;
+    font-size: 22px; /* Adjust title size */
+}
+
+
