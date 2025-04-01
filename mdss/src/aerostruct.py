@@ -68,6 +68,7 @@ class Top(Multipoint):
 
     """
     def __init__(self, sim_info):
+        super().__init__()
         self.sim_info = sim_info
         self.problem_type = ProblemType.from_string(sim_info['problem'])  # Convert string to enum
 
