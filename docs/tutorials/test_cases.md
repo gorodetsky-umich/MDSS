@@ -119,35 +119,6 @@ Temp: 299.817
     </figcaption>
 </p>
 
-## Hierarchy: 3D High-Lift
-### Case: DLR F11, High-Lift Configuration
-
-**Geomerty Info:**
-```yaml
-areaRef: 0.41913
-chordRef: 0.34709
-```
-**Aero Options:**
-```yaml
-useZipperMesh: True
-useANKSolver: True
-nSubiterTurb: 7
-useNKSolver: False
-ANKCoupledSwitchTol: 1e-7
-ANKSecondOrdSwitchTol: 1e-6
-L2Convergence: 1e-10
-nCycles: 150000
-liftIndex: 3
-```
-#### Scenario: 1
-**Scenario Info:**
-```yaml
-Re: 1350000.0
-mach: 0.175
-Temp: 298.15
-```
-TBD
-
 ## Hierarchy: Aerostructural
 ### Case: Mach Aero Wing
 

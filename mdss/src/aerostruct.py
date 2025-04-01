@@ -54,9 +54,9 @@ class Top(Multipoint):
             'Temp': # float, Temperature in Kelvin
             
             # Add Structural Info
-            'tacs_out_dir': # str, Path to the outptut directory for TACS. Can be left empty for aerodynamic problems
+            'tacs_out_dir': # str, Path to the output directory for TACS. Can be left empty for aerodynamic problems
             'struct_mesh_fpath': # str, Path to the structural mesh file. Can be left empty for aerodynamic problems
-            'structural_properties': # dict, inludes material propertires - E, ro, nu, kcorr, ys, and thickness of the shell.
+            'structural_properties': # dict, includes material properties - E, ro, nu, kcorr, ys, and thickness of the shell.
             'load_info': # dict, load type - Cruise/Maneuver, gravity flag, inertial load factor for maneuver loads.
             'solver_options': # dict, solver options in openMDAO
         }

@@ -4,6 +4,7 @@ from .src import main
 from .utils import utils
 from .src.aerostruct import Problem
 from .src.main import simulation
+from .src.main import post_process
 from .src.main_helper import execute
 
-__all__ = ["main", "utils", "Problem", "simulation", "execute"]
+__all__ = ["main", "utils", "Problem", "simulation", "execute", "post_process"]

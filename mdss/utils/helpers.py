@@ -13,8 +13,8 @@ class ProblemType(Enum):
     
     Attributes
     ----------
-        **AERODYNAMIC** (ProblemType): Represents aerodynamic problems with associated aliases.
-        **AEROSTRUCTURAL** (ProblemType): Represents aerostructural problems with associated aliases.
+    - **AERODYNAMIC** (ProblemType): Represents aerodynamic problems with associated aliases.
+    - **AEROSTRUCTURAL** (ProblemType): Represents aerostructural problems with associated aliases.
     """
     AERODYNAMIC = 1, ["Aerodynamic", "Aero", "Flow"]
     AEROSTRUCTURAL = 2, ["AeroStructural", "Structural", "Combined"]
@@ -41,8 +41,8 @@ class MachineType(Enum):
     
     Attributes
     ----------
-        **LOCAL** (MachineType): Running the problem on a local machine.
-        **AEROSTRUCTURAL** (ProblemType): Running the problem on a High performance computing (HPC) cluster.
+    - **LOCAL** (MachineType): Running the problem on a local machine.
+    - **HPC** (MachineType): Running the problem on a High performance computing (HPC) cluster.
     """
     LOCAL = 1, ["LOCAL", "local", "Local", "loc", "Loc", "LOC"]
     HPC = 2, ["hpc", "Hpc", "HPC", "cluster", "Cluster", "CLUSTER"]
@@ -121,7 +121,7 @@ def load_yaml_file(yaml_file, comm):
 
     Outputs
     -------
-    **dict or None**
+    - **dict or None**
         A dictionary containing the content of the YAML file if successful, or None if an error occurs.
     """
     try:
@@ -157,7 +157,7 @@ def load_csv_data(csv_file, comm):
         An MPI communicator object to handle parallelism.
     Outputs
     -------
-    **pandas.DataFrame or None**
+    - **pandas.DataFrame or None**
         A DataFrame containing the content of the CSV file if successful, or None if an error occurs.
 """
     try:
@@ -217,12 +217,12 @@ class update_om_instance:
             print(e)
 
     def outdir(self, new_outdir):
-        '''
-        Inputs:
+        """
+        Inputs
         -------
         - **new_outdir**: str
             New output directory to save the output files
-        '''
+        """
         if self.problem_type == ProblemType.AERODYNAMIC:
             self.scenario_attr.coupling.options['solver'].options['outputDirectory'] = new_outdir
         elif self.problem_type == ProblemType.AEROSTRUCTURAL:
@@ -232,7 +232,7 @@ class update_om_instance:
     def aero_options(self, new_aero_options):
         # Currently do not work
         """
-        Inputs:
+        Inputs
         -------
         - **new_aero_options**: dict
             New aero_options to update
@@ -259,11 +259,11 @@ def deep_update(base_dict, update_dict):
         - If the values are both dicts, perform a recursive deep update.
         - Otherwise, the value from `update_dict` overwrites the one in `base_dict`.
 
-    Inputs:
+    Inputs
     -------
-    - base_dict: dict
+    - **base_dict**: dict
         The dictionary to be updated.
-    - update_dict: dict
+    - **update_dict**: dict
         The dictionary whose values will be merged into base_dict.
     """
     for key, value in update_dict.items():
@@ -325,9 +325,9 @@ def deep_update(base_dict, update_dict):
 #             - If the values are both dicts, perform a recursive deep update.
 #             - Otherwise, the value from `other` overwrites the one in `self`.
 
-#         Inputs:
+#         Inputs
 #         -------
-#         - *other*: dict
+#         - **other**: dict
 #             Dictionary to merge into this one.
 #         """
 #         for key, value in other.items():
@@ -348,16 +348,16 @@ def deep_update(base_dict, update_dict):
 
 #         The original dictionaries remain unmodified.
 
-#         Inputs:
+#         Inputs
 #         -------
-#         - *dict1*: dict
+#         - **dict1**: dict
 #             The base dictionary.
-#         - *dict12*: dict
+#         - **dict12**: dict
 #             The dictionary to merge into the base.
 
-#         Outputs:
+#         Outputs
 #         --------
-#         - *DeepDict*: A new dictionary that is the deep merge of both.
+#         - **DeepDict**: A new dictionary that is the deep merge of both.
 #         """
 #         result = DeepDict(dict1)
 #         result.deep_update(dict2)
@@ -367,14 +367,14 @@ def deep_update(base_dict, update_dict):
 #         """
 #         Implements the + operator to perform a deep merge of two dictionaries.
 
-#         Inputs:
+#         Inputs
 #         -------
-#         - *other*: dict
+#         - **other**: dict
 #             The dictionary to merge with.
 
-#         Outputs:
+#         Outputs
 #         --------
-#         - *DeepDict*: A new DeepDict instance with the merged contents.
+#         - **DeepDict**: A new DeepDict instance with the merged contents.
 #         """
 #         if not isinstance(other, dict):
 #             raise TypeError("Can only add another dict or DeepDict")
