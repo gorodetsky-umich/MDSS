@@ -14,8 +14,8 @@ The YAML file organizes simulation data into a structured hierarchy, enabling cl
 
 ```yaml
 out_dir: # str, path to the output directory
-run_as_subprocess: # str, 'yes' or 'no'
-nproc: # int, number of processors, required only if run_as_subprocess is yes
+nproc: # int, number of processors
+python_version: # str, path to the python env to use
 hpc: # str, 'yes' or 'no'
 hpc_info: # dict, required only if hpc is yes
   cluster: # str, name of the cluster. GL for Great Lakes
@@ -40,33 +40,56 @@ hierarchies: # list, List of hierarchies
     geometry_info: # dict, dictionary of geometry info
       chordRef: # float, reference chord length
       areaRef: # flaot, reference area
-    solver_parameters: # dict, dictionary of solver parameters. For more information see solver parameters section
+    aero_options: # dict, dictionary of ADflow solver parameters. For more information see solver parameters section
       # ......
-    exp_sets: # list, list of dictionaries contating experimental info
+    scenarios: # list, list of dictionaries containing scenario info
     # First experimental set in current case
-    - aoa_list: # list, list of angle of attacks(AoA) to run in with the experimental info
+    - name: # str, name of the scenario
+      aoa_list: # list, list of angle of attacks(AoA) to run in with the experimental info
       Re: # float, Reynold's number 
       mach: # float, Mach number
       Temp: # float, Temperature in Kelvin scale
       exp_data: # str, path to experimental data
     
-    # Second experimental set in current case
+    # Second scenario in current case
+
+    ##########################################################################
+    # The following options are required only for Aerostructural problems
+    ##########################################################################
+    struct_options: # dict, structural options,
+      isym: # int, direction of symmetry
+      t: # float, Shell Thickness in m
+      mesh_fpath: # str, path to the structural mesh file
+      struct_properties: # dict, a dictionary containing structural properties
+        # Material Properties
+        rho: # float, Density in kg/m^3
+        E: # float, Young's modulus in N/m^2
+        nu: # float, Poisson's ratio
+        kcorr: # float, Shear correction factor
+        ys: # float, Yeild stress in N/m^2
+
+      load_info: # dict, 
+        g: # list, g-vector in m/s^2, the default is [0, -9.81, 0]
+        inertial_load_factor: # float, times of 'g'.
+
+      solver_options: # dict, solver options for coupling. Check solver options section for more info
+
 
   # Second case in current hierachy
 
 # Second hierarchy
 ```
 
-Please note that adherence to this structure is essential; any deviation may lead to errors when running simulations. Examples of correctly formatted YAML files are provided in the `examples/inputs` folder. The file `naca0012_simInfo.yaml` is an example file to run NACA0012 airfoil without the `run_as_subprocess` option, and `30p-30n_simInfo.yaml` is with `run_as_subprocess` option.
+Please note that adherence to this structure is essential; any deviation may lead to errors when running simulations. Examples of correctly formatted YAML files are provided in the `examples/inputs` folder.
 
-The yaml script can also be used as a starting point for generating custom YAML files.
+These yaml script can also be used as a starting point for generating custom YAML files.
 
-### Solver Parameters
-The Solver parameters is a dictionary containing options specific to the ADflow CFD solver, allowing users to customize the solver's behavior to suit their simulation needs. Detailed descriptions of these parameters and their usage can be found in the [ADflow Documentation](https://mdolab-adflow.readthedocs-hosted.com/en/latest/options.html "ADflow Options"). 
+### Aero Options
+`aero_options` is a dictionary containing options specific to the ADflow CFD solver, allowing users to customize the solver's behavior to suit their simulation needs. Detailed descriptions of these parameters and their usage can be found in the [ADflow Documentation](https://mdolab-adflow.readthedocs-hosted.com/en/latest/options.html "ADflow Options"). 
 
 If the dictionary is empty or if the default parameters are not modified, the code will use a predefined set of default solver options. These defaults are designed to provide a reliable baseline configuration for running simulations effectively without requiring manual adjustments.
 
-#### Default Solver Parameters:
+#### Default `aero_options` for aerodynamic problem
 ```yaml
 # Print Options
 "printIterations": False,
@@ -101,16 +124,55 @@ If the dictionary is empty or if the default parameters are not modified, the co
 "L2ConvergenceCoarse": 1e-2,
 "nCycles": 75000,
 ```
-### Experimental Conditions
+#### Default `aero_options` for aerostructural problems
 
-To define the problem, referred to as the *__AeroProblem__* (focused on aerodynamics), the following conditions along with the Angle of Attack(AoA) and path to the experimental data:
+```yaml
+# Print Options
+"printIterations": False,
+"printAllOptions": False,
+"printIntro": False,
+"printTiming": False,
+# I/O Parameters
+"gridFile": f"grids/naca0012_L1.cgns", # Default grid file
+"outputDirectory": '.', 
+"monitorvariables": ["resrho", "resturb", "cl", "cd", "yplus"],
+"writeTecplotSurfaceSolution": True,
+# Physics Parameters
+"equationType": "RANS",
+"liftindex": 3,  # z is the lift direction
+# Solver Parameters
+"smoother": "DADI",
+"CFL": 1.5,
+"CFLCoarse": 1.25,
+"MGCycle": "sg",
+"MGStartLevel": -1,
+"nCyclesCoarse": 250,
+# ANK Solver Parameters
+"useANKSolver": True,
+"nSubiterTurb": 10,
+"ANKSecondOrdSwitchTol": 1e-6,
+"ANKCoupledSwitchTol": 1e-8,
+"ankinnerpreconits": 2,
+"ankouterpreconits": 2,
+"anklinresmax": 0.1,
+# Termination Criteria
+"L2Convergence": 1e-14,
+"L2ConvergenceCoarse": 1e-2,
+"L2ConvergenceRel": 1e-4,
+"nCycles": 10000,
+# force integration
+"forcesAsTractions": False,
+```
+### Scenarios
+
+To define the problem, referred to as the *__AeroProblem__* (focused on aerodynamics), the following conditions along with the name, a list of Angle of Attacks(AoA) and path to the experimental data:
 
 - Reynolds number
 - Mach number
 - Temperature
 - Reynolds length (Computed from geometrical data)
 
-Other properties, such as pressure or density, will be calculated automatically based on the specified values and the governing gas laws.
+Other properties, such as pressure or density, will be calculated automatically by `mdolab-baseclasses` based on the specified values and the governing gas laws.
 
 The `Angle of Attack (AoA)` is required to define the aerodynamic orientation of the flow. The `path to experimental data` can be left blank, as it will not affect the simulation. However, leaving it blank will generate a warning during the post-processing stage.
 
@@ -121,6 +183,30 @@ Specifying the location of the mesh files requires two inputs in every case:
 
 - `meshes_folder_path` gets the path to the folder that contains the mesh files
 - `mesh_files` gets the list of file names, that to be run, in the folder specified above.
+
+### Solver Options
+
+`solver_options` is a dictionary containing options for `NonlinearBlockGS` and `LinearBlockGS` solvers available in `openMDAO`. If these are not provided, the default options will be used. For more more information on these solvers visit the [openMDAO documentation](https://openmdao.org/newdocs/versions/latest/features/building_blocks/solvers/solvers.html)
+
+#### Default `solver_options`
+```yaml
+"linear_solver_options": 
+  "atol": 1e-08, # absolute error tolerance
+  "err_on_non_converge": True, # When True, AnalysisError will be raised if not convereged
+  "maxiter": 25, # maximum number of iterations
+  "rtol": 1e-8, # relative error tolerance
+  "use_aitken": True, # set to True to use Aitken
+
+"nonlinear_solver_options":
+  "atol": 1e-08, # absolute error tolerance
+  "err_on_non_converge": True, # When True, AnalysisError will be raised if not convereged
+  "reraise_child_analysiserror": False, # When the option is true, a solver will reraise any AnalysisError that arises during subsolve; when false, it will continue solving.
+  "maxiter": 25, # maximum number of iterations
+  "rtol": 1e-08, # relative error tolerance
+  "use_aitken": True, # set to True to use Aitken
+```
+
+
 ---
 
 

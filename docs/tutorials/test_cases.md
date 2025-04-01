@@ -10,7 +10,7 @@ When the supplied [grid files](usage.md#grid-files) and [experimental data](usag
 areaRef: 1.0
 chordRef: 1.0
 ```
-**Solver Parameters Used:**
+**Aero Options:**
 ```yaml
 useANKSolver: true
 nSubiterTurb: 20
@@ -22,8 +22,8 @@ L2Convergence: 1.0e-08
 nCycles: 150000
 liftIndex: 2
 ```
-#### Experimental Set: 1
-**Experimental Conditions:**
+#### Scenario: 1
+**Scenario Info:**
 ```yaml
 Re: 3900000.0
 mach: 0.3
@@ -32,7 +32,7 @@ Temp: 298.0
 <p align="center">
   <img src="../test_cases/naca0012.png" alt="NACA 0012" width="800">
   <figcaption style="text-align: center; font-weight: bold;">
-    NACA 0012 (Exp Set: 1) Results
+    NACA 0012 (Scenario: 1) Results
     </figcaption>
 </p>
 
@@ -44,7 +44,7 @@ Temp: 298.0
 areaRef: 1.0
 chordRef: 1.0
 ```
-**Solver Parameters Used:**
+**Aero Options:**
 ```yaml
 useANKSolver: true
 nSubiterTurb: 20
@@ -57,8 +57,8 @@ nCycles: 150000
 liftIndex: 2
 nearWallDist: 0.01
 ```
-#### Experimental Set: 1
-**Experimental Conditions:**
+#### Scenario: 1
+**Scenario Info:**
 ```yaml
 Re: 9000000.0
 mach: 0.2
@@ -67,7 +67,7 @@ Temp: 298.0
 <p align="center">
   <img src="../test_cases/30p-30n.png" alt="30P-30N" width="800">
   <figcaption style="text-align: center; font-weight: bold;">
-    30P-30N (Exp Set: 1) Results
+    30P-30N (Scenario: 1) Results
     </figcaption>
 </p>
 
@@ -79,7 +79,7 @@ areaRef: 191.845
 chordRef: 7.00532
 ```
 
-**Solver Parameters Used:**
+**Aero Options:**
 ```yaml
 useZipperMesh: True
 useANKSolver: True
@@ -91,8 +91,8 @@ L2Convergence: 1e-10
 nCycles: 150000
 liftIndex: 3
 ```
-#### Experimental Set: 1
-**Experimental Conditions:**
+#### Scenario: 1
+**Scenario Info:**
 ```yaml
 Re: 5000000.0
 mach: 0.85
@@ -101,12 +101,12 @@ Temp: 322.039
 <p align="center">
   <img src="../test_cases/crm_clean_m085.png" alt="CRM Clean" width="800">
   <figcaption style="text-align: center; font-weight: bold;">
-    CRM Clean (Exp Set: 1) Results
+    CRM Clean (Scenario: 1) Results
     </figcaption>
 </p>
 
-#### Experimental Set: 2
-**Experimental Conditions:**
+#### Scenario: 2
+**Scenario Info:**
 ```yaml
 Re: 5000000.0
 mach: 0.70
@@ -115,7 +115,7 @@ Temp: 299.817
 <p align="center">
   <img src="../test_cases/crm_clean_m07.png" alt="CRM Clean" width="800">
   <figcaption style="text-align: center; font-weight: bold;">
-    CRM Clean (Exp Set: 2) Results
+    CRM Clean (Scenario: 2) Results
     </figcaption>
 </p>
 
@@ -127,7 +127,7 @@ Temp: 299.817
 areaRef: 0.41913
 chordRef: 0.34709
 ```
-**Solver Parameters Used:**
+**Aero Options:**
 ```yaml
 useZipperMesh: True
 useANKSolver: True
@@ -139,11 +139,55 @@ L2Convergence: 1e-10
 nCycles: 150000
 liftIndex: 3
 ```
-#### Experimental Set: 1
-**Experimental Conditions:**
+#### Scenario: 1
+**Scenario Info:**
 ```yaml
 Re: 1350000.0
 mach: 0.175
 Temp: 298.15
 ```
 TBD
+
+## Hierarchy: Aerostructural
+### Case: Mach Aero Wing
+
+**Geomerty Info:**
+```yaml
+areaRef: 3.25
+chordRef: 45.5
+```
+**Aero Options:**
+```yaml
+nsubiterturb: 10
+ANKSecondOrdSwitchTol: 1.0e-4
+ANKCoupledSwitchTol: 1.0e-06
+anklinresmax: 0.1
+L2Convergence: 1.0e-14
+L2ConvergenceRel: 0.001
+nCycles: 10000
+```
+**Struct Options:**
+```yaml
+isym: 2
+struct_properties:
+  t: 0.01
+load_info:
+  load_type: cruise
+solver_options: 
+  nonlinear_solver_options:
+    maxiter: 30
+    rtol: 1e-14
+```
+#### Scenario: 1
+**Scenario Info:**
+```yaml
+Re: 1350000.0
+mach: 0.175
+Temp: 298.15
+```
+<p align="center">
+  <img src="../test_cases/mach_aero_wing_aerostruct.png" alt="Mach Aero Wing" width="800">
+  <figcaption style="text-align: center; font-weight: bold;">
+    Mach Aero Wing(Aerostructural) Results
+    </figcaption>
+</p>

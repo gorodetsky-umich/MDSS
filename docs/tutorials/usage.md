@@ -16,23 +16,17 @@ $ cp -r <path-to-repository>/examples <path-to-examples-directory>
 $ cd <path-to-examples-directory> 
 ```
 
-- Run the python script with a single processor or when using `run_as_subprocess` option:
+- Run the python script:
 
 ```bash 
 $ python run_example.py --inputFile <path-to-input-yaml-file>
 ```
 
-or run with multiple processors
-
- ```bash 
- $ mpirun -np <number of processors> python run_example.py --inputFile <path-to-input-yaml-file>
- ```
-
 **_Note:_**
 
-- *_Do not use `mpirun` when using `run_as_subprocess` as it will result in an error_*
+- *_Do not use `mpirun` to run a script with `mdss`. Because, it runs simulations on subprocesses and using `mpirun` results in an error_*
 - *_Example input yaml files to run on personal computers are stored in `examples/inputs` directory, and for Great Lakes HPC cluster, an example file is stored in `examples/inputs/GL`_*
-- *_Make sure to modify the file and file paths ti absolute paths in the yaml file when running in a docker container._*
+- *_Make sure to modify the file and file paths to absolute paths in the yaml file when running in a docker container._*
 
 Use `examples/inputs/naca0012_sinInfo.yaml` or `examples/inputs/GL/naca0012_sinInfo.yaml`(for Great Lakes) to test the package with NACA0012 airfoil.
 
@@ -69,18 +63,18 @@ sim.post_process()
 
 ### Read existing simualtion data or generate data
 
-The function `get_sim_data` can be used to get existing simulation data that was generated after a simulation, or to generate new simulation data by passing a `run_flag`. If `run_flag` is `1`, then the function runs the simulation and outputs the data as a dictionary.
+The function `get_sim_data` can be used to get existing simulation data that was generated after a simulation, as a dictionary.
 
 The function provides the flexibility of using the input YAML file or  the `overall_sim_info.yaml` file that is generated and stored in the outptut directory after the completion of simulations, as inputs.
 
 ```python
-from mdss.utils import get_sim_data, RunFlag
+from mdss.utils import get_sim_data
 
 # Specify the path to the input file.
 info_file = '/path/to/input-yaml-file'
 
 # Call the function to get simulation data as a dictionary
-sim_data = get_sim_data(info_file, RunFlag.skip)
+sim_data = get_sim_data(info_file)
 
 # Print the dictionary
 print(sim_data)

@@ -18,12 +18,18 @@ The package requires the following libraries, which can automatically be install
 
 Additionally, the following packages are also needed but may require manual installation:
 
-- `openmdao`
-- `mdolab-baseclasses`
-- `adflow`
-- `mphys`
+- [`OpenMDAO`](https://github.com/OpenMDAO/OpenMDAO)
+- [`MPhys`](https://github.com/OpenMDAO/mphys)
+- [`baseClasses`](https://github.com/mdolab/baseclasses)
+- [`pySpline`](https://github.com/mdolab/pyspline)
+- [`pyGeo`](https://github.com/mdolab/pygeo)
+- [`IDWarp`](https://github.com/mdolab/idwarp)
+- [`ADflow`](https://github.com/mdolab/adflow)
+- [`pyOptSparse`](https://github.com/mdolab/pyoptsparse)
+- [`TACS`](https://github.com/smdogroup/tacs) (Required for aerostructural simulations)
+- [`funtofem`](https://github.com/smdogroup/funtofem) (Required for aerostructural simulations)
 
-A bash shell script is provided to download all the required dependencies and software programs provided by the MDO lab. It is assumed that the user is working on a local Debian based machine. 
+A bash shell script is provided to download and install all the required dependencies and software programs provided by the MDO lab. It is assumed that the user is working on a local Debian based machine. 
 
 However, we recommend using Docker. Images are available for both GCC and INTEL compilers [here](https://mdolab-mach-aero.readthedocs-hosted.com/en/latest/installInstructions/dockerInstructions.html#) 
 

@@ -1,0 +1,58 @@
+out_dir: output
+machine_type: local
+nproc: 8
+hierarchies:
+- name: 3d_aerostruct
+  cases:
+  - name: mach_aero_wing
+    problem: AeroStructural
+    meshes_folder_path: ../grids
+    mesh_files:
+    - wing_vol_L1.cgns
+    - wing_vol_L2.cgns
+    - wing_vol_L3.cgns
+    geometry_info:
+      chordRef: 3.25
+      areaRef: 45.5
+    aero_options:
+      printIterations: true
+      CFL: 1.5
+      useANKSolver: true
+      nsubiterturb: 10
+      ANKSecondOrdSwitchTol: 1.0e-8
+      ANKCoupledSwitchTol: 1.0e-06
+      anklinresmax: 0.1
+      L2Convergence: 1.0e-14
+      L2ConvergenceRel: 0.001
+      nCycles: 10000
+    struct_options:
+      isym: 1
+      t: 0.01
+      mesh_fpath: ../grids/wingbox.bdf
+      properties:
+        ys: 400.0e6
+      load_info:
+        g: 
+          - 0.0
+          - 10.0
+          - 0.0
+      solver_options: 
+        nonlinear_solver_options:
+          maxiter: 30
+    scenarios:
+    - name: cruise
+      aoa_list:
+      - 0
+      - 2
+      - 4
+      - 6
+      - 8
+      - 10
+      - 11
+      - 12
+      - 13
+      - 14
+      - 15
+      reynolds: 3900000.0
+      mach: 0.85
+      T: 298.0

@@ -5,7 +5,7 @@ The `mdss` package organizes simulation results into a structured directory hier
 ### Structure of the Output Directory
 
 <p align="center">
-  <img src="../output_directory_structure.png" alt="Structure of the Output Directory" width="800">
+  <img src="../output_directory_structure.svg" alt="Structure of the Output Directory" width="800">
 </p>
 
 ## File Types
