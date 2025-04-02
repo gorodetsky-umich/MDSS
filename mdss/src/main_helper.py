@@ -11,8 +11,12 @@ from mpi4py import MPI
 
 # Module imports
 from mdss.utils.helpers import ProblemType, MachineType, make_dir, print_msg, load_yaml_file, deep_update
-from mdss.src.aerostruct import Problem
 from mdss.resources.templates import gl_job_script, python_code_for_hpc, python_code_for_subprocess
+try:
+    from mdss.src.aerostruct import Problem
+    MODULES_NOT_FOUND = False
+except:
+    MODULES_NOT_FOUND = True
 
 comm = MPI.COMM_WORLD
 
@@ -42,6 +46,11 @@ def execute(simulation):
     - Directories are created dynamically if they do not exist.
     - Simulation results are saved in structured output files.
     """
+    if MODULES_NOT_FOUND is True and simulation.subprocess_flag is False:
+        msg = f"""Required module are not present in the current environment. Cannot run without subprocess.
+        Turn on the subprocess flag and specify the eligible python environment or install the required packages"""
+        print_msg(msg, 'error', comm)
+        raise ModuleNotFoundError()
 
     # Store a copy of input YAML file in output directory
     input_yaml_file = os.path.join(simulation.out_dir, "input_file.yaml")
@@ -352,24 +361,20 @@ def run_as_subprocess(sim_info, case_info_fpath, scenario_info_fpath, ref_out_di
         run_cmd.extend([python_fname, '--caseInfoFile', case_info_fpath, '--scenarioInfoFile', scenario_info_fpath, 
                 '--refLevelDir', ref_out_dir, '--aoaList', aoa_csv_string, '--aeroGrid', aero_grid_fpath, '--structMesh', struct_mesh_fpath])
 
-        p = subprocess.Popen(run_cmd, 
-            env=env,
-            stdout=subprocess.PIPE,  # Capture standard output
-            stderr=subprocess.PIPE,  # Capture standard error
-            text=True,  # Ensure output is in text format, not bytes
-            )
-        
-        # Read and print the output and error messages
-        stdout, stderr = p.communicate()
-        # Write output to file manually
-        if record_flag is True:
-            with open(subprocess_out_file, 'a') as f:
-                f.write(stdout)
-                f.write(stderr)
-        # Print subprocess outptut
-        print("Subprocess Output:", stdout)
-        print("Subprocess Error:", stderr)
+        with open(subprocess_out_file, "w") as outfile:
+            p = subprocess.Popen(run_cmd, 
+                env=env,
+                stdout=subprocess.PIPE,  # Capture standard output
+                stderr=subprocess.PIPE,  # Capture standard error
+                text=True,  # Ensure output is in text format, not bytes
+                )
+            
+            for line in p.stdout:
+                print(line, end='')        # Optional: real-time terminal output
+                if record_flag is True:
+                    outfile.write(line)
+                    outfile.flush()
 
-        p.wait() # Wait for subprocess to end
+            p.wait() # Wait for subprocess to end
         
         print_msg(f"Completed", "notice", comm)

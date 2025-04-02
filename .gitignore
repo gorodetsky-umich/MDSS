@@ -9,3 +9,8 @@ mdss/resources/__pycache__/
 # mkdocs documentation
 /site
 
+# Ignore CPython extension build artifacts
+*.cpython-*.so
+*.cpython-*.pyd
+*.cpython-*.pyc
+
