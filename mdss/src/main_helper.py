@@ -377,4 +377,4 @@ def run_as_subprocess(sim_info, case_info_fpath, scenario_info_fpath, ref_out_di
 
             p.wait() # Wait for subprocess to end
         
-        print_msg(f"Completed", "notice", comm)
+        print_msg(f"Subprocess completed", "notice", comm)
