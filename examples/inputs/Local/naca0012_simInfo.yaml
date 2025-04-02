@@ -24,13 +24,8 @@ hierarchies:
     scenarios:
     - name: cruise_1
       aoa_list:
-<<<<<<<< HEAD:examples/inputs/Local/naca0012_simInfo.yaml
         - 0
         - 5
-========
-      - 0
-      - 5
->>>>>>>> origin/main:output/input_file.yaml
       reynolds: 3900000.0
       mach: 0.3
       T: 298.0
