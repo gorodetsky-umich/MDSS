@@ -24,14 +24,18 @@ hierarchies:
     scenarios:
     - name: cruise_1
       aoa_list:
-<<<<<<<< HEAD:examples/inputs/Local/naca0012_simInfo.yaml
-        - 0
-        - 5
-========
       - 0
       - 5
->>>>>>>> origin/main:output/input_file.yaml
       reynolds: 3900000.0
       mach: 0.3
       T: 298.0
       exp_data: /home/sanjan/PhD/mdss/examples/exp_data/naca0012.csv
+      sim_info:
+        naca0012_L0.cgns:
+          csv_file: /home/sanjan/PhD/mdss/output/2d_clean/NACA0012/cruise_1/naca0012_L0.cgns/ADflow_output.csv
+          refinement_out_dir: /home/sanjan/PhD/mdss/output/2d_clean/NACA0012/cruise_1/naca0012_L0.cgns
+        scenario_out_dir: /home/sanjan/PhD/mdss/output/2d_clean/NACA0012/cruise_1
+overall_sim_info:
+  start_time: '2025-03-31 18:21:00'
+  end_time: '2025-03-31 18:22:05'
+  total_wall_time: 68.64 sec
