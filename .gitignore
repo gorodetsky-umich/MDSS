@@ -1,4 +1,5 @@
 mdss/__pycache__/
+output/
 examples/naca0012_dict_to_yaml.py
 examples/30p-30n_dict_to_yaml.py
 examples/data_dict_to_yaml.py
