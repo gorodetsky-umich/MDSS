@@ -1,10 +1,5 @@
-mdss/__pycache__/
 output/
-examples/naca0012_dict_to_yaml.py
-examples/30p-30n_dict_to_yaml.py
-examples/data_dict_to_yaml.py
-examples/run_2dcases.py
-mdss/resources/__pycache__/
+**/__pycache__/
 /build/
 *.egg-info/
 # mkdocs documentation
