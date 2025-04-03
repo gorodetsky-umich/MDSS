@@ -17,7 +17,7 @@ except:
     pass
 import openmdao.api as om
 
-from mdss.utils.helpers import ProblemType, load_yaml_file, print_msg, update_om_instance
+from mdss.utils.helpers import ProblemType, load_yaml_file, print_msg, update_om_instance, get_restart_file
 from mdss.resources.aero_defaults import default_aero_options_aerodynamic
 from mdss.resources.aerostruct_defaults import *
 
@@ -268,7 +268,9 @@ class Problem:
         self.sim_info = sim_info
 
     def run(self):
-
+        prev_aoa_out_dir = None
+        is_first_aoa_in_current_run = True
+        restart_mesh_file = None
         for aoa in self.aoa_list:
             self.prob["aoa"] = float(aoa) # Set Angle of attack
             aoa_out_dir = os.path.join(self.sim_info.get('ref_level_dir'), f"aoa_{aoa}") # name of the aoa output directory
@@ -281,27 +283,31 @@ class Problem:
             ################################################################################
             # Checking for existing sucessful simualtion info
             ################################################################################ 
-            if os.path.exists(aoa_out_dir):
-                try:
-                    with open(aoa_info_file, 'r') as aoa_file:
-                        aoa_sim_info = yaml.safe_load(aoa_file)
-                    fail_flag = aoa_sim_info['fail_flag']
-                    if fail_flag == 0:
-                        msg = f"Skipping Angle of Attack (AoA): {float(aoa):<5} | Reason: Existing successful simulation found"
-                        print_msg(msg, 'notice', comm)
-                        continue # Continue to next loop if there exists a successful simulation
-                except:
-                    fail_flag = 1
+            if os.path.exists(aoa_info_file):
+                with open(aoa_info_file, 'r') as aoa_file:
+                    aoa_sim_info = yaml.safe_load(aoa_file)
+                fail_flag = aoa_sim_info['fail_flag']
+                if fail_flag == 0:
+                    msg = f"Skipping Angle of Attack (AoA): {float(aoa):<5} | Reason: Existing successful simulation found"
+                    print_msg(msg, 'notice', comm)
+                    prev_aoa_out_dir = aoa_out_dir
+                    continue # Continue to next loop if there exists a successful simulation
+                # elif fail_flag == 1:
+                    # restart_mesh_file  = get_restart_file(aoa_out_dir) # does not work currently
             elif not os.path.exists(aoa_out_dir): # Create the directory if it doesn't exist
                 if comm.rank == 0:
                     os.makedirs(aoa_out_dir)
-            
             ################################################################################
             # Run sim when a succesful simulation is not found
             ################################################################################
             fail_flag = 0
             # Run the model
             aoa_start_time = time.time() # Store the start time
+            # Does not work currently
+            # if restart_mesh_file is not None:
+            #     prob_updt.restart_file(restart_mesh_file)
+            #     msg = f"Using {restart_mesh_file} to restart simulation."
+            #     print_msg(msg, 'notice', comm)
             try:
                 self.prob.run_model()
                 fail_flag = 0
@@ -345,7 +351,5 @@ class Problem:
                 aoa_out_dic.update(struct_info_dict)
             with open(aoa_info_file, 'w') as interim_out_yaml:
                 yaml.dump(aoa_out_dic, interim_out_yaml, sort_keys=False)
-
-
-
-    
+            
+            prev_aoa_out_dir = aoa_out_dir # Stores the current aoa_dir to be used in the next loop   

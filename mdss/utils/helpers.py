@@ -2,6 +2,7 @@
 import yaml, os
 import pandas as pd
 from enum import Enum
+from pathlib import Path
 
 ################################################################################
 # Problem types as enum
@@ -229,6 +230,18 @@ class update_om_instance:
             self.scenario_attr.coupling.aero.options['solver'].options['outputDirectory'] = new_outdir
             self.scenario_attr.struct_post.eval_funcs.sp.setOption('outputdir', new_outdir)
     
+    def restart_file(self, new_restart_file):
+        """
+        Inputs
+        -------
+        - **new_restart_file**: str
+            New file to restart simulation.
+        """
+        if self.problem_type == ProblemType.AERODYNAMIC:
+            self.scenario_attr.coupling.options['solver'].options['restartFile'] = new_restart_file
+        elif self.problem_type == ProblemType.AEROSTRUCTURAL:
+            self.scenario_attr.coupling.aero.options['solver'].options['restartFile'] = new_restart_file
+
     def aero_options(self, new_aero_options):
         # Currently do not work
         """
@@ -289,6 +302,43 @@ def deep_update(base_dict, update_dict):
         else:
             base_dict[key] = value
 
+################################################################################
+# Function to check and return volume files for restart
+################################################################################
+def get_restart_file(search_dir):
+    """
+    Find the appropriate CGNS restart file from the given directory.
+
+    Inputs
+    ------
+    - **search_dir**: str or Path
+        Directory where restart files are located (currently overridden inside function).
+    - **comm**: MPI communicator  
+        An MPI communicator object to handle parallelism.
+
+    Outputs
+    -------
+    - vol_cgns_path : Path or None
+        Path to the selected CGNS restart file:
+        - Preferably a file ending in '_vol.cgns' that does not contain 'failed'
+        - Falls back to one containing 'failed' if no preferred file exists
+        - Returns None if no such file is found
+    """
+    if not os.path.exists(search_dir):
+        return None
+    search_dir = Path(search_dir)
+    # Get all files ending with _vol.cgns
+    vol_cgns_files = [f for f in search_dir.iterdir() if f.name.endswith("_vol.cgns")]
+
+    # Separate them into preferred and failed
+    preferred_files = [f for f in vol_cgns_files if 'failed' not in f.name]
+    failed_files = [f for f in vol_cgns_files if 'failed' in f.name]
+
+    # Choose the preferred one if it exists, else fallback to the failed one
+    vol_cgns_path = preferred_files[0] if preferred_files else (failed_files[0] if failed_files else None)
+    
+    return vol_cgns_path
+    
 ################################################################################
 # Additional Data Types
 ################################################################################
