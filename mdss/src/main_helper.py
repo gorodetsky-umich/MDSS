@@ -335,7 +335,7 @@ def run_as_subprocess(sim_info, case_info_fpath, scenario_info_fpath, ref_out_di
     out_dir = os.path.abspath(sim_info['out_dir'])
     python_fname = os.path.join(out_dir, "script_for_subprocess.py")
     machine_type = MachineType.from_string(sim_info['machine_type'])
-    subprocess_out_file = os.path.join(os.path.dirname(scenario_info_fpath), "subprocess_out.txt")
+    subprocess_out_file = os.path.join(ref_out_dir, "subprocess_out.txt")
     shell = False
 
     if not os.path.exists(python_fname): # Saves the python script, that is used to run subprocess in the output directory, if the file do not exist already.
