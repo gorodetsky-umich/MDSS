@@ -153,7 +153,6 @@ def execute(simulation):
                                     'fail_flag': int(fail_flag),
                                     'out_dir': aoa_out_dir,
                                 }
-                                refinement_level_dict["failed_aoa"] = failed_aoa_list
                                 refinement_level_dict[f"aoa_{aoa}"] = aoa_level_dict
                                 
                             elif fail_flag == 1: # refers to failed simulation
@@ -162,11 +161,10 @@ def execute(simulation):
                             # Save the aoa_out_dict as an yaml file with the updated info
                             with open(aoa_info_file, 'w') as interim_out_yaml:
                                 yaml.dump(aoa_sim_info, interim_out_yaml, sort_keys=False)
-
                         except:
                             failed_aoa_list.append(aoa) # Add to the list of failed aoa
                     ################################# End of AOA loop ########################################
-
+                    refinement_level_dict["failed_aoa"] = failed_aoa_list
                     # Write simulation results to a csv file
                     refinement_level_data = {
                         "Alpha": [f"{alpha:6.2f}" for alpha in AOAList],
@@ -219,11 +217,13 @@ def execute(simulation):
     # Store the final simulation out file.
     if os.path.exists(simulation.final_out_file):
         prev_sim_info = load_yaml_file(simulation.final_out_file, comm) # Load the previous sim_out_info
-        deep_update(sim_out_info, prev_sim_info)
-
+        deep_update(prev_sim_info, sim_out_info)  # Updates old sim data with the new sim data.
+        final_sim_out_info = prev_sim_info
+    else:
+        final_sim_out_info = sim_out_info
     if comm.rank == 0:
         with open(simulation.final_out_file, 'w') as final_out_yaml_handle:
-            yaml.dump(sim_out_info, final_out_yaml_handle, sort_keys=False)
+            yaml.dump(final_sim_out_info, final_out_yaml_handle, sort_keys=False)
     comm.Barrier()
 
 ################################################################################
