@@ -178,9 +178,20 @@ def execute(simulation):
                     refinement_level_dir = os.path.dirname(aoa_out_dir)
                     ADflow_out_file = os.path.join(refinement_level_dir, "ADflow_output.csv")
                     
-                    df = pd.DataFrame(refinement_level_data) # Create a panda DataFrame
-                    df.to_csv(ADflow_out_file, index=False)# Write the DataFrame to a CSV file
-
+                    df_new = pd.DataFrame(refinement_level_data) # Create a panda DataFrame
+                    # If the file exists, load existing data and append new data
+                    if os.path.exists(ADflow_out_file):
+                        df_existing = pd.read_csv(ADflow_out_file)
+                        df_combined = pd.concat([df_existing, df_new], ignore_index=True)
+                    else:
+                        df_combined = df_new
+                    # Ensure Alpha column is float for sorting and deduplication
+                    df_combined['Alpha'] = pd.to_numeric(df_combined['Alpha'], errors='coerce')
+                    df_combined.dropna(subset=['Alpha'], inplace=True)
+                    df_combined.drop_duplicates(subset='Alpha', keep='last', inplace=True)
+                    df_combined.sort_values(by='Alpha', inplace=True)
+                    df_combined.to_csv(ADflow_out_file, index=False)
+                    
                     # Add csv file location to the overall simulation out file
                     refinement_level_dict['csv_file'] = ADflow_out_file
                     refinement_level_dict['refinement_out_dir'] = refinement_level_dir

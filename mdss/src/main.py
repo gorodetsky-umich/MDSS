@@ -159,11 +159,12 @@ class post_process:
             for case, case_info in enumerate(hierarchy_info['cases']): # loop for cases in hierarchy
                 scenario_legend_entries = []
                 fig, axs = self._create_fig(case_info["name"].replace("_", " ").upper()) # Create Figure
+                colors = niceplots.get_colors_list() # Get colors from nice plots
                 for scenario, scenario_info in enumerate(case_info['scenarios']): # loop for scenarios that may present
                     scenario_out_dir = scenario_info['sim_info']['scenario_out_dir']
                     plot_args = {
-                        'marker': self._get_marker_style(scenario),
                         'label': scenario_info['name'].replace("_", " ").upper(),
+                        'color': colors[scenario]
                     }
                     # To generate plots comparing the refinement levels
                     scenario_legend_entry = self._add_scenario_level_plots(axs, scenario_info['name'], scenario_info.get('exp_data', None), case_info['mesh_files'], scenario_out_dir, **plot_args)
@@ -218,6 +219,7 @@ class post_process:
         scenario_legend_entries = []
         found_scenarios = False
         count = 0 # To get marker style
+        colors = niceplots.get_colors_list() # Get colors from nice plots
         for s in scenarios_list:
             for hierarchy_info in sim_out_info['hierarchies']: # loop for Hierarchy level
                 for case_info in hierarchy_info['cases']: # loop for cases in hierarchy
@@ -228,8 +230,8 @@ class post_process:
                             scenario_out_dir = scenario_info['sim_info'].get('scenario_out_dir', '.')
                             label = f"{case_info['name']} - {scenario_info['name']}"
                             plot_args = {
-                                'marker': self._get_marker_style(count),
                                 'label': label.replace("_", " ").upper(),
+                                'color': colors[count]
                             }
                             scenario_legend_entry = self._add_scenario_level_plots(axs, scenario_info['name'], scenario_info.get('exp_data', None), mesh_files, scenario_out_dir, **plot_args)
                             scenario_legend_entries.append(scenario_legend_entry)
@@ -354,21 +356,25 @@ class post_process:
         marker = kwargs.get('marker', 's')
         markersize = kwargs.get('markersize', 10)
 
-        kwargs['linestyle'] = '--' # Modify the linestyle
-        #kwargs['label'] = f"{scenario_label}, Experimental" # Set label for experimental data
-        kwargs['label'] = None
-        self._add_plot_from_csv(axs, exp_data, **kwargs) # To add experimental data to the plot
-
-        colors = niceplots.get_colors_list() # Get colors from nice plots
-
+        if exp_data:  # Add plots experimental data to the plot
+            exp_args = {
+                'label': None,
+                'color': color,
+                'linestyle': '',
+                'marker': marker
+            }
+            self._add_plot_from_csv(axs, exp_data, **exp_args)
         for ii, mesh_file in enumerate(mesh_files): # Loop for refinement levels
             refinement_level_dir = os.path.join(scenario_out_dir, f"{mesh_file}")
             ADflow_out_file = os.path.join(refinement_level_dir, "ADflow_output.csv")
             # Update kwargs
-            kwargs['linestyle'] = '-'
-            kwargs['color'] = colors[ii]
-            kwargs['label'] = f"{mesh_file}"
-            self._add_plot_from_csv(axs, ADflow_out_file, **kwargs) # To add simulation data to the plots
+            plot_args = {
+                    'label': f"{mesh_file}",
+                    'color': color,
+                    'linestyle': '-',
+                    'marker': self._get_marker_style(ii)
+                }
+            self._add_plot_from_csv(axs, ADflow_out_file, **plot_args) # To add simulation data to the plots
         
         scenario_legend_entry = Line2D([0], [0], marker=marker, color=color, linestyle='', markersize=markersize, label=label) # Create a legend entry for the scenario
         return scenario_legend_entry
@@ -405,7 +411,7 @@ class post_process:
         figsize = self.plot_options.figsize
 
         plt.style.use(niceplots.get_style(niceplots_style))
-        fig, axs = plt.subplots(1, 2, figsize=(14, 6))
+        fig, axs = plt.subplots(1, 2, figsize=(14, 6), layout="constrained")
         fig.suptitle(title)
 
         titles = ['$C_L$ vs Alpha', '$C_D$ vs Alpha']
@@ -445,7 +451,7 @@ class post_process:
         fig.add_artist(mesh_legend)
         niceplots.adjust_spines(axs[0])
         niceplots.adjust_spines(axs[1])
-        fig.tight_layout(rect=[0, 0, 0.95, 1])
+        #fig.tight_layout(rect=[0, 0, 0.95, 1])
 
     def _get_marker_style(self, idx):
         """
