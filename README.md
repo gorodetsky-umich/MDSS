@@ -1,12 +1,11 @@
 # Multi-Disciplinary Simulation Suite (MDSS)
 
-`mdss` is a Python package designed for running a series of Aerodynamic and Aerostructural simulations using ADflow, and TACS simulations with mphys and openMDAO. This package provides streamlined functions to automate simulation test cases.
-
-For detailed install instructions and usage visit the [documentation page](https://gorodetsky-umich.github.io/mdss/).
+`mdss` is a Python package designed for running Aerodynamic (ADflow) and Aerostructural (TACS) simulations using MPhys and OpenMDAO. This package provides streamlined functions to automate simulations.
+For detailed install instructions and usage, visit the [documentation page](https://gorodetsky-umich.github.io/MDSS/).
 
 ## Dependencies
 
-The package requires the following libraries, which can automatically be installed with `pip`:
+The package requires the following libraries, that can be installed with `pip`:
 
 - `numpy>=1.21`
 - `scipy>=1.7`
@@ -35,18 +34,18 @@ However, we recommend using Docker. Images are available for both GCC and INTEL 
 
 ## Instructions for Installation
 
-To install `mdss`, use the following commands:
+After installing the required dependencies and softwares (or by starting initializing a docker container), users can install `mdss` using the following commands:
 
 1. Clone the repository:
 
     ```bash
-    git clone https://github.com/gorodetsky-umich/mdss.git
+    git clone https://github.com/gorodetsky-umich/MDSS.git
     ```
 
 2. Navigate into the directory:
 
     ```bash
-    cd mdss
+    cd MDSS
     ```
 
 3. To install the package without dependencies:
