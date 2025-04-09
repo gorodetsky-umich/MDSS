@@ -10,7 +10,7 @@ import pandas as pd
 from mpi4py import MPI
 
 # Module imports
-from mdss.utils.helpers import ProblemType, MachineType, make_dir, print_msg, load_yaml_file, deep_update
+from mdss.utils.helpers import ProblemType, MachineType, make_dir, print_msg, load_yaml_file, deep_update, load_csv_data
 from mdss.resources.templates import gl_job_script, python_code_for_hpc, python_code_for_subprocess
 try:
     from mdss.src.aerostruct import Problem
@@ -181,8 +181,8 @@ def execute(simulation):
                     df_new = pd.DataFrame(refinement_level_data) # Create a panda DataFrame
                     # If the file exists, load existing data and append new data
                     if os.path.exists(ADflow_out_file):
-                        df_existing = pd.read_csv(ADflow_out_file)
-                        df_combined = pd.concat([df_existing, df_new], ignore_index=True)
+                        df_existing = load_csv_data(ADflow_out_file, comm)
+                        df_combined = pd.concat([df for df in [df_existing, df_new] if df is not None], ignore_index=True) 
                     else:
                         df_combined = df_new
                     # Ensure Alpha column is float for sorting and deduplication
@@ -389,7 +389,5 @@ def run_as_subprocess(sim_info, case_info_fpath, scenario_info_fpath, ref_out_di
             p.wait() # Wait for subprocess to end
         
         _, stderr = p.communicate()
-        if p.returncode != 0:
-            print(f"Error: {stderr}")
-        
+        print_msg(f"{stderr}", 'subprocess error', comm)
         print_msg(f"Subprocess completed", "notice", comm)
