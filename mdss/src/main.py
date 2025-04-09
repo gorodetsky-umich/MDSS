@@ -358,10 +358,10 @@ class post_process:
 
         if exp_data:  # Add plots experimental data to the plot
             exp_args = {
-                'label': None,
+                'label': f"{label} - Experimental",
                 'color': color,
                 'linestyle': '',
-                'marker': marker
+                'marker': '.'
             }
             self._add_plot_from_csv(axs, exp_data, **exp_args)
         for ii, mesh_file in enumerate(mesh_files): # Loop for refinement levels
@@ -369,7 +369,7 @@ class post_process:
             ADflow_out_file = os.path.join(refinement_level_dir, "ADflow_output.csv")
             # Update kwargs
             plot_args = {
-                    'label': f"{mesh_file}",
+                    'label': f"{label} - {mesh_file}",
                     'color': color,
                     'linestyle': '-',
                     'marker': self._get_marker_style(ii)
@@ -429,14 +429,14 @@ class post_process:
 
         mesh_handles, mesh_labels = axs[0].get_legend_handles_labels()
         # Create the legends
-        scenario_legend = Legend(fig, handles=scenario_legend_entries,
-                                labels=[h.get_label() for h in scenario_legend_entries],
-                                loc='center left',
-                                bbox_to_anchor=(1.0, 0.25),
-                                title='Scenarios',
-                                frameon=True,
-                                fontsize=10,
-                                labelspacing=0.3)
+        # scenario_legend = Legend(fig, handles=scenario_legend_entries,
+        #                         labels=[h.get_label() for h in scenario_legend_entries],
+        #                         loc='center left',
+        #                         bbox_to_anchor=(1.0, 0.25),
+        #                         title='Scenarios',
+        #                         frameon=True,
+        #                         fontsize=10,
+        #                         labelspacing=0.3)
 
         mesh_legend = Legend(fig, handles=mesh_handles,
                             labels=mesh_labels,
@@ -447,7 +447,7 @@ class post_process:
                             fontsize=10,
                             labelspacing=0.3)
 
-        fig.add_artist(scenario_legend)
+        #fig.add_artist(scenario_legend)
         fig.add_artist(mesh_legend)
         niceplots.adjust_spines(axs[0])
         niceplots.adjust_spines(axs[1])
@@ -468,5 +468,5 @@ class post_process:
         - **Marker Style**: str
             Marker style for the current index
         """
-        markers = ['s', 'o', '^', 'D', 'v', '*', 'X', 'P']
+        markers = ['s', 'o', '^', 'D', 'v','X', 'P']
         return markers[idx % len(markers)]
