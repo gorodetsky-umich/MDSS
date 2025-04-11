@@ -229,18 +229,6 @@ class update_om_instance:
         elif self.problem_type == ProblemType.AEROSTRUCTURAL:
             self.scenario_attr.coupling.aero.options['solver'].options['outputDirectory'] = new_outdir
             self.scenario_attr.struct_post.eval_funcs.sp.setOption('outputdir', new_outdir)
-    
-    def restart_file(self, new_restart_file):
-        """
-        Inputs
-        -------
-        - **new_restart_file**: str
-            New file to restart simulation.
-        """
-        if self.problem_type == ProblemType.AERODYNAMIC:
-            self.scenario_attr.coupling.options['solver'].options['restartFile'] = new_restart_file
-        elif self.problem_type == ProblemType.AEROSTRUCTURAL:
-            self.scenario_attr.coupling.aero.options['solver'].options['restartFile'] = new_restart_file
 
     def aero_options(self, new_aero_options):
         # Currently do not work
@@ -337,7 +325,7 @@ def get_restart_file(search_dir):
     # Choose the preferred one if it exists, else fallback to the failed one
     vol_cgns_path = preferred_files[0] if preferred_files else (failed_files[0] if failed_files else None)
     
-    return vol_cgns_path
+    return str(vol_cgns_path)
     
 ################################################################################
 # Additional Data Types

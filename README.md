@@ -11,20 +11,19 @@ The package requires the following libraries, that can be installed with `pip`:
 - `scipy>=1.7`
 - `mpi4py>=3.1.4`
 - `pyyaml`
-- `matplotlib`
 - `pandas`
+- `matplotlib`
+- `niceplots`
 - `petsc4py`
 
 Additionally, the following packages are also needed but may require manual installation:
 
-- [`OpenMDAO`](https://github.com/OpenMDAO/OpenMDAO)
+- [`OpenMDAO>= 3.25, != 3.27.0`](https://github.com/OpenMDAO/OpenMDAO)
 - [`MPhys>=2.0.0`](https://github.com/OpenMDAO/mphys)
-- [`baseClasses`](https://github.com/mdolab/baseclasses)
-- [`pySpline`](https://github.com/mdolab/pyspline)
-- [`pyGeo`](https://github.com/mdolab/pygeo)
-- [`IDWarp`](https://github.com/mdolab/idwarp)
+- [`baseClasses>=1.4`](https://github.com/mdolab/baseclasses)
+- [`IDWarp>=2.6`](https://github.com/mdolab/idwarp)
 - [`ADflow>=2.12.0`](https://github.com/mdolab/adflow)
-- [`pyOptSparse`](https://github.com/mdolab/pyoptsparse)
+
 - [`TACS>=3.8.0`](https://github.com/smdogroup/tacs) (Required for aerostructural simulations)
 - [`funtofem>=0.3.9`](https://github.com/smdogroup/funtofem) (Required for aerostructural simulations)
 

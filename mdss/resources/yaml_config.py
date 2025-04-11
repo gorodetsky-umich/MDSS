@@ -83,6 +83,7 @@ class ref_case_info(BaseModel):
     problem: str
     meshes_folder_path: str
     mesh_files: list[str]
+    restart_angle: Optional[float]=None
     geometry_info: ref_geometry_info
     aero_options: dict=None
     struct_options: Optional[ref_struct_options]=None
@@ -191,6 +192,7 @@ class ref_sim_info(BaseModel):
 class ref_plot_options(BaseModel):
     niceplots_style: str
     figsize: tuple[float, float]
+    colors: list[str]
 
     @model_validator(mode='before')
     def check_valid_conditions(cls, values):

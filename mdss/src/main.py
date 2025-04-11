@@ -159,7 +159,9 @@ class post_process:
             for case, case_info in enumerate(hierarchy_info['cases']): # loop for cases in hierarchy
                 scenario_legend_entries = []
                 fig, axs = self._create_fig(case_info["name"].replace("_", " ").upper()) # Create Figure
-                colors = niceplots.get_colors_list() # Get colors from nice plots
+                colors = self.plot_options.colors
+                if not colors:  # Checks if the list is empty
+                    colors = niceplots.get_colors_list()
                 for scenario, scenario_info in enumerate(case_info['scenarios']): # loop for scenarios that may present
                     scenario_out_dir = scenario_info['sim_info']['scenario_out_dir']
                     plot_args = {
@@ -174,29 +176,37 @@ class post_process:
                 fig_name = os.path.join(os.path.dirname(scenario_out_dir), case_info['name'])
                 niceplots.save_figs(fig, fig_name, ["png"], format_kwargs={"png": {"dpi": 400}}, bbox_inches="tight")
 
-    def compare_scenarios(self, scenarios_list: list[dict], plt_name: str):
+    def custom_compare(self, custom_compare_info: dict, plt_name: str):
         """
         Generates a combined plot comparing specific scenarios across hierarchies and cases.
 
-        This function creates a figure with two subplots: one for C<sub>L</sub> vs Alpha and another for C<sub>D</sub> vs Alpha.
+        This method creates a figure with two subplots: one for C<sub>L</sub> vs Alpha and another for C<sub>D</sub> vs Alpha.
         It overlays selected scenarios (across different cases and hierarchies) and creates a shared legend
         to highlight which scenario each marker represents.
 
-        Inputs 
+        Inputs
         -------
-        - **scenarios_list**: list[dict]  
-            A list of dictionaries, each defining a scenario to be compared.  
-            Each dictionary must contain the following keys:
-                - *hierarchy*: str  
-                    Name of the hierarchy the scenario belongs to.
-                - *case*: str  
-                    Name of the case within the hierarchy.
-                - *scenario*: str  
-                    Name of the scenario to be plotted.
-            
-            Optional key:
-                - 'mesh_files': list[str]  
-                    List of mesh refinement levels to include for that scenario. If not specified, defaults to all mesh files under the case.
+        - **custom_compare_info**: dict  
+            A dictionary defining the scenarios to be compared.  
+            The structure of the dictionary should be:
+            ```python
+            {
+                "hierarchy_name": {
+                    "case_name": {
+                        "scenarios": ["scenario_name_1", "scenario_name_2"],
+                        "mesh_files": ["mesh_level_1", "mesh_level_2"]  # Optional
+                    }
+                }
+            }
+            ```
+            - *hierarchy_name*: str  
+                Name of the hierarchy the scenario belongs to.
+            - *case_name*: str  
+                Name of the case within the hierarchy.
+            - *scenarios*: list[str]  
+                List of scenario names to be plotted.
+            - *mesh_files*: list[str], optional  
+                List of mesh refinement levels to include for that scenario. If not specified, defaults to all mesh files under the case.
 
         - **plt_name**: str  
             Name used for the plot title and the saved file name (PNG format).
@@ -205,37 +215,51 @@ class post_process:
         --------
         - **PNG File**:
             A side-by-side comparison plot showing C<sub>L</sub> and C<sub>D</sub> vs Alpha for all selected scenarios.  
-            The plot is saved in the output directory of the last processed scenario.
+            The plot is saved in the output directory specified during initialization.
 
         Notes
         ------
-        - Each scenario is plotted using a consistent marker, with colors indicating refinement levels.
+        - Each scenario is plotted using a consistent color, with markers indicating refinement levels.
         - Experimental data is included when available.
         - A shared legend (outside the plot) shows scenario identifiers and their corresponding markers.
-        - If multiple scenarios share the same marker (due to index reuse), modify `_get_marker_style()` to expand the list.
         """
         sim_out_info = copy.deepcopy(self.sim_out_info)
         fig, axs = self._create_fig(plt_name.replace("_", " ").upper()) # Create Figure
         scenario_legend_entries = []
         found_scenarios = False
         count = 0 # To get marker style
-        colors = niceplots.get_colors_list() # Get colors from nice plots
+        colors = self.plot_options.colors
+        if not colors:  # Checks if the list is empty
+            colors = niceplots.get_colors_list()
+        scenarios_list = [] 
+        for hierarchy, hierarchy_info in custom_compare_info.items():
+            for case, case_info in hierarchy_info.items():
+                for scenario in case_info['scenarios']:
+                    scenario_info = {'hierarchy':hierarchy, 'case': case, 'scenario': scenario}
+                    if 'mesh_files' in case_info.keys():
+                        scenario_info['mesh_files'] = case_info['mesh_files']
+                    scenarios_list.append(scenario_info)
         for s in scenarios_list:
-            for hierarchy_info in sim_out_info['hierarchies']: # loop for Hierarchy level
-                for case_info in hierarchy_info['cases']: # loop for cases in hierarchy
-                    for scenario, scenario_info in enumerate(case_info['scenarios']): # loop for scenarios that may present
-                        if (s['hierarchy'] == hierarchy_info['name'] and s['case'] == case_info['name'] and s['scenario'] == scenario_info['name']): # Add current scenario's plot
-                            found_scenarios = True
-                            mesh_files = s.get('mesh_files', case_info['mesh_files'])
-                            scenario_out_dir = scenario_info['sim_info'].get('scenario_out_dir', '.')
-                            label = f"{case_info['name']} - {scenario_info['name']}"
-                            plot_args = {
-                                'label': label.replace("_", " ").upper(),
-                                'color': colors[count]
-                            }
-                            scenario_legend_entry = self._add_scenario_level_plots(axs, scenario_info['name'], scenario_info.get('exp_data', None), mesh_files, scenario_out_dir, **plot_args)
-                            scenario_legend_entries.append(scenario_legend_entry)
-                            count+=1
+            for hierarchy_info in sim_out_info['hierarchies']:
+                if hierarchy_info['name'] != s['hierarchy']:
+                    continue
+                for case_info in hierarchy_info['cases']:
+                    if case_info['name'] != s['case']:
+                        continue
+                    for scenario_info in case_info['scenarios']:
+                        if scenario_info['name'] != s['scenario']:
+                            continue
+                        found_scenarios = True
+                        mesh_files = s.get('mesh_files', case_info['mesh_files'])
+                        scenario_out_dir = scenario_info['sim_info'].get('scenario_out_dir', '.')
+                        label = f"{case_info['name']} - {scenario_info['name']}"
+                        plot_args = {
+                            'label': label.replace("_", " ").upper(),
+                            'color': colors[count]
+                        }
+                        scenario_legend_entry = self._add_scenario_level_plots(axs, scenario_info['name'], scenario_info.get('exp_data', None), mesh_files, scenario_out_dir, **plot_args)
+                        scenario_legend_entries.append(scenario_legend_entry)
+                        count+=1
 
         if not found_scenarios:
             return ValueError("None of the scenarios are found")
@@ -354,14 +378,15 @@ class post_process:
         color = kwargs.get('color', 'black')
         linestyle = kwargs.get('linestyle', '-')
         marker = kwargs.get('marker', 's')
-        markersize = kwargs.get('markersize', 10)
+        markersize = kwargs.get('markersize', 8)
 
         if exp_data:  # Add plots experimental data to the plot
             exp_args = {
                 'label': f"{label} - Experimental",
                 'color': color,
                 'linestyle': '',
-                'marker': '.'
+                'marker': 'D',
+                'markersize': markersize + 4,
             }
             self._add_plot_from_csv(axs, exp_data, **exp_args)
         for ii, mesh_file in enumerate(mesh_files): # Loop for refinement levels
@@ -372,7 +397,8 @@ class post_process:
                     'label': f"{label} - {mesh_file}",
                     'color': color,
                     'linestyle': '-',
-                    'marker': self._get_marker_style(ii)
+                    'marker': self._get_marker_style(ii),
+                    'markersize': markersize,
                 }
             self._add_plot_from_csv(axs, ADflow_out_file, **plot_args) # To add simulation data to the plots
         
@@ -468,5 +494,5 @@ class post_process:
         - **Marker Style**: str
             Marker style for the current index
         """
-        markers = ['s', 'o', '^', 'D', 'v','X', 'P']
+        markers = ['s', 'o', '^', 'v','X', 'P', '.', 'H', 'p', '*', 'h', '+', 'x']
         return markers[idx % len(markers)]
