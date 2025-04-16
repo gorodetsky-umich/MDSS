@@ -33,7 +33,7 @@ However, we recommend using Docker. Images are available for both GCC and INTEL 
 
 ## Instructions for Installation
 
-After installing the required dependencies and softwares (or by starting initializing a docker container), users can install `mdss` using the following commands:
+After installing the required dependencies and softwares (or inside a docker container that contains the required packages), users can install `mdss` using the following commands:
 
 1. Clone the repository:
 
