@@ -17,7 +17,7 @@ except:
     pass
 import openmdao.api as om
 
-from mdss.utils.helpers import ProblemType, load_yaml_file, print_msg, update_om_instance
+from mdss.utils.helpers import ProblemType, load_yaml_file, print_msg, update_om_instance, get_restart_file
 from mdss.resources.aero_defaults import default_aero_options_aerodynamic
 from mdss.resources.aerostruct_defaults import *
 
@@ -54,9 +54,9 @@ class Top(Multipoint):
             'Temp': # float, Temperature in Kelvin
             
             # Add Structural Info
-            'tacs_out_dir': # str, Path to the outptut directory for TACS. Can be left empty for aerodynamic problems
+            'tacs_out_dir': # str, Path to the output directory for TACS. Can be left empty for aerodynamic problems
             'struct_mesh_fpath': # str, Path to the structural mesh file. Can be left empty for aerodynamic problems
-            'structural_properties': # dict, inludes material propertires - E, ro, nu, kcorr, ys, and thickness of the shell.
+            'structural_properties': # dict, includes material properties - E, ro, nu, kcorr, ys, and thickness of the shell.
             'load_info': # dict, load type - Cruise/Maneuver, gravity flag, inertial load factor for maneuver loads.
             'solver_options': # dict, solver options in openMDAO
         }
@@ -230,14 +230,19 @@ class Problem:
             solver_options['linear_solver_options'].update(solver_options_updt.get('linear_solver_options', {}))
             solver_options['nonlinear_solver_options'].update(solver_options_updt.get('nonlinear_solver_options', {}))
 
-        
-
         geometry_info = case_info['geometry_info']
 
         # Update aero_options file
         aero_options.update(case_info.get('aero_options', {}))
         aero_options['gridFile'] = aero_grid_fpath # Add aero_grid file path to aero_options
-            
+        
+        # Update restart angle if provided
+        if case_info.get('restart_angle', None) is not None:
+            restart_angle = float(case_info['restart_angle'])
+            restart_angle_dir = os.path.join(ref_level_dir, f"aoa_{restart_angle}")
+            restart_mesh_file = get_restart_file(restart_angle_dir)
+            if restart_mesh_file is not None:
+                aero_options['restartFile'] = restart_mesh_file  # Update the restart file in the aero_options
         sim_info = {
                 'aoa_list': aoa_list,
                 'ref_level_dir': ref_level_dir,
@@ -268,7 +273,6 @@ class Problem:
         self.sim_info = sim_info
 
     def run(self):
-
         for aoa in self.aoa_list:
             self.prob["aoa"] = float(aoa) # Set Angle of attack
             aoa_out_dir = os.path.join(self.sim_info.get('ref_level_dir'), f"aoa_{aoa}") # name of the aoa output directory
@@ -281,21 +285,17 @@ class Problem:
             ################################################################################
             # Checking for existing sucessful simualtion info
             ################################################################################ 
-            if os.path.exists(aoa_out_dir):
-                try:
-                    with open(aoa_info_file, 'r') as aoa_file:
-                        aoa_sim_info = yaml.safe_load(aoa_file)
-                    fail_flag = aoa_sim_info['fail_flag']
-                    if fail_flag == 0:
-                        msg = f"Skipping Angle of Attack (AoA): {float(aoa):<5} | Reason: Existing successful simulation found"
-                        print_msg(msg, 'notice', comm)
-                        continue # Continue to next loop if there exists a successful simulation
-                except:
-                    fail_flag = 1
+            if os.path.exists(aoa_info_file):
+                with open(aoa_info_file, 'r') as aoa_file:
+                    aoa_sim_info = yaml.safe_load(aoa_file)
+                fail_flag = aoa_sim_info['fail_flag']
+                if fail_flag == 0:
+                    msg = f"Skipping Angle of Attack (AoA): {float(aoa):<5} | Reason: Existing successful simulation found"
+                    print_msg(msg, 'notice', comm)
+                    continue # Continue to next loop if there exists a successful simulation
             elif not os.path.exists(aoa_out_dir): # Create the directory if it doesn't exist
                 if comm.rank == 0:
                     os.makedirs(aoa_out_dir)
-            
             ################################################################################
             # Run sim when a succesful simulation is not found
             ################################################################################
@@ -345,7 +345,3 @@ class Problem:
                 aoa_out_dic.update(struct_info_dict)
             with open(aoa_info_file, 'w') as interim_out_yaml:
                 yaml.dump(aoa_out_dic, interim_out_yaml, sort_keys=False)
-
-
-
-    

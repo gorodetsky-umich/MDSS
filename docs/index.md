@@ -6,7 +6,7 @@
 - [Introduction](tutorials/introduction.md)
 - [Usage](tutorials/usage.md)
 - [Test Cases](tutorials/test_cases.md)
-- [Source Documentation](reference/index.md)
+- [Source Documentation]
 
 ## Key Features
 - Automates the execution of multiple aerodynamic and aerostructural simulations in sequence, reducing manual intervention.
@@ -40,15 +40,12 @@ For detailed information on dependencies and install instructions, check the [in
 ### Running a Simulation
 Here is a quick example on how to use the `mdss`:
 ```python
-from mdss.run_sim import run_sim
+from mdss import simulation
 
 # Initialize the runner with configuration file
-sim = run_sim('/path/to/input-yaml-file')
+sim = simulation('/path/to/input-yaml-file')
 
 # Run the simulation series
 sim.run()
-
-# Analyze results
-sim.post_process()
 ```
 Detailed information on the usage can be found on the [tutorials page](tutorials/introduction.md).

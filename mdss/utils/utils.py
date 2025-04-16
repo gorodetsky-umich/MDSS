@@ -41,7 +41,7 @@ class update_info_file():
         Writes the modified input file.
 
     Inputs
-    ----------
+    ------
     - **info_file** : str
         Path to the YAML file containing simulation configuration and information.
     """
@@ -52,16 +52,16 @@ class update_info_file():
         self.sim_info = load_yaml_file(self.info_file, comm)
 
     def aero_options(self, aero_options_updt, case_names):
-        '''
+        """
         Inputs
-        ----------
+        ------
         - **aero_options_updt** : dict
             A  dictionary containg the aero options to modify.
         
         - **case_names**: list[str]
             A list containing the names of the cases to modify.
             
-        '''
+        """
 
         for hierarchy, hierarchy_info in enumerate(self.sim_info['hierarchies']): # loop for Hierarchy level
             for case, case_info in enumerate(hierarchy_info['cases']): # loop for cases in hierarchy
@@ -69,7 +69,7 @@ class update_info_file():
                     case_info['aero_options'].update(aero_options_updt)
     
     def aero_meshes(self, mesh_files, case_names, option,  meshes_folder_path=None):
-        '''
+        """
         Adds mesh files to specifies cases and optionally modifies the path to the folder contating meshes, when provided.
         Inputs
         ------
@@ -83,7 +83,7 @@ class update_info_file():
             'r' to remove the aoa from the file.
         - **meshes_folder_path**: str, optional
             Path to the folder containing meshes
-        '''
+        """
         for hierarchy, hierarchy_info in enumerate(self.sim_info['hierarchies']): # loop for Hierarchy level
             for case, case_info in enumerate(hierarchy_info['cases']): # loop for cases in hierarchy
                 if case_info['name'] in case_names:
@@ -98,9 +98,9 @@ class update_info_file():
 
     
     def aoa(self, aoa_list, case_names, scenario_names, option):
-        '''
+        """
         Inputs
-        ----------
+        ------
         - **aoa_list** : list
             A list containg aoa to append or modify or remove.
         
@@ -114,7 +114,7 @@ class update_info_file():
             'a' to append (add the given aoa to the existing list)
             'm' to modify the list (to overwrite)
             'r' to remove the aoa from the file.
-        '''
+        """
         for hierarchy, hierarchy_info in enumerate(self.sim_info['hierarchies']): # loop for Hierarchy level
             for case, case_info in enumerate(hierarchy_info['cases']): # loop for cases in hierarchy
                 if case_info['name'] in case_names:
@@ -128,12 +128,12 @@ class update_info_file():
                                 scenario_info['aoa_list']= [aoa for aoa in scenario_info['aoa_list'] if aoa not in aoa_list]
     
     def write_mod_info_file(self, new_fname=None):
-        '''
+        """
         Inputs
-        ----------
+        ------
         - **fname** : str, Optional
             New file name along with the path. Overwrites the original file, when a new name is not provided.
-        '''
+        """
         if comm.rank == 0:
             if new_fname is None:
                 new_fname = self.info_file
@@ -258,11 +258,11 @@ def run_case(case, case_info):
     This function sets up and executes a simulation based on the provided case information.
     It validates the input, prepares a temporary directory for files, and cleans up after the run.
 
-    Inputs:
-    ----------
-    case : str
+    Inputs
+    ------
+    - **case**: str
         The name of the simulation case to run (e.g., 'naca0012', '30p-30n').
-    case_info : dict
+    - **case_info**: dict
         A dictionary containing the case information. It should follow the structure defined by the `ref_case_info` class:
         - `hpc` Optional(Literal['yes', 'no'])): Indicates whether to run on an HPC cluster ('yes') or locally ('no'). Defatlts to 'no'
         - `hpc_info` (Optional[dict]): If `hpc` is 'yes', this should be a dictionary following the structure of `ref_hpc_info`:
@@ -276,12 +276,12 @@ def run_case(case, case_info):
         - `aoa_list` (list[float]): List of angles of attack for the simulation.
         - `solver_parameters` (Optional[dict]): Dictionary of solver-specific parameters (optional).
 
-    Outputs:
+    Outputs
     -------
-    sim_data : dict
+    - **sim_data**: dict
         Simulation results and associated data.
 
-    Notes:
+    Notes
     ------
     - Creates a temporary directory for the simulation input and output files.
     - Deletes the temporary directory after the simulation run.
@@ -367,17 +367,17 @@ def run_naca0012(case_info):
     """
     Run the NACA 0012 simulation case.
 
-    Inputs:
-    ----------
-    case_info : dict
+    Inputs
+    ------
+    - **case_info**: dict
         A dictionary containing the case information. 
 
-    Outputs:
+    Outputs
     -------
-    sim_data : dict
+    - **sim_data**: dict
         Simulation results and associated data for the NACA 0012 case.
 
-    Notes:
+    Notes
     ------
     - Uses the `run_case` function with 'naca0012' as the case name.
     """
@@ -389,17 +389,17 @@ def run_30p30n(case_info):
     """
     Run the 30p30n simulation case.
 
-    Inputs:
-    ----------
+    Inputs
+    ------
     case_info : dict
         A dictionary containing the case information.
 
-    Outputs:
+    Outputs
     -------
     sim_data : dict
         Simulation results and associated data for the 30p30n case.
 
-    Notes:
+    Notes
     ------
     - Uses the `run_case` function with '30p-30n' as the case name.
     """
@@ -427,11 +427,11 @@ class run_custom_sim():
     It sets up and executes a simulation based on the provided case information.
     It validates the input, prepares a temporary directory for files, and cleans up after the run.
 
-    Inputs:
-    ----------
-    case : str
+    Inputs
+    ------
+    - **case**: str
         The name of the simulation case to run (e.g., 'naca0012', '30p-30n').
-    case_info : dict
+    - **case_info**: dict
         A dictionary containing the case information. It should follow the structure defined by the `ref_case_info` class:
         - `hpc` Optional(Literal['yes', 'no'])): Indicates whether to run on an HPC cluster ('yes') or locally ('no'). Defatlts to 'no'
         - `hpc_info` (Optional[dict]): If `hpc` is 'yes', this should be a dictionary following the structure of `ref_hpc_info`:
@@ -445,12 +445,12 @@ class run_custom_sim():
         - `aoa_list` (list[float]): List of angles of attack for the simulation.
         - `solver_parameters` (Optional[dict]): Dictionary of solver-specific parameters (optional).
 
-    Outputs:
+    Outputs
     -------
-    sim_data : dict
+    - **sim_data**: dict
         Simulation results and associated data.
 
-    Notes:
+    Notes
     ------
     - Creates a temporary directory for the simulation input and output files.
     - Deletes the temporary directory after the simulation run.
@@ -473,17 +473,17 @@ class run_custom_sim():
         self.sim_info = sim_info
     
     def run(self, case_info):
-        '''
-        Inputs:
+        """
+        Inputs
         ----------
-        case_info : dict
+        - **case_info**: dict
             A dictionary containing the case information. It should follow the structure defined by the `ref_case_info` class:
             - `meshes_folder_path` (str): Path to the directory containing mesh files.
             - `mesh_files` (list[str]): List of mesh file names.
             - `aoa_list` (list[float]): List of angles of attack for the simulation.
             - `aero_options` (Optional[dict]): Dictionary containing ADflow solver parameters (optional).
             - `struct_options` (Optional[dict]): Dictionary containing structural info for aero structural problem (optional).
-        '''
+        """
         ref_case_info.model_validate(case_info)
         # Update Info
         self.sim_info['hierarchies'][0]['cases'][0]['meshes_folder_path'] = case_info['meshes_folder_path']

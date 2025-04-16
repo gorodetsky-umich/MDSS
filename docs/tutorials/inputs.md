@@ -1,8 +1,6 @@
 # Inputs
 
-The `mdss` package requires the following inputs to configure and execute simulations:
-
----
+The `mdss` package requires an [yaml file](#yaml-configuration-file) to configure and execute simulations.
 
 ## YAML Configuration File
 
@@ -14,10 +12,10 @@ The YAML file organizes simulation data into a structured hierarchy, enabling cl
 
 ```yaml
 out_dir: # str, path to the output directory
-nproc: # int, number of processors
 python_version: # str, path to the python env to use
-hpc: # str, 'yes' or 'no'
-hpc_info: # dict, required only if hpc is yes
+machine_type: # str, local/hpc
+nproc: # int, number of processors, required when machine_type is local
+hpc_info: # dict, required only if machine_type is hpc
   cluster: # str, name of the cluster. GL for Great Lakes
   job_name: # str, name of the job
   nodes: # int, number of nodes
@@ -40,7 +38,7 @@ hierarchies: # list, List of hierarchies
     geometry_info: # dict, dictionary of geometry info
       chordRef: # float, reference chord length
       areaRef: # flaot, reference area
-    aero_options: # dict, dictionary of ADflow solver parameters. For more information see solver parameters section
+    aero_options: # dict, dictionary of ADflow solver parameters. For more information see aero options section
       # ......
     scenarios: # list, list of dictionaries containing scenario info
     # First experimental set in current case
@@ -165,17 +163,9 @@ If the dictionary is empty or if the default parameters are not modified, the co
 ```
 ### Scenarios
 
-To define the problem, referred to as the *__AeroProblem__* (focused on aerodynamics), the following conditions along with the name, a list of Angle of Attacks(AoA) and path to the experimental data:
+To define the problem, referred to as the *__AeroProblem__* (focused on aerodynamics), flight conditions along with the name and  a list of Angle of Attacks(AoA) is required, and path to the experimental data is optional.
 
-- Reynolds number
-- Mach number
-- Temperature
-- Reynolds length (Computed from geometrical data)
-
-Other properties, such as pressure or density, will be calculated automatically by `mdolab-baseclasses` based on the specified values and the governing gas laws.
-
-The `Angle of Attack (AoA)` is required to define the aerodynamic orientation of the flow. The `path to experimental data` can be left blank, as it will not affect the simulation. However, leaving it blank will generate a warning during the post-processing stage.
-
+Check [`mdolab-baseclasses`](https://mdolab-baseclasses.readthedocs-hosted.com/en/latest/pyAero_problem.html) for valid combinations flight conditions.The other properties will be calculated automatically by `mdolab-baseclasses` based on the specified values and the governing gas laws.
 
 ### Location of Mesh Files
 

@@ -1,11 +1,12 @@
-mdss/__pycache__/
-examples/naca0012_dict_to_yaml.py
-examples/30p-30n_dict_to_yaml.py
-examples/data_dict_to_yaml.py
-examples/run_2dcases.py
-mdss/resources/__pycache__/
+output/
+**/__pycache__/
 /build/
 *.egg-info/
 # mkdocs documentation
 /site
+
+# Ignore CPython extension build artifacts
+*.cpython-*.so
+*.cpython-*.pyd
+*.cpython-*.pyc
 

@@ -1,33 +1,31 @@
 # Multi-Disciplinary Simulation Suite (MDSS)
 
-`mdss` is a Python package designed for running a series of Aerodynamic and Aerostructural simulations using ADflow, and TACS simulations with mphys and openMDAO. This package provides streamlined functions to automate simulation test cases.
-
-For detailed install instructions and usage visit the [documentation page](https://gorodetsky-umich.github.io/mdss/).
+`mdss` is a Python package designed for running Aerodynamic (ADflow) and Aerostructural (TACS) simulations using MPhys and OpenMDAO. This package provides streamlined functions to automate simulations.
+For detailed install instructions and usage, visit the [documentation page](https://gorodetsky-umich.github.io/MDSS/).
 
 ## Dependencies
 
-The package requires the following libraries, which can automatically be installed with `pip`:
+The package requires the following libraries, that can be installed with `pip`:
 
 - `numpy>=1.21`
 - `scipy>=1.7`
 - `mpi4py>=3.1.4`
 - `pyyaml`
-- `matplotlib`
 - `pandas`
+- `matplotlib`
+- `niceplots`
 - `petsc4py`
 
 Additionally, the following packages are also needed but may require manual installation:
 
-- [`OpenMDAO`](https://github.com/OpenMDAO/OpenMDAO)
-- [`MPhys`](https://github.com/OpenMDAO/mphys)
-- [`baseClasses`](https://github.com/mdolab/baseclasses)
-- [`pySpline`](https://github.com/mdolab/pyspline)
-- [`pyGeo`](https://github.com/mdolab/pygeo)
-- [`IDWarp`](https://github.com/mdolab/idwarp)
-- [`ADflow`](https://github.com/mdolab/adflow)
-- [`pyOptSparse`](https://github.com/mdolab/pyoptsparse)
-- [`TACS`](https://github.com/smdogroup/tacs) (Required for aerostructural simulations)
-- [`funtofem`](https://github.com/smdogroup/funtofem) (Required for aerostructural simulations)
+- [`OpenMDAO>= 3.25, != 3.27.0`](https://github.com/OpenMDAO/OpenMDAO)
+- [`MPhys>=2.0.0`](https://github.com/OpenMDAO/mphys)
+- [`baseClasses>=1.4`](https://github.com/mdolab/baseclasses)
+- [`IDWarp>=2.6`](https://github.com/mdolab/idwarp)
+- [`ADflow>=2.12.0`](https://github.com/mdolab/adflow)
+
+- [`TACS>=3.8.0`](https://github.com/smdogroup/tacs) (Required for aerostructural simulations)
+- [`funtofem>=0.3.9`](https://github.com/smdogroup/funtofem) (Required for aerostructural simulations)
 
 A bash shell script is provided to download and install all the required dependencies and software programs provided by the MDO lab. It is assumed that the user is working on a local Debian based machine. 
 
@@ -35,18 +33,18 @@ However, we recommend using Docker. Images are available for both GCC and INTEL 
 
 ## Instructions for Installation
 
-To install `mdss`, use the following commands:
+After installing the required dependencies and softwares (or inside a docker container that contains the required packages), users can install `mdss` using the following commands:
 
 1. Clone the repository:
 
     ```bash
-    git clone https://github.com/gorodetsky-umich/mdss.git
+    git clone https://github.com/gorodetsky-umich/MDSS.git
     ```
 
 2. Navigate into the directory:
 
     ```bash
-    cd mdss
+    cd MDSS
     ```
 
 3. To install the package without dependencies:

@@ -10,9 +10,13 @@ import pandas as pd
 from mpi4py import MPI
 
 # Module imports
-from mdss.utils.helpers import ProblemType, MachineType, make_dir, print_msg, load_yaml_file, deep_update
-from mdss.src.aerostruct import Problem
+from mdss.utils.helpers import ProblemType, MachineType, make_dir, print_msg, load_yaml_file, deep_update, load_csv_data
 from mdss.resources.templates import gl_job_script, python_code_for_hpc, python_code_for_subprocess
+try:
+    from mdss.src.aerostruct import Problem
+    MODULES_NOT_FOUND = False
+except:
+    MODULES_NOT_FOUND = True
 
 comm = MPI.COMM_WORLD
 
@@ -42,6 +46,11 @@ def execute(simulation):
     - Directories are created dynamically if they do not exist.
     - Simulation results are saved in structured output files.
     """
+    if MODULES_NOT_FOUND is True and simulation.subprocess_flag is False:
+        msg = f"""Required module are not present in the current environment. Cannot run without subprocess.
+        Turn on the subprocess flag and specify the eligible python environment or install the required packages"""
+        print_msg(msg, 'error', comm)
+        raise ModuleNotFoundError()
 
     # Store a copy of input YAML file in output directory
     input_yaml_file = os.path.join(simulation.out_dir, "input_file.yaml")
@@ -144,7 +153,6 @@ def execute(simulation):
                                     'fail_flag': int(fail_flag),
                                     'out_dir': aoa_out_dir,
                                 }
-                                refinement_level_dict["failed_aoa"] = failed_aoa_list
                                 refinement_level_dict[f"aoa_{aoa}"] = aoa_level_dict
                                 
                             elif fail_flag == 1: # refers to failed simulation
@@ -153,11 +161,10 @@ def execute(simulation):
                             # Save the aoa_out_dict as an yaml file with the updated info
                             with open(aoa_info_file, 'w') as interim_out_yaml:
                                 yaml.dump(aoa_sim_info, interim_out_yaml, sort_keys=False)
-
                         except:
                             failed_aoa_list.append(aoa) # Add to the list of failed aoa
                     ################################# End of AOA loop ########################################
-
+                    refinement_level_dict["failed_aoa"] = failed_aoa_list
                     # Write simulation results to a csv file
                     refinement_level_data = {
                         "Alpha": [f"{alpha:6.2f}" for alpha in AOAList],
@@ -171,9 +178,20 @@ def execute(simulation):
                     refinement_level_dir = os.path.dirname(aoa_out_dir)
                     ADflow_out_file = os.path.join(refinement_level_dir, "ADflow_output.csv")
                     
-                    df = pd.DataFrame(refinement_level_data) # Create a panda DataFrame
-                    df.to_csv(ADflow_out_file, index=False)# Write the DataFrame to a CSV file
-
+                    df_new = pd.DataFrame(refinement_level_data) # Create a panda DataFrame
+                    # If the file exists, load existing data and append new data
+                    if os.path.exists(ADflow_out_file):
+                        df_existing = load_csv_data(ADflow_out_file, comm)
+                        df_combined = pd.concat([df for df in [df_existing, df_new] if df is not None], ignore_index=True) 
+                    else:
+                        df_combined = df_new
+                    # Ensure Alpha column is float for sorting and deduplication
+                    df_combined['Alpha'] = pd.to_numeric(df_combined['Alpha'], errors='coerce')
+                    df_combined.dropna(subset=['Alpha'], inplace=True)
+                    df_combined.drop_duplicates(subset='Alpha', keep='last', inplace=True)
+                    df_combined.sort_values(by='Alpha', inplace=True)
+                    df_combined.to_csv(ADflow_out_file, index=False)
+                    
                     # Add csv file location to the overall simulation out file
                     refinement_level_dict['csv_file'] = ADflow_out_file
                     refinement_level_dict['refinement_out_dir'] = refinement_level_dir
@@ -210,11 +228,13 @@ def execute(simulation):
     # Store the final simulation out file.
     if os.path.exists(simulation.final_out_file):
         prev_sim_info = load_yaml_file(simulation.final_out_file, comm) # Load the previous sim_out_info
-        deep_update(sim_out_info, prev_sim_info)
-
+        deep_update(prev_sim_info, sim_out_info)  # Updates old sim data with the new sim data.
+        final_sim_out_info = prev_sim_info
+    else:
+        final_sim_out_info = sim_out_info
     if comm.rank == 0:
         with open(simulation.final_out_file, 'w') as final_out_yaml_handle:
-            yaml.dump(sim_out_info, final_out_yaml_handle, sort_keys=False)
+            yaml.dump(final_sim_out_info, final_out_yaml_handle, sort_keys=False)
     comm.Barrier()
 
 ################################################################################
@@ -326,7 +346,7 @@ def run_as_subprocess(sim_info, case_info_fpath, scenario_info_fpath, ref_out_di
     out_dir = os.path.abspath(sim_info['out_dir'])
     python_fname = os.path.join(out_dir, "script_for_subprocess.py")
     machine_type = MachineType.from_string(sim_info['machine_type'])
-    subprocess_out_file = os.path.join(os.path.dirname(scenario_info_fpath), "subprocess_out.txt")
+    subprocess_out_file = os.path.join(ref_out_dir, "subprocess_out.txt")
     shell = False
 
     if not os.path.exists(python_fname): # Saves the python script, that is used to run subprocess in the output directory, if the file do not exist already.
@@ -352,24 +372,22 @@ def run_as_subprocess(sim_info, case_info_fpath, scenario_info_fpath, ref_out_di
         run_cmd.extend([python_fname, '--caseInfoFile', case_info_fpath, '--scenarioInfoFile', scenario_info_fpath, 
                 '--refLevelDir', ref_out_dir, '--aoaList', aoa_csv_string, '--aeroGrid', aero_grid_fpath, '--structMesh', struct_mesh_fpath])
 
-        p = subprocess.Popen(run_cmd, 
-            env=env,
-            stdout=subprocess.PIPE,  # Capture standard output
-            stderr=subprocess.PIPE,  # Capture standard error
-            text=True,  # Ensure output is in text format, not bytes
-            )
-        
-        # Read and print the output and error messages
-        stdout, stderr = p.communicate()
-        # Write output to file manually
-        if record_flag is True:
-            with open(subprocess_out_file, 'a') as f:
-                f.write(stdout)
-                f.write(stderr)
-        # Print subprocess outptut
-        print("Subprocess Output:", stdout)
-        print("Subprocess Error:", stderr)
+        with open(subprocess_out_file, "w") as outfile:
+            p = subprocess.Popen(run_cmd, 
+                env=env,
+                stdout=subprocess.PIPE,  # Capture standard output
+                stderr=subprocess.PIPE,  # Capture standard error
+                text=True,  # Ensure output is in text format, not bytes
+                )
+            
+            for line in p.stdout:
+                print(line, end='')        # Optional: real-time terminal output
+                if record_flag is True:
+                    outfile.write(line)
+                    outfile.flush()
 
-        p.wait() # Wait for subprocess to end
+            p.wait() # Wait for subprocess to end
         
-        print_msg(f"Completed", "notice", comm)
+        _, stderr = p.communicate()
+        print_msg(f"{stderr}", 'subprocess error', comm)
+        print_msg(f"Subprocess completed", "notice", comm)

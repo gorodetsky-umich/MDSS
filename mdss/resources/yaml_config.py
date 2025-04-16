@@ -83,6 +83,7 @@ class ref_case_info(BaseModel):
     problem: str
     meshes_folder_path: str
     mesh_files: list[str]
+    restart_angle: Optional[float]=None
     geometry_info: ref_geometry_info
     aero_options: dict=None
     struct_options: Optional[ref_struct_options]=None
@@ -142,7 +143,24 @@ class ref_sim_info(BaseModel):
             raise ValidationError("When running on local machine, 'nproc' must be provided as an integer.")
         elif self.machine_type == MachineType.HPC and self.hpc_info is None:
             raise ValidationError("When running on a cluster,  `hpc_info` must be provided.")
-        
+        # Module checks
+        # Common for Aero and Aerostructural Problems
+        try:
+            from mphys import MPhysVariables, Multipoint
+            from adflow.mphys import ADflowBuilder
+            from baseclasses import AeroProblem
+        except ImportError:
+            try:
+                subprocess.run(
+                    f"{self.python_version} -c 'from mphys import MPhysVariables; from adflow.mphys import ADflowBuilder; from baseclasses import AeroProblem'", 
+                    shell=True, check=True
+                )
+            except:
+                raise ModuleNotFoundError(
+                    "MPhys, ADflow, and baseclasses are required for aerodynamic and aerostructural problems. "
+                    "If available in another Python environment, specify its path in the input YAML under the key name 'python_version'."
+                )
+        # Specific to aerostructural case
         # Aggregate a flag by checking all cases to see if any are aerostructural.
         is_aerostructural = any(
             ProblemType.from_string(case.problem) == ProblemType.AEROSTRUCTURAL
@@ -163,7 +181,7 @@ class ref_sim_info(BaseModel):
                 except:
                     raise ModuleNotFoundError(
                         "TACS and FuntoFEM packages are required for aerostructural problems. "
-                        "If available in another Python environment, specify its path in the input YAML under 'python_version'."
+                        "If available in another Python environment, specify its path in the input YAML under the key name 'python_version'."
                     )
         return self
     
@@ -174,6 +192,7 @@ class ref_sim_info(BaseModel):
 class ref_plot_options(BaseModel):
     niceplots_style: str
     figsize: tuple[float, float]
+    colors: list[str]
 
     @model_validator(mode='before')
     def check_valid_conditions(cls, values):

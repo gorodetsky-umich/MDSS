@@ -19,7 +19,7 @@ $ cd <path-to-examples-directory>
 - Run the python script:
 
 ```bash 
-$ python run_example.py --inputFile <path-to-input-yaml-file>
+$ python example.py --inputFile <path-to-input-yaml-file>
 ```
 
 **_Note:_**
@@ -49,16 +49,13 @@ Here are quick examples of how to different classes and functions in `mdss`:
 
 ### Running Simulations
 ```python
-from mdss.run_sim import run_sim
+from mdss import simulation
 
 # Initialize the runner with configuration file
-sim = run_sim('/path/to/input-yaml-file')
+sim = simulation('/path/to/input-yaml-file')
 
 # Run the simulation series
 sim.run()
-
-# Analyze results
-sim.post_process()
 ```
 
 ### Read existing simualtion data or generate data
@@ -68,7 +65,7 @@ The function `get_sim_data` can be used to get existing simulation data that was
 The function provides the flexibility of using the input YAML file or  the `overall_sim_info.yaml` file that is generated and stored in the outptut directory after the completion of simulations, as inputs.
 
 ```python
-from mdss.utils import get_sim_data
+from utils import get_sim_data
 
 # Specify the path to the input file.
 info_file = '/path/to/input-yaml-file'
