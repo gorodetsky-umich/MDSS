@@ -31,11 +31,6 @@ class simulation():
     ----------
     - **info_file** : str
         Path to the YAML file containing simulation configuration and information.
-    
-    Methods
-    -------
-    **run()**
-        Helps to execute the simulation on either a local machine or an HPC.
     """
 
     def __init__(self, info_file):
@@ -94,26 +89,6 @@ class post_process:
     ------
     - **out_dir**: str  
         Path to the output directory. The output directory should contain the final out file from the simulation.
-
-    Methods
-    -------
-    - **gen_case_plots()**  
-        Generates case-wise plots comparing experimental and simulation results across scenarios and refinement levels.
-
-    - **compare_scenarios(scenarios_list, plt_name)**  
-        Generates a combined plot comparing selected scenarios across multiple hierarchies and cases.
-
-    - **_add_plot_from_csv(axs, csv_file, **kwargs)**  
-        Adds a single line plot for C<sub>L</sub> and C<sub>D</sub> from a CSV file to existing subplots.
-
-    - **_add_scenario_level_plots(axs, scenario_name, exp_data, mesh_files, scenario_out_dir, **kwargs)**  
-        Adds plots for a given scenario, including experimental and refinement-level simulation results.
-
-    - **_create_fig(title, niceplots_style=None)**  
-        Initializes and returns a styled matplotlib figure with two subplots.
-
-    - **_get_marker_style(idx)**  
-        Returns a marker style based on the index, used to distinguish between scenarios visually.
     """
 
     def __init__(self, out_dir: str, plot_options: dict={}):
@@ -189,16 +164,18 @@ class post_process:
         - **custom_compare_info**: dict  
             A dictionary defining the scenarios to be compared.  
             The structure of the dictionary should be:
-            ```python
-            {
-                "hierarchy_name": {
-                    "case_name": {
-                        "scenarios": ["scenario_name_1", "scenario_name_2"],
-                        "mesh_files": ["mesh_level_1", "mesh_level_2"]  # Optional
+
+            .. code:: python
+
+                {
+                    "hierarchy_name": {
+                        "case_name": {
+                            "scenarios": ["scenario_name_1", "scenario_name_2"],
+                            "mesh_files": ["mesh_level_1", "mesh_level_2"]  # Optional
+                        }
                     }
                 }
-            }
-            ```
+            
             - *hierarchy_name*: str  
                 Name of the hierarchy the scenario belongs to.
             - *case_name*: str  
