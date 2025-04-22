@@ -20,6 +20,7 @@ hierarchies:
       chordRef: 1.0
       areaRef: 1.0
     aero_options:
+    aero_options:
       useANKSolver: true
       nSubiterTurb: 20
       useNKSolver: false
