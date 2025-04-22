@@ -10,7 +10,7 @@ The `script <#running-simulations>`__ below runs a simulation of the NACA 0012 A
 
 **To run the above python script:**
 
--  Copy the examples directory to a different location:
+-  Copy the examples directory to a different location (to avoid changes to your clone of the repository):
 
 .. code:: bash
 

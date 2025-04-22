@@ -5,13 +5,11 @@ Introduction
 
 The |mdss|_ package is a Python-based tool designed to streamline the
 execution and data management of Aerodynamic and Aerostructural
-simulations. It integrates with MPhys to provide a structured framework
-for running simulations and organizing the resulting data in a
-hierarchical manner.
+simulations using MPhys. 
 
 This package is particularly suited for projects involving multiple
-configurations or test cases, ensuring that simulation results are
-stored and categorized systematically.
+configurations or test cases, ensuring that simulation parameters and results are
+stored systematically.
 
 Key Features
 ~~~~~~~~~~~~
@@ -54,7 +52,7 @@ the simulation hierarchy. These include:
 
 3. **Visualization:**
 
-   Comparison plots (e.g., experimental vs. simulated data) are
+   Comparison plots (e.g., experimental vs. simulated data) are
    generated in PNG format.
 
 Example Hierarchy
@@ -66,31 +64,37 @@ tutorials is shown below:
 
 ::
 
-   Project
+   Example Hierarchy
        |
        |---- 2D Clean
        |       |
        |       |---- NACA 0012
+       |       |---- RAE 2822
+       |       |---- ...
        |
        |---- 2D High-Lift
        |       |
        |       |---- Mc Donnell Dolugas 30P-30N
+       |       |---- ...       
        |
        |---- 3D Clean
        |       |
        |       |---- NASA CRM clean Configuration
+       |       |---- ...       
        |
        |---- 3D High-Lift
        |       |
        |       |---- DLR High-Lift Configuration
+       |       |---- ...       
        |
        |---- 3D Wing-Aerostructural
-               |
-               |---- Mach Aero Wing
+       |       |
+       |       |---- Mach Aero Wing
+       |       |---- ...               
 
 Explanation of the Hierarchy:
 
-1. **Project:** Categorizes the type of aerodynamic and aerostructural
+1. **Example Hierarchy:** Categorizes the type of aerodynamic and aerostructural
    analysis, such as clean flow or high-lift studies, in 2D or 3D
    configurations.
 
