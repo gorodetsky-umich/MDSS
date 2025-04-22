@@ -180,8 +180,7 @@ class post_process:
                     scenario_out_dir = scenario_info['sim_info']['scenario_out_dir']
                     plot_args = {
                         'label': scenario_info['name'].replace("_", " ").upper(),
-                        'color': colors[scenario]
-                        'color': colors[scenario]
+                        'color': colors[scenario],
                     }
                     # To generate plots comparing the refinement levels
                     scenario_legend_entry = self._add_scenario_level_plots(axs, scenario_info['name'], scenario_info.get('exp_data', None), case_info['mesh_files'], scenario_out_dir, **plot_args)
