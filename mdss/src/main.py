@@ -36,6 +36,11 @@ class simulation():
     -------
     **run()**
         Helps to execute the simulation on either a local machine or an HPC.
+    
+    Methods
+    -------
+    **run()**
+        Helps to execute the simulation on either a local machine or an HPC.
     """
 
     def __init__(self, info_file):
@@ -88,14 +93,34 @@ class post_process:
 
     This class provides functionality to visualize and compare aerodynamic performance data
     such as Lift Coefficient (C<sub>L</sub>) and Drag Coefficient (C<sub>D</sub>) against Angle of Attack (Alpha),
-    such as Lift Coefficient (C<sub>L</sub>) and Drag Coefficient (C<sub>D</sub>) against Angle of Attack (Alpha),
     based on the simulation configuration provided via a YAML file.
 
     Inputs
     ------
     - **out_dir**: str  
     - **out_dir**: str  
+    - **out_dir**: str  
         Path to the output directory. The output directory should contain the final out file from the simulation.
+
+    Methods
+    -------
+    - **gen_case_plots()**  
+        Generates case-wise plots comparing experimental and simulation results across scenarios and refinement levels.
+
+    - **compare_scenarios(scenarios_list, plt_name)**  
+        Generates a combined plot comparing selected scenarios across multiple hierarchies and cases.
+
+    - **_add_plot_from_csv(axs, csv_file, **kwargs)**  
+        Adds a single line plot for C<sub>L</sub> and C<sub>D</sub> from a CSV file to existing subplots.
+
+    - **_add_scenario_level_plots(axs, scenario_name, exp_data, mesh_files, scenario_out_dir, **kwargs)**  
+        Adds plots for a given scenario, including experimental and refinement-level simulation results.
+
+    - **_create_fig(title, niceplots_style=None)**  
+        Initializes and returns a styled matplotlib figure with two subplots.
+
+    - **_get_marker_style(idx)**  
+        Returns a marker style based on the index, used to distinguish between scenarios visually.
     """
 
     def __init__(self, out_dir: str, plot_options: dict={}):
@@ -119,16 +144,19 @@ class post_process:
 
         This method loops through all hierarchies, cases, and scenarios in the simulation output,
         and generates side-by-side plots of C<sub>L</sub> and C<sub>D</sub> versus Angle of Attack (Alpha) for each case.
-        and generates side-by-side plots of C<sub>L</sub> and C<sub>D</sub> versus Angle of Attack (Alpha) for each case.
         Each scenario is plotted using a distinct marker, and each mesh refinement level is plotted using a different color.
         Experimental data, if provided, is overlaid for validation.
 
         Outputs
+        Outputs
         --------
+        - *PNG File*:
+            A comparison plot showing C<sub>L</sub> and C<sub>D</sub> vs Alpha for all scenarios and refinement levels of a case.  
         - *PNG File*:
             A comparison plot showing C<sub>L</sub> and C<sub>D</sub> vs Alpha for all scenarios and refinement levels of a case.  
             The file is saved in the scenario output directory for each case using the case name.
 
+        Notes
         Notes
         ------
         - Experimental data is optional. If not provided, only simulation data is plotted.
@@ -164,15 +192,14 @@ class post_process:
                 niceplots.save_figs(fig, fig_name, ["png"], format_kwargs={"png": {"dpi": 400}}, bbox_inches="tight")
 
     def custom_compare(self, custom_compare_info: dict, plt_name: str):
-    def custom_compare(self, custom_compare_info: dict, plt_name: str):
         """
         Generates a combined plot comparing specific scenarios across hierarchies and cases.
 
         This method creates a figure with two subplots: one for C<sub>L</sub> vs Alpha and another for C<sub>D</sub> vs Alpha.
+        This method creates a figure with two subplots: one for C<sub>L</sub> vs Alpha and another for C<sub>D</sub> vs Alpha.
         It overlays selected scenarios (across different cases and hierarchies) and creates a shared legend
         to highlight which scenario each marker represents.
 
-        Inputs
         Inputs
         -------
         - **custom_compare_info**: dict  

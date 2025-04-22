@@ -34,3 +34,4 @@ hierarchies:
       mach: 0.2
       T: 298.0
       exp_data: ../../exp_data/30p-30n.txt
+      exp_data: ../../exp_data/30p-30n.txt
