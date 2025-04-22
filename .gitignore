@@ -1,6 +1,7 @@
 output/
 **/__pycache__/
 /build/
+/docs/build/
 *.egg-info/
 # mkdocs documentation
 /site
