@@ -17,7 +17,7 @@ except:
     pass
 import openmdao.api as om
 
-from mdss.utils.helpers import ProblemType, load_yaml_file, print_msg, update_om_instance, get_restart_file
+from mdss.utils.helpers import ProblemType, load_yaml_input, print_msg, update_om_instance, get_restart_file
 from mdss.resources.aero_defaults import default_aero_options_aerodynamic
 from mdss.resources.aerostruct_defaults import *
 
@@ -193,10 +193,10 @@ class Problem:
     def __init__(self, case_info_fpath, scenario_info_fpath, ref_level_dir, aoa_csv_str, aero_grid_fpath, struct_mesh_fpath=None):
 
         # Extarct the required info
-        case_info = load_yaml_file(case_info_fpath, comm)
+        case_info,_ = load_yaml_input(case_info_fpath, comm)
         self.case_info = case_info
 
-        scenario_info = load_yaml_file(scenario_info_fpath, comm)
+        scenario_info,_ = load_yaml_input(scenario_info_fpath, comm)
         self.scenario_info = scenario_info
         
         aoa_list = [float(x) for x in aoa_csv_str.split(',')]

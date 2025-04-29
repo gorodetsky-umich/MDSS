@@ -6,7 +6,7 @@ import os
 import subprocess
 import niceplots
 
-from mdss.utils.helpers import ProblemType, MachineType
+from mdss.utils.helpers import ProblemType, MachineType, load_yaml_input
 
 class ref_hpc_info(BaseModel):
     cluster: str
@@ -206,11 +206,11 @@ class ref_plot_options(BaseModel):
             )
         return values
 
-def check_input_yaml(yaml_file):
+def check_input_yaml(yaml_input):
     """
-    Validates the structure of the input YAML file against predefined templates.
+    Validates the structure of the input YAML file or raw yaml string against predefined templates.
 
-    This function checks whether the input YAML file conforms to the expected template structure. It validates each section, including simulation, HPC, hierarchies, cases, and scenarios.
+    This function checks whether the YAML input conforms to the expected template structure. It validates each section, including simulation, HPC, hierarchies, cases, and scenarios.
 
     Inputs
     ----------
@@ -227,7 +227,6 @@ def check_input_yaml(yaml_file):
     - Uses `ref_sim_info` pydantic model for validation.
     - Ensures hierarchical consistency at all levels of the YAML structure.
     """
-    with open(yaml_file, 'r') as file:
-        sim_info = yaml.safe_load(file)
+    sim_info,_ = load_yaml_input(yaml_input)
     
     ref_sim_info.model_validate(sim_info)               

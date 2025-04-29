@@ -10,7 +10,7 @@ import pandas as pd
 from mpi4py import MPI
 
 # Module imports
-from mdss.utils.helpers import ProblemType, MachineType, make_dir, print_msg, load_yaml_file, deep_update, load_csv_data
+from mdss.utils.helpers import ProblemType, MachineType, make_dir, print_msg, load_yaml_input, deep_update, load_csv_data
 from mdss.resources.templates import gl_job_script, python_code_for_hpc, python_code_for_subprocess
 try:
     from mdss.src.aerostruct import Problem
@@ -227,7 +227,7 @@ def execute(simulation):
 
     # Store the final simulation out file.
     if os.path.exists(simulation.final_out_file):
-        prev_sim_info = load_yaml_file(simulation.final_out_file, comm) # Load the previous sim_out_info
+        prev_sim_info,_ = load_yaml_input(simulation.final_out_file, comm) # Load the previous sim_out_info
         deep_update(prev_sim_info, sim_out_info)  # Updates old sim data with the new sim data.
         final_sim_out_info = prev_sim_info
     else:
@@ -359,8 +359,7 @@ def run_as_subprocess(sim_info, case_info_fpath, scenario_info_fpath, ref_out_di
     python_version = sim_info.get('python_version', 'python') # Update python with user defined version or defaults to current python version
     if shutil.which(python_version) is None: # Check if the python executable exists
         python_version = 'python'
-        if comm.rank == 0:
-            print(f"Warning: {python_version} not found! Falling back to default 'python'.")
+        print_msg(f"{python_version} not found! Falling back to default 'python'.", 'warning', comm)
     if comm.rank==0:
         print_msg(f"Starting subprocess for the following aoa: {aoa_csv_string}", "notice", comm)
         if machine_type==MachineType.LOCAL:
