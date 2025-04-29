@@ -240,7 +240,7 @@ def execute(simulation):
 ################################################################################
 # Code for generating and submitting job script on HPC
 ################################################################################   
-def submit_job_on_hpc(sim_info, yaml_file_path, comm):
+def submit_job_on_hpc(sim_info, yaml_file_path, wait_for_job, comm):
     """
     Generates and submits job script on an HPC cluster.
 
@@ -298,8 +298,19 @@ def submit_job_on_hpc(sim_info, yaml_file_path, comm):
             with open(python_fname, "w") as file: # Write the python file(can be found in `templates.py`) to be run using the above created job script.
                 file.write(python_code_for_hpc)
             
-            subprocess.run(["sbatch", job_script_path]) # Subprocess to submit the job script on Great Lakes
-        return
+            subprocess_out = subprocess.run(["sbatch", job_script_path], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True) # Subprocess to submit the job script on Great Lakes
+            job_id = subprocess_out.stdout.strip().split()[-1]
+            print_msg(f"Job {job_id} submitted.", "notice", comm)
+
+            if wait_for_job:
+                while True:
+                    check_cmd = ["squeue", "--job", job_id]
+                    result = subprocess.run(check_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+                    if job_id not in result.stdout:
+                        print_msg(f"Job {job_id} completed.", 'notice', comm)
+                        break
+                    time.sleep(10)  # Check every 10 seconds
+        return job_id
     
 ################################################################################
 # Helper Functions for running the simulations as subprocesses

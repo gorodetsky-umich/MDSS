@@ -53,6 +53,9 @@ class simulation():
         self.final_out_file = os.path.join(self.out_dir, "overall_sim_info.yaml") # Set the overall simulation info file name.
         self.subprocess_flag = True # To toggle opting subprocess.
         self.record_subprocess = False # To toggle to record subprocess output.
+        
+        if self.machine_type == MachineType.HPC:
+            self.wait_for_job = False # To toggle to wait for the job to finish.
 
         # Create the output directory if it doesn't exist
         make_dir(self.out_dir, comm)
@@ -77,7 +80,7 @@ class simulation():
             execute(self)
 
         elif self.machine_type == MachineType.HPC: # Running on a HPC currently supports Great Lakes.
-            submit_job_on_hpc(sim_info_copy, self.info_file, comm) # Submit job script
+            job_id = submit_job_on_hpc(sim_info_copy, self.info_file, self.wait_for_job, comm) # Submit job script
 
                        
 ################################################################################

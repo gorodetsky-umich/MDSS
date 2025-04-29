@@ -266,6 +266,7 @@ class custom_sim(simulation):
     """
     def __init__(self, yaml_input:str, out_dir:str=None):
         super().__init__(yaml_input)  # Leverages validation, parsing, and setup from `simulation`
+        os.rmdir(self.sim_info['out_dir'])  # Remove the existing output directory if it exists
     
     def run(self, case_info):
         """
@@ -322,7 +323,19 @@ class custom_sim(simulation):
         self.final_out_file = os.path.join(self.out_dir, "overall_sim_info.yaml")  # Set the final output file path
         modified_yaml_input = yaml.dump(self.sim_info, sort_keys=False)
         check_input_yaml(modified_yaml_input)  # Validate the modified YAML input
-        super().run()  # Call the parent class's run method to execute the simulation
+        # Write the modified YAML input to a file
+        if not os.path.exists(self.out_dir):
+            if comm.rank == 0:
+                os.mkdir(self.out_dir)
+        self.info_file = os.path.join(self.out_dir, "input.yaml")  # Set the path for the input YAML file
+        with open(self.info_file, 'w') as f:
+            yaml.dump(self.sim_info, f, sort_keys=False)
+
+        if self.machine_type == MachineType.HPC:
+            self.wait_for_job = True # To toggle to wait for the job to finish.
+            
+        # Call the parent class's run method to execute the simulation
+        super().run()  
 
         # Read the simulation data from the final output file
         if os.path.exists(self.final_out_file):
