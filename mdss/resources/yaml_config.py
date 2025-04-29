@@ -11,10 +11,17 @@ from mdss.utils.helpers import ProblemType, MachineType, load_yaml_input
 class ref_hpc_info(BaseModel):
     cluster: str
     job_name: str
+    account_name: str
+    partition: str
+    time: Optional[str]
     nodes: int
     nproc: int
-    account_name: str
-    email_id: str
+    nproc_per_node: int
+    mem_per_cpu: Optional[str]
+    mail_types: Optional[str]
+    email_id: Optional[str]
+
+    
 
 class ref_geometry_info(BaseModel):
     chordRef: float

@@ -272,18 +272,18 @@ def submit_job_on_hpc(sim_info, yaml_file_path, comm):
     out_file = os.path.join(out_dir, f"{hpc_info['job_name']}_job_out.txt")
 
     if hpc_info['cluster'] == 'GL':
-        job_time = hpc_info.get('time', '1:00:00')  # Set default time if not provided
-        mem_per_cpu = hpc_info.get('mem_per_cpu', '1000m')
-
         # Fill in the template of the job script(can be found in `templates.py`) with values from hpc_info, provided by the user
         job_script = gl_job_script.format(
-            job_name=hpc_info['job_name'],
-            nodes=hpc_info['nodes'],
-            nproc=hpc_info['nproc'],
-            mem_per_cpu=mem_per_cpu,
-            time=job_time,
-            account_name=hpc_info['account_name'],
-            email_id=hpc_info['email_id'],
+            job_name=hpc_info.get('job_name'),
+            account_name=hpc_info.get('account_name'),
+            partition=hpc_info.get('partition'),
+            time=hpc_info.get('time', '1:00:00'),
+            nodes=hpc_info.get('nodes'),
+            nproc=hpc_info.get('nproc'),
+            nproc_per_node=hpc_info.get('nproc_per_node'),
+            mem_per_cpu=hpc_info.get('mem_per_cpu', '1000m'),
+            mail_types=hpc_info.get('mail_types', 'NONE'),
+            email_id=hpc_info.get('email_id', 'NONE'),
             out_file=out_file,
             python_file_path=python_fname,
             yaml_file_path=yaml_file_path
