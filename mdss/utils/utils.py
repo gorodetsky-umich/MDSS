@@ -194,6 +194,7 @@ def get_sim_data(yaml_input):
         else:
             raise FileNotFoundError(f"File {out_yaml_file_path} simulation results not found. Please run the simulation.")
 
+    sim_data['overall_sim_info'] = overall_sim_info.get('overall_sim_info', {})
     # Loop through hierarchy levels
     for hierarchy_index, hierarchy_info in enumerate(overall_sim_info['hierarchies']):
         hierarchy_name = hierarchy_info['name']
@@ -222,15 +223,8 @@ def get_sim_data(yaml_input):
                     for aoa in scenario_info['aoa_list']:
                         if aoa not in failed_aoa:
                             aoa_key = f"aoa_{float(aoa)}"
-                            cl = scenario_info['sim_info'][mesh_file][aoa_key].get("cl")
-                            cd = scenario_info['sim_info'][mesh_file][aoa_key].get("cd")
+                            sim_data[hierarchy_name][case_name][scenario_name][mesh_file][aoa_key]= scenario_info['sim_info'][mesh_file].get(aoa_key,{})
 
-                            # Populate the dictionary
-                            if aoa_key not in sim_data[hierarchy_name][case_name][scenario_name][mesh_file]:
-                                sim_data[hierarchy_name][case_name][scenario_name][mesh_file][aoa_key] = {}
-
-                            sim_data[hierarchy_name][case_name][scenario_name][mesh_file][aoa_key]['cl'] = cl
-                            sim_data[hierarchy_name][case_name][scenario_name][mesh_file][aoa_key]['cd'] = cd
                     sim_data[hierarchy_name][case_name][scenario_name][mesh_file]['failed_aoa'] = failed_aoa
 
     return sim_data
@@ -266,7 +260,8 @@ class custom_sim(simulation):
     """
     def __init__(self, yaml_input:str, out_dir:str=None):
         super().__init__(yaml_input)  # Leverages validation, parsing, and setup from `simulation`
-        os.rmdir(self.sim_info['out_dir'])  # Remove the existing output directory if it exists
+        if not os.listdir(self.sim_info['out_dir']):  # Check if the output directory is empty
+            os.rmdir(self.sim_info['out_dir'])  # Remove the directory only if it is empty
     
     def run(self, case_info):
         """
