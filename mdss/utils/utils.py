@@ -260,8 +260,9 @@ class custom_sim(simulation):
     """
     def __init__(self, yaml_input:str, out_dir:str=None):
         super().__init__(yaml_input)  # Leverages validation, parsing, and setup from `simulation`
-        if not os.listdir(self.sim_info['out_dir']):  # Check if the output directory is empty
-            os.rmdir(self.sim_info['out_dir'])  # Remove the directory only if it is empty
+        if comm.rank == 0:
+            if os.path.exists(self.sim_info['out_dir']) and not os.listdir(self.sim_info['out_dir']):  # Check if the output directory exits and is empty
+                os.rmdir(self.sim_info['out_dir'])  # Remove the directory only if it is empty
     
     def run(self, case_info):
         """
