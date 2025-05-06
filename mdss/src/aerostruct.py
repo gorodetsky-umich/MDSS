@@ -323,7 +323,7 @@ class Problem:
                 'fail_flag': int(fail_flag),
                 'case': self.case_info['name'],
                 'problem': self.case_info['problem'],
-                'aero_mesh_fpath': self.sim_info.get('aero_grid_fpath'),
+                'aero_mesh_fpath': self.sim_info.get('aero_options', {}).get('gridFile', None),
                 'scenario_info': self.scenario_info,
                 'cl': float(self.prob[f"{self.sim_info['scenario_name']}.aero_post.cl"][0]),
                 'cd': float(self.prob[f"{self.sim_info['scenario_name']}.aero_post.cd"][0]),
