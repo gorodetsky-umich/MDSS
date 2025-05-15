@@ -7,6 +7,9 @@
 .. |MPhys| replace:: ``MPhys>=2.0.0``
 .. _MPhys: https://github.com/OpenMDAO/mphys
 
+.. |MPhys_wv| replace:: ``MPhys``
+.. _MPhys_wv: https://github.com/OpenMDAO/mphys
+
 .. |baseClasses| replace:: ``mdolab-baseclasses``
 .. _baseClasses: https://github.com/mdolab/baseclasses
 

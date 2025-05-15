@@ -27,7 +27,7 @@ git commit -m "Publish new docs"
 
 # Set remote if not already set
 if ! git remote | grep -q origin; then
-  git remote add origin https://github.com/<your-username>/<your-repo>.git
+  git remote add origin https://github.com/gorodetsky-umich/MDSS.git
 fi
 
 # Force push to gh-pages branch

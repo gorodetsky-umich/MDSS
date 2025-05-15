@@ -9,7 +9,3 @@ args = parser.parse_args()
 sim = simulation(args.inputFile) # Input the simulation info and output dir
 
 sim.run() # Run the simulation
-
-# Post-process the results
-pp = post_process('output') # Initialize post-processing with the output directory
-pp.gen_case_plots() # Generate case plots

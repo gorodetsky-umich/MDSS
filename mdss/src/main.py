@@ -3,11 +3,8 @@ import time
 import copy
 from datetime import date, datetime
 
-import pandas as pd
-import numpy as np
 import yaml
 import matplotlib.pyplot as plt
-import matplotlib.cm as cm
 from matplotlib.lines import Line2D
 from matplotlib.legend import Legend
 import niceplots

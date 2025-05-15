@@ -20,73 +20,9 @@ The YAML file organizes simulation data into a structured hierarchy,
 enabling clear configuration of cases and experimental conditions. Below
 is the structure used in the YAML file:
 
-.. code-block:: yaml
-
-   out_dir: # str, path to the output directory
-   python_version: # str, path to the python env to use
-   machine_type: # str, local/hpc
-   nproc: # int, number of processors, required when machine_type is local
-   hpc_info: # dict, required only if machine_type is hpc
-     cluster: # str, name of the cluster. GL for Great Lakes
-     job_name: # str, name of the job
-     nodes: # int, number of nodes
-     nproc: # int, total number of processors
-     time: #str, time in D-H:M:S format
-     account_name: # str, account name
-     email_id: # str
-   hierarchies: # list, List of hierarchies
-   # First hierarchy
-   - name: # str, name of the hierarchy
-     cases: # list, list of cases in this hierarchy
-     # First case in the hierarchy
-     - name: # str, name of the case
-       meshes_folder_path: # str, path to the floder containing the mesh files for this case
-       mesh_files: # list, list of mesh file names
-       - # str, name of the finest mesh
-       - # str, .
-       - # str, .
-       - # str, name of the corasest mesh
-       geometry_info: # dict, dictionary of geometry info
-         chordRef: # float, reference chord length
-         areaRef: # float, reference area
-       aero_options: # dict, dictionary of ADflow solver parameters. For more information see aero options section
-         # ......
-       scenarios: # list, list of dictionaries containing scenario info
-       # First experimental set in current case
-       - name: # str, name of the scenario
-         aoa_list: # list, list of angle of attacks(AoA) to run in with the experimental info
-         Re: # float, Reynold's number 
-         mach: # float, Mach number
-         Temp: # float, Temperature in Kelvin scale
-         exp_data: # str, path to experimental data
-       
-       # Second scenario in current case
-
-       ##########################################################################
-       # The following options are required only for Aerostructural problems
-       ##########################################################################
-       struct_options: # dict, structural options,
-         isym: # int, direction of symmetry
-         t: # float, Shell Thickness in m
-         mesh_fpath: # str, path to the structural mesh file
-         struct_properties: # dict, a dictionary containing structural properties
-           # Material Properties
-           rho: # float, Density in kg/m^3
-           E: # float, Young's modulus in N/m^2
-           nu: # float, Poisson's ratio
-           kcorr: # float, Shear correction factor
-           ys: # float, Yeild stress in N/m^2
-
-         load_info: # dict, 
-           g: # list, g-vector in m/s^2, the default is [0, -9.81, 0]
-           inertial_load_factor: # float, times of 'g'.
-
-         solver_options: # dict, solver options for coupling. Check solver options section for more info
-
-
-     # Second case in current hierachy
-
-   # Second hierarchy
+.. literalinclude:: input_template.yaml
+   :language: yaml
+   :caption: Example YAML file
 
 Please note that adherence to this structure is essential; any deviation
 may lead to errors when running simulations. Examples of correctly
@@ -124,11 +60,11 @@ Default ``aero_options`` for aerodynamic problem
   "outputDirectory": ".",
   "monitorvariables": ["resrho", "resturb", "cl", "cd", "yplus"],
   "writeTecplotSurfaceSolution": True,
-  "solutionPrecision": "double", #  Best for restart
+  "solutionPrecision": "double",                                      #  Best for restart
   "volumeVariables": ['resrho', 'mach'],
   # Physics Parameters
   "equationType": "RANS",
-  "liftindex": 3,  # z is the lift direction
+  "liftindex": 3,                                                     # z is the lift direction
   # Solver Parameters
   "smoother": "DADI",
   "CFL": 0.5,
@@ -160,7 +96,7 @@ Default ``aero_options`` for aerostructural problems
   "writeTecplotSurfaceSolution": True,
   # Physics Parameters
   "equationType": "RANS",
-  "liftindex": 3,  # z is the lift direction
+  "liftindex": 3,                                                   # z is the lift direction
   # Solver Parameters
   "smoother": "DADI",
   "CFL": 1.5,
@@ -219,16 +155,16 @@ Default ``solver_options``
 .. code-block:: yaml
 
    "linear_solver_options": 
-     "atol": 1e-08, # absolute error tolerance
-     "err_on_non_converge": True, # When True, AnalysisError will be raised if not convereged
-     "maxiter": 25, # maximum number of iterations
-     "rtol": 1e-8, # relative error tolerance
-     "use_aitken": True, # set to True to use Aitken
+     "atol": 1e-08,                         # absolute error tolerance
+     "err_on_non_converge": True,           # When True, AnalysisError will be raised if not converged
+     "maxiter": 25,                         # maximum number of iterations
+     "rtol": 1e-8,                          # relative error tolerance
+     "use_aitken": True,                    # set to True to use Aitken
 
    "nonlinear_solver_options":
-     "atol": 1e-08, # absolute error tolerance
-     "err_on_non_converge": True, # When True, AnalysisError will be raised if not convereged
-     "reraise_child_analysiserror": False, # When the option is true, a solver will reraise any AnalysisError that arises during subsolve; when false, it will continue solving.
-     "maxiter": 25, # maximum number of iterations
-     "rtol": 1e-08, # relative error tolerance
-     "use_aitken": True, # set to True to use Aitken
+     "atol": 1e-08,                         # absolute error tolerance
+     "err_on_non_converge": True,           # When True, AnalysisError will be raised if not converged
+     "reraise_child_analysiserror": False,  # When the option is true, a solver will raise any AnalysisError that arises during sub-solve; when false, it will continue solving.
+     "maxiter": 25,                         # maximum number of iterations
+     "rtol": 1e-08,                         # relative error tolerance
+     "use_aitken": True,                    # set to True to use Aitken

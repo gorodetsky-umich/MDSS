@@ -9,7 +9,7 @@ Dependencies
 Core Framework Dependencies
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The framework requires tools developed by NASA (OpenMDAO and MPhys) and
+The framework requires tools developed by NASA (|OpenMDAO|_ and |MPhys_wv|_) and
 the MDO Lab (MACH-Aero framework). The
 `MACH-Aero <https://mdolab-mach-aero.readthedocs-hosted.com/en/latest/index.html>`__
 framework houses all the core packages needed to run CFD simulations.
@@ -114,9 +114,11 @@ Docker is highly recommended for ease of installation:
 
 5. Run the testcase (TBD)
 
-**Note: If you are referencing any paths inside the container, they must
-be with respect to the container’s folder architecture, not your host
-machine.**
+.. note::
+   
+   If you are referencing any paths inside the container, they must
+   be with respect to the container’s folder architecture, not your host
+   machine.
 
 From Scratch
 ^^^^^^^^^^^^
@@ -266,5 +268,7 @@ To run using multiple processors:
 
    mpirun -np <nproc> python aero_run.py
 
-*Note: Running using multiple processors helps to identify the problems
-with ``openmpi`` and ``petsc`` installations*
+.. note::
+
+   Running using multiple processors helps to identify the problems with ``openmpi`` and ``petsc`` installations.
+

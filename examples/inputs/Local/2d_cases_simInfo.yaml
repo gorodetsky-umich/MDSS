@@ -12,7 +12,7 @@ hierarchies:
     geometry_info:
       chordRef: 1.0
       areaRef: 1.0
-    solver_parameters:
+    aero_options:
       useANKSolver: true
       nSubiterTurb: 20
       useNKSolver: false

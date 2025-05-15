@@ -11,10 +11,9 @@ Structure of the Output Directory
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. image:: assets/output_directory_structure.svg
-   :width: 100%
+   :width: 80%
    :align: center
    :alt: Output Directory Structure
-   :scale: 100%
    :name: output-directory-structure
    :class: align-center
 

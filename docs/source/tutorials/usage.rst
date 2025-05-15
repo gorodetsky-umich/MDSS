@@ -28,7 +28,14 @@ The `script <#running-simulations>`__ below runs a simulation of the NACA 0012 A
 
    $ python example.py --inputFile <path-to-input-yaml-file>
 
-**Note:**
+.. note:: 
+
+   -  The script can be run in a docker container or on a local machine.
+   -  If you are using a docker container, make sure to mount the examples directory to the container.
+   -  If you are using a local machine, make sure to have the required dependencies installed.
+   -  The script can be run in parallel by using the ``--parallel`` flag.
+   -  The script can be run in batch mode by using the ``--batch`` flag.
+   -  The script can be run in debug mode by using the ``--debug`` flag.
 
 -  Do not use ``mpirun`` to run a script with |mdss|. Because, it runs simulations on subprocesses and using ``mpirun`` results in an error.
 -  Example input yaml files to run on local machines are stored in ``examples/inputs/Local`` directory, and for Great Lakes HPC cluster, an example file is stored in ``examples/inputs/GL``.
@@ -42,7 +49,7 @@ the specified output directory.
 -  A copy of the input yaml file in the output directory.
 -  ``overall_sim_info.yaml`` in the output directory.
 -  ``ADflow_Results.png`` in each experimental level directory, that is
-   a plot comparing CL, and CD values at all refinement levels to the
+   a plot comparing :math:`C_L`, and :math:`C_D`values at all refinement levels to the
    expeimental data(if provided).
 
 .. image:: test_run_doc/ADflow_Results.png

@@ -42,7 +42,7 @@ the simulation hierarchy. These include:
 
 1. **Simulation Data:**
 
-   Results such as CL, CD, and Wall Time are saved in CSV and YAML
+   Results such as :math:`C_L` , :math:`C_D`, and Wall Time are saved in CSV and YAML
    formats.
 
 2. **Hierarchical Directory Structure:**
