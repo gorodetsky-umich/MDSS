@@ -199,7 +199,7 @@ class Problem:
         scenario_info,_ = load_yaml_input(scenario_info_fpath, comm)
         self.scenario_info = scenario_info
         
-        aoa_list = [float(x) for x in args.aoaList.strip('"').split(',')]
+        aoa_list = [float(x) for x in aoa_csv_str.strip('"').split(',')]
         self.aoa_list = aoa_list
         
         problem_type = ProblemType.from_string(case_info['problem'])  # Convert string to enum
