@@ -91,7 +91,7 @@ def execute(simulation):
                 
                 # Extract the Angle of attacks for which the simulation has to be run
                 aoa_list = scenario_info['aoa_list']
-                aoa_csv_string = ",".join(map(str, [float(aoa) for aoa in aoa_list]))
+                aoa_csv_string = '"' + ",".join(map(str, [float(aoa) for aoa in aoa_list])) + '"' # Convert the aoa list to a csv string
                 scenario_sim_info = {} # Creating scenario level sim info dictionary for overall sim info file
 
                 for ii, mesh_file in enumerate(case_info['mesh_files']): # Loop for refinement levels
