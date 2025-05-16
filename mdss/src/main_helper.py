@@ -379,8 +379,8 @@ def run_as_subprocess(sim_info, case_info_fpath, scenario_info_fpath, ref_out_di
             
         elif machine_type==MachineType.HPC:
             run_cmd = ['srun', python_version]
-        run_cmd.extend([python_fname, '--caseInfoFile', case_info_fpath, '--scenarioInfoFile', scenario_info_fpath, 
-                '--refLevelDir', ref_out_dir, '--aoaList', aoa_csv_string, '--aeroGrid', aero_grid_fpath, '--structMesh', struct_mesh_fpath])
+        run_cmd.extend([python_fname, '--caseInfoFile', f"{case_info_fpath}", '--scenarioInfoFile', f"{scenario_info_fpath}" 
+                '--refLevelDir', f"{ref_out_dir}", '--aoaList', f"{aoa_csv_string}", '--aeroGrid', f"{aero_grid_fpath}", '--structMesh', f"{struct_mesh_fpath}"])
 
         with open(subprocess_out_file, "w") as outfile:
             p = subprocess.Popen(run_cmd, 
