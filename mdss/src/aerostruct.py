@@ -320,6 +320,7 @@ class Problem:
             aoa_out_dic = {
                 # 'refinement_level': refinement_level, # Decide on this later
                 'AOA': float(aoa),
+                'out_dir': aoa_out_dir,
                 'fail_flag': int(fail_flag),
                 'case': self.case_info['name'],
                 'problem': self.case_info['problem'],
@@ -328,7 +329,7 @@ class Problem:
                 'cl': float(self.prob[f"{self.sim_info['scenario_name']}.aero_post.cl"][0]),
                 'cd': float(self.prob[f"{self.sim_info['scenario_name']}.aero_post.cd"][0]),
                 'wall_time': f"{aoa_run_time:.2f} sec",
-                'out_dir': aoa_out_dir,
+                'aero_options': self.sim_info['aero_options'],
             }
             try:
                 aoa_out_dic['scenario_info']['exp_data'] = self.scenario_info['exp_data']

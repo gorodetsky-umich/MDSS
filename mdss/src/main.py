@@ -92,31 +92,9 @@ class post_process:
     based on the simulation configuration provided via a YAML file.
 
     Inputs
-    ------
-    - **out_dir**: str  
-    - **out_dir**: str  
+    ------ 
     - **out_dir**: str  
         Path to the output directory. The output directory should contain the final out file from the simulation.
-
-    Methods
-    -------
-    - **gen_case_plots()**  
-        Generates case-wise plots comparing experimental and simulation results across scenarios and refinement levels.
-
-    - **compare_scenarios(scenarios_list, plt_name)**  
-        Generates a combined plot comparing selected scenarios across multiple hierarchies and cases.
-
-    - **_add_plot_from_csv(axs, csv_file, **kwargs)**  
-        Adds a single line plot for C<sub>L</sub> and C<sub>D</sub> from a CSV file to existing subplots.
-
-    - **_add_scenario_level_plots(axs, scenario_name, exp_data, mesh_files, scenario_out_dir, **kwargs)**  
-        Adds plots for a given scenario, including experimental and refinement-level simulation results.
-
-    - **_create_fig(title, niceplots_style=None)**  
-        Initializes and returns a styled matplotlib figure with two subplots.
-
-    - **_get_marker_style(idx)**  
-        Returns a marker style based on the index, used to distinguish between scenarios visually.
     """
 
     def __init__(self, out_dir: str, plot_options: dict={}):

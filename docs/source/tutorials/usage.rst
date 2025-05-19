@@ -48,9 +48,7 @@ the specified output directory.
 
 -  A copy of the input yaml file in the output directory.
 -  ``overall_sim_info.yaml`` in the output directory.
--  ``ADflow_Results.png`` in each experimental level directory, that is
-   a plot comparing :math:`C_L`, and :math:`C_D`values at all refinement levels to the
-   expeimental data(if provided).
+-  ``ADflow_Results.png`` in each experimental level directory, that is a plot comparing :math:`C_L`, and :math:`C_D` values at all refinement levels to the experimental data(if provided).
 
 .. image:: test_run_doc/ADflow_Results.png
    :width: 150%   

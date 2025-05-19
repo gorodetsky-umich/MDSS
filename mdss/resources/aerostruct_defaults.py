@@ -20,7 +20,6 @@ default_aero_options_aerostructural = {
     "CFLCoarse": 1.25,
     "MGCycle": "sg",
     "MGStartLevel": -1,
-    "nCyclesCoarse": 250,
     # ANK Solver Parameters
     "useANKSolver": True,
     "nSubiterTurb": 5,

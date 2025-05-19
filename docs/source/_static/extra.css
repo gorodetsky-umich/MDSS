@@ -1,3 +1,24 @@
 .wy-nav-content {
     max-width: 60% !important;
 }
+
+/* Style for parameter blocks */
+.field-list .field-name {
+    background-color: #e6f0fa;
+    color: #003366;
+    padding: 6px;
+    font-weight: bold;
+    display: inline-block;
+    border-left: 4px solid #66b3ff;
+    margin-top: 10px;
+    margin-bottom: 3px;
+}
+
+.field-list .field-body {
+    margin-left: 10px;
+    padding: 4px 8px;
+    margin-bottom: 15px;
+    display: block;
+    font-size: 90%;
+}
+
