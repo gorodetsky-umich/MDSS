@@ -429,11 +429,9 @@ class post_process:
         fig, axs = plt.subplots(1, 2, figsize=(14, 6), layout="constrained")
         fig.suptitle(title)
 
-        titles = ['$C_L$ vs Alpha', '$C_D$ vs Alpha']
         ylabels = ['$C_L$', '$C_D$']
 
-        for ax, subplot_title, ylabel in zip(axs, titles, ylabels):
-            ax.set_title(subplot_title)
+        for ax, ylabel in zip(axs, ylabels):
             ax.set_xlabel('Alpha (deg)')
             ax.set_ylabel(ylabel)
             ax.grid(True)
