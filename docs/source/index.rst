@@ -17,6 +17,7 @@ Documentation for Multi-Disciplinary Simulation Suite
    tutorials/index
    api
    additionalInfo
+   acknowledgements
 
 
 

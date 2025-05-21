@@ -432,9 +432,9 @@ class post_process:
         ylabels = ['$C_L$', '$C_D$']
 
         for ax, ylabel in zip(axs, ylabels):
-            ax.set_xlabel('Alpha (deg)')
-            ax.set_ylabel(ylabel)
-            ax.grid(True)
+            ax.set_xlabel('Alpha (deg)', fontsize=18)
+            ax.set_ylabel(ylabel, fontsize=18)
+            ax.grid(False)
 
         return fig, axs
     
@@ -457,7 +457,7 @@ class post_process:
                             bbox_to_anchor=(1.0, 0.75),
                             title='Meshes',
                             frameon=True,
-                            fontsize=10,
+                            fontsize=18,
                             labelspacing=0.3)
 
         #fig.add_artist(scenario_legend)
