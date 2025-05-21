@@ -280,19 +280,19 @@ class custom_sim(simulation):
         ref_case_info.model_validate(case_info)
         
         case = self.sim_info['hierarchies'][0]['cases'][0]
-        scenario = case['scenarios'][0]
         case_info['aoa_list'] = [float(aoa) for aoa in case_info['aoa_list']]  # Ensures all angles of attack to float and converts a numpy array to a list
         # Extract only fields that were explicitly provided (non-None)
         for key, value in case_info.items():
-            if value is None:
+            if value is None or key == 'out_dir':
                 continue  # Skip unset or None fields
-            if key == 'aoa_list':
-                scenario['aoa_list'] = value
             elif key in {'aero_options', 'struct_options'}:
                 case.setdefault(key, {}).update(value)
             else:
                 case[key] = value
-
+        # Update the angle of attack in the scenario
+        scenario = case['scenarios'][0]
+        scenario['aoa_list'] = case_info['aoa_list']
+        
         if comm.rank == 0:
             randn = random.randint(1000, 9999)
         else:
