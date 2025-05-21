@@ -1,0 +1,612 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>mdss.src.main &mdash; Multi-Disciplinary Simulation Suite  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/extra.css?v=375f2796" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../../../_static/doctools.js?v=9a2dae69"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="../../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            Multi-Disciplinary Simulation Suite
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation and Dependencies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../inputs.html">Inputs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../outputs.html">Outputs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/index.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api.html">API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../additionalInfo.html">Additional Information</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../acknowledgements.html">Acknowledgements</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Multi-Disciplinary Simulation Suite</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">mdss.src.main</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for mdss.src.main</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">date</span><span class="p">,</span> <span class="n">datetime</span>
+
+<span class="kn">import</span> <span class="nn">yaml</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">from</span> <span class="nn">matplotlib.lines</span> <span class="kn">import</span> <span class="n">Line2D</span>
+<span class="kn">from</span> <span class="nn">matplotlib.legend</span> <span class="kn">import</span> <span class="n">Legend</span>
+<span class="kn">import</span> <span class="nn">niceplots</span>
+<span class="kn">from</span> <span class="nn">mpi4py</span> <span class="kn">import</span> <span class="n">MPI</span>
+
+<span class="kn">from</span> <span class="nn">mdss.utils.helpers</span> <span class="kn">import</span> <span class="n">load_yaml_input</span><span class="p">,</span> <span class="n">load_csv_data</span><span class="p">,</span> <span class="n">make_dir</span><span class="p">,</span> <span class="n">print_msg</span><span class="p">,</span> <span class="n">MachineType</span><span class="p">,</span> <span class="n">YAMLInputType</span>
+<span class="kn">from</span> <span class="nn">mdss.src.main_helper</span> <span class="kn">import</span> <span class="n">execute</span><span class="p">,</span> <span class="n">submit_job_on_hpc</span>
+<span class="kn">from</span> <span class="nn">mdss.resources.misc_defaults</span> <span class="kn">import</span> <span class="n">def_plot_options</span>
+<span class="kn">from</span> <span class="nn">mdss.resources.yaml_config</span> <span class="kn">import</span> <span class="n">ref_plot_options</span><span class="p">,</span> <span class="n">check_input_yaml</span>
+
+
+<span class="n">comm</span> <span class="o">=</span> <span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span>
+
+<div class="viewcode-block" id="simulation">
+<a class="viewcode-back" href="../../../api.html#mdss.src.main.simulation">[docs]</a>
+<span class="k">class</span> <span class="nc">simulation</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Executes aero(structural) simulations using the `Top` class defined in [`aerostruct.py`](aerostruct.py).</span>
+
+<span class="sd">    This class sets up and runs aerodynamic and/or aerostructural simulations based on input parameters provided via a YAML configuration file. It validates the input, manages directories, and handles outputs, including summary files. The simulations are run using subprocesses.</span>
+
+<span class="sd">    Inputs</span>
+<span class="sd">    ----------</span>
+<span class="sd">    - **yaml_input** : str</span>
+<span class="sd">        Path to the YAML file or raw YAML string containing simulation configuration and information.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">yaml_input</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">check_input_yaml</span><span class="p">(</span><span class="n">yaml_input</span><span class="p">)</span>  <span class="c1"># Validate the input yaml file</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;YAML file validation is successful&quot;</span>
+        <span class="n">print_msg</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">comm</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">sim_info</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">yaml_input_type</span> <span class="o">=</span> <span class="n">load_yaml_input</span><span class="p">(</span><span class="n">yaml_input</span><span class="p">,</span> <span class="n">comm</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">out_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sim_info</span><span class="p">[</span><span class="s1">&#39;out_dir&#39;</span><span class="p">])</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">yaml_input_type</span> <span class="o">==</span> <span class="n">YAMLInputType</span><span class="o">.</span><span class="n">FILE</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">info_file</span> <span class="o">=</span> <span class="n">yaml_input</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">yaml_input_type</span> <span class="o">==</span> <span class="n">YAMLInputType</span><span class="o">.</span><span class="n">STRING</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">info_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">out_dir</span><span class="p">,</span> <span class="s2">&quot;input.yaml&quot;</span><span class="p">)</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">info_file</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">yaml</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sim_info</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">sort_keys</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">machine_type</span> <span class="o">=</span> <span class="n">MachineType</span><span class="o">.</span><span class="n">from_string</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sim_info</span><span class="p">[</span><span class="s1">&#39;machine_type&#39;</span><span class="p">])</span>  <span class="c1"># Convert string to enum</span>
+        <span class="c1"># Additional options</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">final_out_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">out_dir</span><span class="p">,</span> <span class="s2">&quot;overall_sim_info.yaml&quot;</span><span class="p">)</span> <span class="c1"># Set the overall simulation info file name.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">subprocess_flag</span> <span class="o">=</span> <span class="kc">True</span> <span class="c1"># To toggle opting subprocess.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">record_subprocess</span> <span class="o">=</span> <span class="kc">False</span> <span class="c1"># To toggle to record subprocess output.</span>
+        
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">machine_type</span> <span class="o">==</span> <span class="n">MachineType</span><span class="o">.</span><span class="n">HPC</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">wait_for_job</span> <span class="o">=</span> <span class="kc">False</span> <span class="c1"># To toggle to wait for the job to finish.</span>
+
+        <span class="c1"># Create the output directory if it doesn&#39;t exist</span>
+        <span class="n">make_dir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">out_dir</span><span class="p">,</span> <span class="n">comm</span><span class="p">)</span>
+
+    
+    <span class="c1">################################################################################</span>
+    <span class="c1"># Code for user to run simulations</span>
+    <span class="c1">################################################################################</span>
+<div class="viewcode-block" id="simulation.run">
+<a class="viewcode-back" href="../../../api.html#mdss.src.main.simulation.run">[docs]</a>
+    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Executes the simulation on either a local machine or an HPC. </span>
+
+<span class="sd">        This method checks the simulation settings from the input YAML file. Based on the machine_type, it either runs the simulation locally or generates an HPC job script for execution.</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        - For local execution, it directly calls `run_problem()`.</span>
+<span class="sd">        - For HPC execution, it creates a Python file and a job script, then submits the job.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">sim_info_copy</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sim_info</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">machine_type</span> <span class="o">==</span> <span class="n">MachineType</span><span class="o">.</span><span class="n">LOCAL</span><span class="p">:</span> <span class="c1"># Running on a local machine</span>
+            <span class="n">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">machine_type</span> <span class="o">==</span> <span class="n">MachineType</span><span class="o">.</span><span class="n">HPC</span><span class="p">:</span> <span class="c1"># Running on a HPC currently supports Great Lakes.</span>
+            <span class="n">job_id</span> <span class="o">=</span> <span class="n">submit_job_on_hpc</span><span class="p">(</span><span class="n">sim_info_copy</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">info_file</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">wait_for_job</span><span class="p">,</span> <span class="n">comm</span><span class="p">)</span> <span class="c1"># Submit job script</span></div>
+</div>
+
+
+                       
+<span class="c1">################################################################################</span>
+<span class="c1"># Code for Post Processing</span>
+<span class="c1">################################################################################</span>
+<div class="viewcode-block" id="post_process">
+<a class="viewcode-back" href="../../../api.html#mdss.src.main.post_process">[docs]</a>
+<span class="k">class</span> <span class="nc">post_process</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Performs post-processing operations for simulation results.</span>
+
+<span class="sd">    This class provides functionality to visualize and compare aerodynamic performance data</span>
+<span class="sd">    such as Lift Coefficient (C&lt;sub&gt;L&lt;/sub&gt;) and Drag Coefficient (C&lt;sub&gt;D&lt;/sub&gt;) against Angle of Attack (Alpha),</span>
+<span class="sd">    based on the simulation configuration provided via a YAML file.</span>
+
+<span class="sd">    Inputs</span>
+<span class="sd">    ------ </span>
+<span class="sd">    - **out_dir**: str  </span>
+<span class="sd">        Path to the output directory. The output directory should contain the final out file from the simulation.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">out_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">plot_options</span><span class="p">:</span> <span class="nb">dict</span><span class="o">=</span><span class="p">{}):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">out_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">out_dir</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">final_out_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">out_dir</span><span class="p">,</span> <span class="s2">&quot;overall_sim_info.yaml&quot;</span><span class="p">)</span> <span class="c1"># Setting the overall simulation info file.</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sim_out_info</span><span class="p">,</span><span class="n">_</span> <span class="o">=</span> <span class="n">load_yaml_input</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">final_out_file</span><span class="p">,</span> <span class="n">comm</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">final_out_file</span><span class="si">}</span><span class="s2"> does not exist. Make sure it is the right output directory.&quot;</span>
+            <span class="n">print_msg</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">comm</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Additional Options</span>
+        <span class="n">plot_options</span> <span class="o">=</span> <span class="n">def_plot_options</span>
+        <span class="n">plot_options</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">plot_options</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">plot_options</span> <span class="o">=</span> <span class="n">ref_plot_options</span><span class="o">.</span><span class="n">model_validate</span><span class="p">(</span><span class="n">plot_options</span><span class="p">)</span>
+        
+<div class="viewcode-block" id="post_process.gen_case_plots">
+<a class="viewcode-back" href="../../../api.html#mdss.src.main.post_process.gen_case_plots">[docs]</a>
+    <span class="k">def</span> <span class="nf">gen_case_plots</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generates plots comparing experimental data with simulation results for each case and hierarchy.</span>
+
+<span class="sd">        This method loops through all hierarchies, cases, and scenarios in the simulation output,</span>
+<span class="sd">        and generates side-by-side plots of C&lt;sub&gt;L&lt;/sub&gt; and C&lt;sub&gt;D&lt;/sub&gt; versus Angle of Attack (Alpha) for each case.</span>
+<span class="sd">        Each scenario is plotted using a distinct marker, and each mesh refinement level is plotted using a different color.</span>
+<span class="sd">        Experimental data, if provided, is overlaid for validation.</span>
+
+<span class="sd">        Outputs</span>
+<span class="sd">        --------</span>
+<span class="sd">        - *PNG File*:</span>
+<span class="sd">            A comparison plot showing C&lt;sub&gt;L&lt;/sub&gt; and C&lt;sub&gt;D&lt;/sub&gt; vs Alpha for all scenarios and refinement levels of a case.  </span>
+<span class="sd">        - *PNG File*:</span>
+<span class="sd">            A comparison plot showing C_L and C&lt;sub&gt;D&lt;/sub&gt; vs Alpha for all scenarios and refinement levels of a case.  </span>
+<span class="sd">            The file is saved in the scenario output directory for each case using the case name.</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        ------</span>
+<span class="sd">        - Experimental data is optional. If not provided, only simulation data is plotted.</span>
+<span class="sd">        - Markers distinguish scenarios; colors distinguish mesh refinement levels.</span>
+<span class="sd">        - A shared legend is placed outside the figure to indicate scenario markers.</span>
+<span class="sd">        - Axis spines are formatted using `niceplots.adjust_spines()` and figures are saved at high resolution (400 dpi).</span>
+<span class="sd">        - Figures are titled using the case name and saved using `niceplots.save_figs()`.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">sim_out_info</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sim_out_info</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">hierarchy</span><span class="p">,</span> <span class="n">hierarchy_info</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">sim_out_info</span><span class="p">[</span><span class="s1">&#39;hierarchies&#39;</span><span class="p">]):</span> <span class="c1"># loop for Hierarchy level</span>
+            <span class="k">for</span> <span class="n">case</span><span class="p">,</span> <span class="n">case_info</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">hierarchy_info</span><span class="p">[</span><span class="s1">&#39;cases&#39;</span><span class="p">]):</span> <span class="c1"># loop for cases in hierarchy</span>
+                <span class="n">scenario_legend_entries</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="n">fig</span><span class="p">,</span> <span class="n">axs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_fig</span><span class="p">(</span><span class="n">case_info</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">,</span> <span class="s2">&quot; &quot;</span><span class="p">)</span><span class="o">.</span><span class="n">upper</span><span class="p">())</span> <span class="c1"># Create Figure</span>
+                <span class="n">colors</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot_options</span><span class="o">.</span><span class="n">colors</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">colors</span><span class="p">:</span>  <span class="c1"># Checks if the list is empty</span>
+                    <span class="n">colors</span> <span class="o">=</span> <span class="n">niceplots</span><span class="o">.</span><span class="n">get_colors_list</span><span class="p">()</span>
+                <span class="n">colors</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot_options</span><span class="o">.</span><span class="n">colors</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">colors</span><span class="p">:</span>  <span class="c1"># Checks if the list is empty</span>
+                    <span class="n">colors</span> <span class="o">=</span> <span class="n">niceplots</span><span class="o">.</span><span class="n">get_colors_list</span><span class="p">()</span>
+                <span class="k">for</span> <span class="n">scenario</span><span class="p">,</span> <span class="n">scenario_info</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">case_info</span><span class="p">[</span><span class="s1">&#39;scenarios&#39;</span><span class="p">]):</span> <span class="c1"># loop for scenarios that may present</span>
+                    <span class="n">scenario_out_dir</span> <span class="o">=</span> <span class="n">scenario_info</span><span class="p">[</span><span class="s1">&#39;sim_info&#39;</span><span class="p">][</span><span class="s1">&#39;scenario_out_dir&#39;</span><span class="p">]</span>
+                    <span class="n">plot_args</span> <span class="o">=</span> <span class="p">{</span>
+                        <span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="n">scenario_info</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">,</span> <span class="s2">&quot; &quot;</span><span class="p">)</span><span class="o">.</span><span class="n">upper</span><span class="p">(),</span>
+                        <span class="s1">&#39;color&#39;</span><span class="p">:</span> <span class="n">colors</span><span class="p">[</span><span class="n">scenario</span><span class="p">],</span>
+                    <span class="p">}</span>
+                    <span class="c1"># To generate plots comparing the refinement levels</span>
+                    <span class="n">scenario_legend_entry</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_add_scenario_level_plots</span><span class="p">(</span><span class="n">axs</span><span class="p">,</span> <span class="n">scenario_info</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">],</span> <span class="n">scenario_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;exp_data&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="n">case_info</span><span class="p">[</span><span class="s1">&#39;mesh_files&#39;</span><span class="p">],</span> <span class="n">scenario_out_dir</span><span class="p">,</span> <span class="o">**</span><span class="n">plot_args</span><span class="p">)</span>
+                    <span class="n">scenario_legend_entries</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">scenario_legend_entry</span><span class="p">)</span>
+                <span class="c1">################################# End of Scenario loop ########################################</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_set_legends</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">axs</span><span class="p">,</span> <span class="n">scenario_legend_entries</span><span class="p">)</span>
+                <span class="n">fig_name</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">scenario_out_dir</span><span class="p">),</span> <span class="n">case_info</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">])</span>
+                <span class="n">niceplots</span><span class="o">.</span><span class="n">save_figs</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">fig_name</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;png&quot;</span><span class="p">],</span> <span class="n">format_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;png&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;dpi&quot;</span><span class="p">:</span> <span class="mi">400</span><span class="p">}},</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="s2">&quot;tight&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="post_process.custom_compare">
+<a class="viewcode-back" href="../../../api.html#mdss.src.main.post_process.custom_compare">[docs]</a>
+    <span class="k">def</span> <span class="nf">custom_compare</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">custom_compare_info</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">plt_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generates a combined plot comparing specific scenarios across hierarchies and cases.</span>
+
+<span class="sd">        This method creates a figure with two subplots: one for C&lt;sub&gt;L&lt;/sub&gt; vs Alpha and another for C&lt;sub&gt;D&lt;/sub&gt; vs Alpha.</span>
+<span class="sd">        This method creates a figure with two subplots: one for C&lt;sub&gt;L&lt;/sub&gt; vs Alpha and another for C&lt;sub&gt;D&lt;/sub&gt; vs Alpha.</span>
+<span class="sd">        It overlays selected scenarios (across different cases and hierarchies) and creates a shared legend</span>
+<span class="sd">        to highlight which scenario each marker represents.</span>
+
+<span class="sd">        Inputs</span>
+<span class="sd">        -------</span>
+<span class="sd">        - **custom_compare_info**: dict  </span>
+<span class="sd">            A dictionary defining the scenarios to be compared.  </span>
+<span class="sd">            The structure of the dictionary should be:</span>
+
+<span class="sd">            .. code:: python</span>
+
+<span class="sd">                {</span>
+<span class="sd">                    &quot;hierarchy_name&quot;: {</span>
+<span class="sd">                        &quot;case_name&quot;: {</span>
+<span class="sd">                            &quot;scenarios&quot;: [&quot;scenario_name_1&quot;, &quot;scenario_name_2&quot;],</span>
+<span class="sd">                            &quot;mesh_files&quot;: [&quot;mesh_level_1&quot;, &quot;mesh_level_2&quot;]  # Optional</span>
+<span class="sd">                        }</span>
+<span class="sd">                    }</span>
+<span class="sd">                }</span>
+<span class="sd">            </span>
+<span class="sd">            - *hierarchy_name*: str  </span>
+<span class="sd">                Name of the hierarchy the scenario belongs to.</span>
+<span class="sd">            - *case_name*: str  </span>
+<span class="sd">                Name of the case within the hierarchy.</span>
+<span class="sd">            - *scenarios*: list[str]  </span>
+<span class="sd">                List of scenario names to be plotted.</span>
+<span class="sd">            - *mesh_files*: list[str], optional  </span>
+<span class="sd">                List of mesh refinement levels to include for that scenario. If not specified, defaults to all mesh files under the case.</span>
+
+<span class="sd">        - **plt_name**: str  </span>
+<span class="sd">            Name used for the plot title and the saved file name (PNG format).</span>
+
+<span class="sd">        Outputs</span>
+<span class="sd">        --------</span>
+<span class="sd">        - **PNG File**:</span>
+<span class="sd">            A side-by-side comparison plot showing C&lt;sub&gt;L&lt;/sub&gt; and C&lt;sub&gt;D&lt;/sub&gt; vs Alpha for all selected scenarios.  </span>
+<span class="sd">            The plot is saved in the output directory specified during initialization.</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        ------</span>
+<span class="sd">        - Each scenario is plotted using a consistent color, with markers indicating refinement levels.</span>
+<span class="sd">        - Experimental data is included when available.</span>
+<span class="sd">        - A shared legend (outside the plot) shows scenario identifiers and their corresponding markers.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">sim_out_info</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sim_out_info</span><span class="p">)</span>
+        <span class="n">fig</span><span class="p">,</span> <span class="n">axs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_fig</span><span class="p">(</span><span class="n">plt_name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">,</span> <span class="s2">&quot; &quot;</span><span class="p">)</span><span class="o">.</span><span class="n">upper</span><span class="p">())</span> <span class="c1"># Create Figure</span>
+        <span class="n">scenario_legend_entries</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">found_scenarios</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span> <span class="c1"># To get marker style</span>
+        <span class="n">colors</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot_options</span><span class="o">.</span><span class="n">colors</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">colors</span><span class="p">:</span>  <span class="c1"># Checks if the list is empty</span>
+            <span class="n">colors</span> <span class="o">=</span> <span class="n">niceplots</span><span class="o">.</span><span class="n">get_colors_list</span><span class="p">()</span>
+        <span class="n">scenarios_list</span> <span class="o">=</span> <span class="p">[]</span> 
+        <span class="k">for</span> <span class="n">hierarchy</span><span class="p">,</span> <span class="n">hierarchy_info</span> <span class="ow">in</span> <span class="n">custom_compare_info</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">case</span><span class="p">,</span> <span class="n">case_info</span> <span class="ow">in</span> <span class="n">hierarchy_info</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">for</span> <span class="n">scenario</span> <span class="ow">in</span> <span class="n">case_info</span><span class="p">[</span><span class="s1">&#39;scenarios&#39;</span><span class="p">]:</span>
+                    <span class="n">scenario_info</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;hierarchy&#39;</span><span class="p">:</span><span class="n">hierarchy</span><span class="p">,</span> <span class="s1">&#39;case&#39;</span><span class="p">:</span> <span class="n">case</span><span class="p">,</span> <span class="s1">&#39;scenario&#39;</span><span class="p">:</span> <span class="n">scenario</span><span class="p">}</span>
+                    <span class="k">if</span> <span class="s1">&#39;mesh_files&#39;</span> <span class="ow">in</span> <span class="n">case_info</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                        <span class="n">scenario_info</span><span class="p">[</span><span class="s1">&#39;mesh_files&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">case_info</span><span class="p">[</span><span class="s1">&#39;mesh_files&#39;</span><span class="p">]</span>
+                    <span class="n">scenarios_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">scenario_info</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">scenarios_list</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">hierarchy_info</span> <span class="ow">in</span> <span class="n">sim_out_info</span><span class="p">[</span><span class="s1">&#39;hierarchies&#39;</span><span class="p">]:</span>
+                <span class="k">if</span> <span class="n">hierarchy_info</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="n">s</span><span class="p">[</span><span class="s1">&#39;hierarchy&#39;</span><span class="p">]:</span>
+                    <span class="k">continue</span>
+                <span class="k">for</span> <span class="n">case_info</span> <span class="ow">in</span> <span class="n">hierarchy_info</span><span class="p">[</span><span class="s1">&#39;cases&#39;</span><span class="p">]:</span>
+                    <span class="k">if</span> <span class="n">case_info</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="n">s</span><span class="p">[</span><span class="s1">&#39;case&#39;</span><span class="p">]:</span>
+                        <span class="k">continue</span>
+                    <span class="k">for</span> <span class="n">scenario_info</span> <span class="ow">in</span> <span class="n">case_info</span><span class="p">[</span><span class="s1">&#39;scenarios&#39;</span><span class="p">]:</span>
+                        <span class="k">if</span> <span class="n">scenario_info</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="n">s</span><span class="p">[</span><span class="s1">&#39;scenario&#39;</span><span class="p">]:</span>
+                            <span class="k">continue</span>
+                        <span class="n">found_scenarios</span> <span class="o">=</span> <span class="kc">True</span>
+                        <span class="n">mesh_files</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;mesh_files&#39;</span><span class="p">,</span> <span class="n">case_info</span><span class="p">[</span><span class="s1">&#39;mesh_files&#39;</span><span class="p">])</span>
+                        <span class="n">scenario_out_dir</span> <span class="o">=</span> <span class="n">scenario_info</span><span class="p">[</span><span class="s1">&#39;sim_info&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;scenario_out_dir&#39;</span><span class="p">,</span> <span class="s1">&#39;.&#39;</span><span class="p">)</span>
+                        <span class="n">label</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">case_info</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> - </span><span class="si">{</span><span class="n">scenario_info</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
+                        <span class="n">plot_args</span> <span class="o">=</span> <span class="p">{</span>
+                            <span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="n">label</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">,</span> <span class="s2">&quot; &quot;</span><span class="p">)</span><span class="o">.</span><span class="n">upper</span><span class="p">(),</span>
+                            <span class="s1">&#39;color&#39;</span><span class="p">:</span> <span class="n">colors</span><span class="p">[</span><span class="n">count</span><span class="p">]</span>
+                        <span class="p">}</span>
+                        <span class="n">scenario_legend_entry</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_add_scenario_level_plots</span><span class="p">(</span><span class="n">axs</span><span class="p">,</span> <span class="n">scenario_info</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">],</span> <span class="n">scenario_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;exp_data&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="n">mesh_files</span><span class="p">,</span> <span class="n">scenario_out_dir</span><span class="p">,</span> <span class="o">**</span><span class="n">plot_args</span><span class="p">)</span>
+                        <span class="n">scenario_legend_entries</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">scenario_legend_entry</span><span class="p">)</span>
+                        <span class="n">count</span><span class="o">+=</span><span class="mi">1</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">found_scenarios</span><span class="p">:</span>
+            <span class="k">return</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;None of the scenarios are found&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_legends</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">axs</span><span class="p">,</span> <span class="n">scenario_legend_entries</span><span class="p">)</span>
+        <span class="n">fig_name</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">out_dir</span><span class="p">,</span> <span class="n">plt_name</span><span class="p">)</span>
+        <span class="n">niceplots</span><span class="o">.</span><span class="n">save_figs</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">fig_name</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;png&quot;</span><span class="p">],</span> <span class="n">format_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;png&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;dpi&quot;</span><span class="p">:</span> <span class="mi">400</span><span class="p">}},</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="s2">&quot;tight&quot;</span><span class="p">)</span></div>
+
+                    
+    <span class="k">def</span> <span class="nf">_add_plot_from_csv</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">axs</span><span class="p">,</span> <span class="n">csv_file</span><span class="p">:</span><span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Adds a plot of Angle of Attack vs Lift and Drag Coefficients from a CSV file.</span>
+
+<span class="sd">        This method expects two subplots: one for C&lt;sub&gt;L&lt;/sub&gt; (Lift Coefficient) vs Alpha, and one for C&lt;sub&gt;D&lt;/sub&gt; (Drag Coefficient) vs Alpha.</span>
+<span class="sd">        The CSV must contain the columns: &#39;Alpha&#39;, &#39;CL&#39;, and &#39;CD&#39;.</span>
+
+<span class="sd">        Inputs</span>
+<span class="sd">        -------</span>
+<span class="sd">        - **axs**: list[matplotlib.axes._subplots.AxesSubplot]</span>
+<span class="sd">            A list of two matplotlib axes. axs[0] is used for plotting C&lt;sub&gt;L&lt;/sub&gt; vs Alpha, and axs[1] for C&lt;sub&gt;D&lt;/sub&gt; vs Alpha.</span>
+<span class="sd">        </span>
+<span class="sd">        - **csv_file**: str</span>
+<span class="sd">            Path to the CSV file containing simulation or experimental data. The file must have &#39;Alpha&#39;, &#39;CL&#39;, and &#39;CD&#39; columns.</span>
+<span class="sd">        </span>
+<span class="sd">        - ****kwargs**:</span>
+<span class="sd">            Optional keyword arguments to customize the plot appearance.</span>
+<span class="sd">                - *label* : str  </span>
+<span class="sd">                    Label for the plotted line (used in legends). Default is None.</span>
+<span class="sd">                - *color* : str  </span>
+<span class="sd">                    Color of the plotted line. Default is &#39;black&#39;.</span>
+<span class="sd">                - *linestyle* : str  </span>
+<span class="sd">                    Line style for the plotted line. Default is &#39;--&#39;.</span>
+<span class="sd">                - *marker* : str  </span>
+<span class="sd">                    Marker style for the data points. Default is &#39;s&#39;.</span>
+
+<span class="sd">        Outputs</span>
+<span class="sd">        --------</span>
+<span class="sd">        - **Adds plot lines to the existing subplots**:</span>
+<span class="sd">            - axs[0] will have a line for C&lt;sub&gt;L&lt;/sub&gt; vs Alpha.</span>
+<span class="sd">            - axs[1] will have a line for C&lt;sub&gt;D&lt;/sub&gt; vs Alpha.</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        ------</span>
+<span class="sd">        - If the CSV file cannot be read or is missing required columns, a warning is printed and the plot is skipped.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">label</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;label&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">color</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;color&#39;</span><span class="p">,</span> <span class="s1">&#39;black&#39;</span><span class="p">)</span>
+        <span class="n">linestyle</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;linestyle&#39;</span><span class="p">,</span> <span class="s1">&#39;--&#39;</span><span class="p">)</span>
+        <span class="n">marker</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;marker&#39;</span><span class="p">,</span> <span class="s1">&#39;s&#39;</span><span class="p">)</span>
+
+        <span class="n">sim_data</span> <span class="o">=</span> <span class="n">load_csv_data</span><span class="p">(</span><span class="n">csv_file</span><span class="p">,</span> <span class="n">comm</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">sim_data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">ax</span><span class="p">,</span> <span class="n">y_key</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">axs</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;CL&#39;</span><span class="p">,</span> <span class="s1">&#39;CD&#39;</span><span class="p">]):</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
+                    <span class="n">sim_data</span><span class="p">[</span><span class="s1">&#39;Alpha&#39;</span><span class="p">],</span> <span class="n">sim_data</span><span class="p">[</span><span class="n">y_key</span><span class="p">],</span>
+                    <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">,</span>
+                    <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span>
+                    <span class="n">linestyle</span><span class="o">=</span><span class="n">linestyle</span><span class="p">,</span>
+                    <span class="n">marker</span><span class="o">=</span><span class="n">marker</span>
+                <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">csv_file</span><span class="si">}</span><span class="s2"> is not readable.</span><span class="se">\n</span><span class="s2">Continuing to plot without &#39;</span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2">&#39; data.&quot;</span>
+            <span class="n">print_msg</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="s1">&#39;warning&#39;</span><span class="p">,</span> <span class="n">comm</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_add_scenario_level_plots</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">axs</span><span class="p">,</span> <span class="n">scenario_name</span><span class="p">,</span> <span class="n">exp_data</span><span class="p">,</span> <span class="n">mesh_files</span><span class="p">,</span> <span class="n">scenario_out_dir</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Adds plots for a specific scenario (experimental + simulation) to the existing subplots.</span>
+
+<span class="sd">        This method:</span>
+<span class="sd">        - Plots experimental data for the scenario if a valid CSV path is provided.</span>
+<span class="sd">        - Loops over mesh refinement levels and plots ADflow results from each mesh file.</span>
+<span class="sd">        - Creates a `Line2D` entry for the scenario to be used in an external legend.</span>
+
+<span class="sd">        Inputs</span>
+<span class="sd">        -------</span>
+<span class="sd">        - **axs**: list[matplotlib.axes._subplots.AxesSubplot]  </span>
+<span class="sd">            A list of two matplotlib axes. axs[0] is for C&lt;sub&gt;L&lt;/sub&gt; vs Alpha, and axs[1] is for C&lt;sub&gt;D&lt;/sub&gt; vs Alpha.</span>
+
+<span class="sd">        - **scenario_name**: str  </span>
+<span class="sd">            Name of the scenario, used for labeling and legend entry.</span>
+
+<span class="sd">        - **exp_data**: str or None  </span>
+<span class="sd">            Path to the experimental data CSV file. If None, no experimental data is plotted.</span>
+
+<span class="sd">        - **mesh_files**: list[str]  </span>
+<span class="sd">            List of mesh refinement levels to be plotted (e.g., [&#39;coarse&#39;, &#39;medium&#39;, &#39;fine&#39;]).</span>
+
+<span class="sd">        - **scenario_out_dir**: str  </span>
+<span class="sd">            Path to the scenario&#39;s output directory, where refinement-level folders are located.</span>
+
+<span class="sd">        - ****kwargs**:</span>
+<span class="sd">            Optional styling arguments passed to `_add_plot_from_csv()`:</span>
+<span class="sd">                - *label* : str  </span>
+<span class="sd">                    Label for the scenario used in the external legend. Defaults to a cleaned version of `scenario_name`.</span>
+<span class="sd">                - *color* : str  </span>
+<span class="sd">                    Base color for the scenario legend marker. Defaults to &#39;black&#39;.</span>
+<span class="sd">                - *linestyle* : str  </span>
+<span class="sd">                    Line style for the plots. Will be set to &#39;--&#39; for experimental data, and &#39;-&#39; for simulation data.</span>
+<span class="sd">                - *marker* : str  </span>
+<span class="sd">                    Marker style for the scenario legend entry. Defaults to &#39;s&#39;.</span>
+<span class="sd">                - *markersize* : int  </span>
+<span class="sd">                    Size of the legend marker. Defaults to 10.</span>
+
+<span class="sd">        Outputs</span>
+<span class="sd">        --------</span>
+<span class="sd">        - **scenario_legend_entry**: matplotlib.lines.Line2D  </span>
+<span class="sd">            A legend entry representing the scenario (based on marker and label) to be added to the external legend.</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        ------</span>
+<span class="sd">        - Experimental data will only be plotted if the provided `exp_data` file is valid.</span>
+<span class="sd">        - Simulation results are expected to be located in `${scenario_out_dir}/${mesh_file}/ADflow_output.csv`.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">scenario_label</span> <span class="o">=</span> <span class="n">scenario_name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">,</span> <span class="s2">&quot; &quot;</span><span class="p">)</span>
+
+        <span class="n">label</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;label&#39;</span><span class="p">,</span> <span class="n">scenario_label</span><span class="p">)</span>
+        <span class="n">color</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;color&#39;</span><span class="p">,</span> <span class="s1">&#39;black&#39;</span><span class="p">)</span>
+        <span class="n">linestyle</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;linestyle&#39;</span><span class="p">,</span> <span class="s1">&#39;-&#39;</span><span class="p">)</span>
+        <span class="n">marker</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;marker&#39;</span><span class="p">,</span> <span class="s1">&#39;s&#39;</span><span class="p">)</span>
+        <span class="n">markersize</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;markersize&#39;</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">exp_data</span><span class="p">:</span>  <span class="c1"># Add plots experimental data to the plot</span>
+            <span class="n">exp_args</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2"> - Experimental&quot;</span><span class="p">,</span>
+                <span class="s1">&#39;color&#39;</span><span class="p">:</span> <span class="n">color</span><span class="p">,</span>
+                <span class="s1">&#39;linestyle&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;marker&#39;</span><span class="p">:</span> <span class="s1">&#39;D&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;markersize&#39;</span><span class="p">:</span> <span class="n">markersize</span> <span class="o">+</span> <span class="mi">4</span><span class="p">,</span>
+            <span class="p">}</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_add_plot_from_csv</span><span class="p">(</span><span class="n">axs</span><span class="p">,</span> <span class="n">exp_data</span><span class="p">,</span> <span class="o">**</span><span class="n">exp_args</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">ii</span><span class="p">,</span> <span class="n">mesh_file</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">mesh_files</span><span class="p">):</span> <span class="c1"># Loop for refinement levels</span>
+            <span class="n">refinement_level_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">scenario_out_dir</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">mesh_file</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">ADflow_out_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">refinement_level_dir</span><span class="p">,</span> <span class="s2">&quot;ADflow_output.csv&quot;</span><span class="p">)</span>
+            <span class="c1"># Update kwargs</span>
+            <span class="n">plot_args</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2"> - </span><span class="si">{</span><span class="n">mesh_file</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                    <span class="s1">&#39;color&#39;</span><span class="p">:</span> <span class="n">color</span><span class="p">,</span>
+                    <span class="s1">&#39;linestyle&#39;</span><span class="p">:</span> <span class="s1">&#39;-&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;marker&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_marker_style</span><span class="p">(</span><span class="n">ii</span><span class="p">),</span>
+                    <span class="s1">&#39;markersize&#39;</span><span class="p">:</span> <span class="n">markersize</span><span class="p">,</span>
+                <span class="p">}</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_add_plot_from_csv</span><span class="p">(</span><span class="n">axs</span><span class="p">,</span> <span class="n">ADflow_out_file</span><span class="p">,</span> <span class="o">**</span><span class="n">plot_args</span><span class="p">)</span> <span class="c1"># To add simulation data to the plots</span>
+        
+        <span class="n">scenario_legend_entry</span> <span class="o">=</span> <span class="n">Line2D</span><span class="p">([</span><span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">marker</span><span class="o">=</span><span class="n">marker</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">markersize</span><span class="o">=</span><span class="n">markersize</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">)</span> <span class="c1"># Create a legend entry for the scenario</span>
+        <span class="k">return</span> <span class="n">scenario_legend_entry</span>
+    
+    <span class="k">def</span> <span class="nf">_create_fig</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">niceplots_style</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Creates a matplotlib figure with subplots for C&lt;sub&gt;L&lt;/sub&gt; and C&lt;sub&gt;D&lt;/sub&gt; vs Alpha.</span>
+
+<span class="sd">        This method initializes the figure layout and applies consistent niceplots styling.</span>
+
+<span class="sd">        Inputs</span>
+<span class="sd">        -------</span>
+<span class="sd">        - **title**: str  </span>
+<span class="sd">            Title to be shown at the top of the figure.</span>
+<span class="sd">        </span>
+<span class="sd">        - **niceplots_style**: str or None  </span>
+<span class="sd">            Optional name of the niceplots style to apply. If None, uses `self.niceplots_style`.</span>
+
+<span class="sd">        Outputs</span>
+<span class="sd">        --------</span>
+<span class="sd">        - **fig**: matplotlib.figure.Figure  </span>
+<span class="sd">            The created figure object.</span>
+
+<span class="sd">        - **axs**: list[matplotlib.axes._subplots.AxesSubplot]  </span>
+<span class="sd">            A list of two subplots for plotting C&lt;sub&gt;L&lt;/sub&gt; and C&lt;sub&gt;D&lt;/sub&gt; vs Alpha.</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        ------</span>
+<span class="sd">        - Subplots are pre-configured with axis titles, labels, and grids.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">niceplots_style</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">niceplots_style</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot_options</span><span class="o">.</span><span class="n">niceplots_style</span>
+        
+        <span class="n">figsize</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot_options</span><span class="o">.</span><span class="n">figsize</span>
+
+        <span class="n">plt</span><span class="o">.</span><span class="n">style</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="n">niceplots</span><span class="o">.</span><span class="n">get_style</span><span class="p">(</span><span class="n">niceplots_style</span><span class="p">))</span>
+        <span class="n">fig</span><span class="p">,</span> <span class="n">axs</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">14</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span> <span class="n">layout</span><span class="o">=</span><span class="s2">&quot;constrained&quot;</span><span class="p">)</span>
+        <span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="n">title</span><span class="p">)</span>
+
+        <span class="n">ylabels</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;$C_L$&#39;</span><span class="p">,</span> <span class="s1">&#39;$C_D$&#39;</span><span class="p">]</span>
+
+        <span class="k">for</span> <span class="n">ax</span><span class="p">,</span> <span class="n">ylabel</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">axs</span><span class="p">,</span> <span class="n">ylabels</span><span class="p">):</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Alpha (deg)&#39;</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="n">ylabel</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">fig</span><span class="p">,</span> <span class="n">axs</span>
+    
+    <span class="k">def</span> <span class="nf">_set_legends</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fig</span><span class="p">,</span> <span class="n">axs</span><span class="p">,</span> <span class="n">scenario_legend_entries</span><span class="p">):</span>
+
+        <span class="n">mesh_handles</span><span class="p">,</span> <span class="n">mesh_labels</span> <span class="o">=</span> <span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get_legend_handles_labels</span><span class="p">()</span>
+        <span class="c1"># Create the legends</span>
+        <span class="c1"># scenario_legend = Legend(fig, handles=scenario_legend_entries,</span>
+        <span class="c1">#                         labels=[h.get_label() for h in scenario_legend_entries],</span>
+        <span class="c1">#                         loc=&#39;center left&#39;,</span>
+        <span class="c1">#                         bbox_to_anchor=(1.0, 0.25),</span>
+        <span class="c1">#                         title=&#39;Scenarios&#39;,</span>
+        <span class="c1">#                         frameon=True,</span>
+        <span class="c1">#                         fontsize=10,</span>
+        <span class="c1">#                         labelspacing=0.3)</span>
+
+        <span class="n">mesh_legend</span> <span class="o">=</span> <span class="n">Legend</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">handles</span><span class="o">=</span><span class="n">mesh_handles</span><span class="p">,</span>
+                            <span class="n">labels</span><span class="o">=</span><span class="n">mesh_labels</span><span class="p">,</span>
+                            <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;center left&#39;</span><span class="p">,</span>
+                            <span class="n">bbox_to_anchor</span><span class="o">=</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.75</span><span class="p">),</span>
+                            <span class="n">title</span><span class="o">=</span><span class="s1">&#39;Meshes&#39;</span><span class="p">,</span>
+                            <span class="n">frameon</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                            <span class="n">fontsize</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+                            <span class="n">labelspacing</span><span class="o">=</span><span class="mf">0.3</span><span class="p">)</span>
+
+        <span class="c1">#fig.add_artist(scenario_legend)</span>
+        <span class="n">fig</span><span class="o">.</span><span class="n">add_artist</span><span class="p">(</span><span class="n">mesh_legend</span><span class="p">)</span>
+        <span class="n">niceplots</span><span class="o">.</span><span class="n">adjust_spines</span><span class="p">(</span><span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">niceplots</span><span class="o">.</span><span class="n">adjust_spines</span><span class="p">(</span><span class="n">axs</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="c1">#fig.tight_layout(rect=[0, 0, 0.95, 1])</span>
+
+    <span class="k">def</span> <span class="nf">_get_marker_style</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Function to loop though the marker styles listed here.</span>
+<span class="sd">        Add more if needed.</span>
+
+<span class="sd">        Inputs</span>
+<span class="sd">        -------</span>
+<span class="sd">        - **idx**: int</span>
+<span class="sd">            Index of the current loop</span>
+<span class="sd">        </span>
+<span class="sd">        Outputs</span>
+<span class="sd">        --------</span>
+<span class="sd">        - **Marker Style**: str</span>
+<span class="sd">            Marker style for the current index</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">markers</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;s&#39;</span><span class="p">,</span> <span class="s1">&#39;o&#39;</span><span class="p">,</span> <span class="s1">&#39;^&#39;</span><span class="p">,</span> <span class="s1">&#39;v&#39;</span><span class="p">,</span><span class="s1">&#39;X&#39;</span><span class="p">,</span> <span class="s1">&#39;P&#39;</span><span class="p">,</span> <span class="s1">&#39;.&#39;</span><span class="p">,</span> <span class="s1">&#39;H&#39;</span><span class="p">,</span> <span class="s1">&#39;p&#39;</span><span class="p">,</span> <span class="s1">&#39;*&#39;</span><span class="p">,</span> <span class="s1">&#39;h&#39;</span><span class="p">,</span> <span class="s1">&#39;+&#39;</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">markers</span><span class="p">[</span><span class="n">idx</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">markers</span><span class="p">)]</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Sinaendhran Pujali Elilarasan, Sanjan Muchandimath.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

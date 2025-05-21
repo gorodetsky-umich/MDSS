@@ -1,0 +1,525 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>mdss.src.main_helper &mdash; Multi-Disciplinary Simulation Suite  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/extra.css?v=375f2796" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../../../_static/doctools.js?v=9a2dae69"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="../../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            Multi-Disciplinary Simulation Suite
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation and Dependencies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../inputs.html">Inputs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../outputs.html">Outputs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/index.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api.html">API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../additionalInfo.html">Additional Information</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../acknowledgements.html">Acknowledgements</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Multi-Disciplinary Simulation Suite</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">mdss.src.main_helper</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for mdss.src.main_helper</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Helper functions for the &quot;main.py&quot; file.</span>
+<span class="sd">Helps run simulations and manages output files.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c1"># Imports</span>
+<span class="kn">import</span> <span class="nn">os</span><span class="o">,</span> <span class="nn">yaml</span><span class="o">,</span> <span class="nn">copy</span><span class="o">,</span> <span class="nn">subprocess</span><span class="o">,</span> <span class="nn">shutil</span><span class="o">,</span> <span class="nn">time</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">mpi4py</span> <span class="kn">import</span> <span class="n">MPI</span>
+
+<span class="c1"># Module imports</span>
+<span class="kn">from</span> <span class="nn">mdss.utils.helpers</span> <span class="kn">import</span> <span class="n">ProblemType</span><span class="p">,</span> <span class="n">MachineType</span><span class="p">,</span> <span class="n">make_dir</span><span class="p">,</span> <span class="n">print_msg</span><span class="p">,</span> <span class="n">load_yaml_input</span><span class="p">,</span> <span class="n">deep_update</span><span class="p">,</span> <span class="n">load_csv_data</span>
+<span class="kn">from</span> <span class="nn">mdss.resources.templates</span> <span class="kn">import</span> <span class="n">gl_job_script</span><span class="p">,</span> <span class="n">python_code_for_hpc</span><span class="p">,</span> <span class="n">python_code_for_subprocess</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">mdss.src.aerostruct</span> <span class="kn">import</span> <span class="n">Problem</span>
+    <span class="n">MODULES_NOT_FOUND</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="k">except</span><span class="p">:</span>
+    <span class="n">MODULES_NOT_FOUND</span> <span class="o">=</span> <span class="kc">True</span>
+
+<span class="n">comm</span> <span class="o">=</span> <span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span>
+
+<span class="c1">################################################################################</span>
+<span class="c1"># Code for running simulations</span>
+<span class="c1">################################################################################   </span>
+<div class="viewcode-block" id="execute">
+<a class="viewcode-back" href="../../../api.html#mdss.src.main_helper.execute">[docs]</a>
+<span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="n">simulation</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Runs the aerodynamic and/or aerostructural simulations as subprocesses.</span>
+
+<span class="sd">    This method iterates through all hierarchies, cases, refinement levels, and angles of attack defined in the input YAML file. Runs the simulation by calling `aerostruct.py`, and stores the results.</span>
+
+<span class="sd">    Outputs</span>
+<span class="sd">    -------</span>
+<span class="sd">    - **A CSV file**:</span>
+<span class="sd">        Contains results for each angle of attack at the current refinement level.</span>
+<span class="sd">    - **A YAML file**:</span>
+<span class="sd">        Stores simulation data for each angle of attack in the corresponding directory.</span>
+<span class="sd">    - **A final YAML file**:</span>
+<span class="sd">        Summarizes all simulation results across hierarchies, cases, and refinement levels.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    This method ensures that:</span>
+
+<span class="sd">    - Existing successful simulations are skipped.</span>
+<span class="sd">    - Directories are created dynamically if they do not exist.</span>
+<span class="sd">    - Simulation results are saved in structured output files.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">MODULES_NOT_FOUND</span> <span class="ow">is</span> <span class="kc">True</span> <span class="ow">and</span> <span class="n">simulation</span><span class="o">.</span><span class="n">subprocess_flag</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;Required module are not present in the current environment. Cannot run without subprocess.</span>
+<span class="s2">        Turn on the subprocess flag and specify the eligible python environment or install the required packages&quot;&quot;&quot;</span>
+        <span class="n">print_msg</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="s1">&#39;error&#39;</span><span class="p">,</span> <span class="n">comm</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ModuleNotFoundError</span><span class="p">()</span>
+
+    <span class="c1"># Store a copy of input YAML file in output directory</span>
+    <span class="n">input_yaml_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">simulation</span><span class="o">.</span><span class="n">out_dir</span><span class="p">,</span> <span class="s2">&quot;input_file.yaml&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">comm</span><span class="o">.</span><span class="n">rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">input_yaml_file</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">input_yaml_handle</span><span class="p">:</span>
+            <span class="n">yaml</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">simulation</span><span class="o">.</span><span class="n">sim_info</span><span class="p">,</span> <span class="n">input_yaml_handle</span><span class="p">,</span> <span class="n">sort_keys</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    
+    <span class="n">sim_info_copy</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">simulation</span><span class="o">.</span><span class="n">sim_info</span><span class="p">)</span> <span class="c1"># Copying to run the loop</span>
+    <span class="n">sim_out_info</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">simulation</span><span class="o">.</span><span class="n">sim_info</span><span class="p">)</span> <span class="c1"># Copying to write the output YAML file</span>
+    <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+    <span class="n">start_wall_time</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2"> %H:%M:%S&quot;</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">hierarchy</span><span class="p">,</span> <span class="n">hierarchy_info</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">sim_info_copy</span><span class="p">[</span><span class="s1">&#39;hierarchies&#39;</span><span class="p">]):</span> <span class="c1"># loop for Hierarchy level</span>
+
+        <span class="k">for</span> <span class="n">case</span><span class="p">,</span> <span class="n">case_info</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">hierarchy_info</span><span class="p">[</span><span class="s1">&#39;cases&#39;</span><span class="p">]):</span> <span class="c1"># loop for cases in hierarchy</span>
+            <span class="c1"># Assign problem type</span>
+            <span class="n">problem_type</span> <span class="o">=</span> <span class="n">ProblemType</span><span class="o">.</span><span class="n">from_string</span><span class="p">(</span><span class="n">case_info</span><span class="p">[</span><span class="s1">&#39;problem&#39;</span><span class="p">])</span>  <span class="c1"># Convert string to enum</span>
+
+            <span class="c1"># Define case level outptut directory</span>
+            <span class="n">case_out_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">simulation</span><span class="o">.</span><span class="n">out_dir</span><span class="p">,</span> <span class="n">hierarchy_info</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">],</span> <span class="n">case_info</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">])</span>
+            <span class="n">make_dir</span><span class="p">(</span><span class="n">case_out_dir</span><span class="p">,</span> <span class="n">comm</span><span class="p">)</span>
+            <span class="n">comm</span><span class="o">.</span><span class="n">Barrier</span><span class="p">()</span>
+            <span class="c1"># Save case info yaml file in the case_out_dir to pass in subprocess</span>
+            <span class="n">case_info_fpath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">case_out_dir</span><span class="p">,</span> <span class="s2">&quot;case_info.yaml&quot;</span><span class="p">)</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">case_info_fpath</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">case_info_fhandle</span><span class="p">:</span>
+                <span class="n">yaml</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">case_info</span><span class="p">,</span> <span class="n">case_info_fhandle</span><span class="p">,</span> <span class="n">sort_keys</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">scenario</span><span class="p">,</span> <span class="n">scenario_info</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">case_info</span><span class="p">[</span><span class="s1">&#39;scenarios&#39;</span><span class="p">]):</span> <span class="c1"># loop for scenarios that may present</span>
+                
+                <span class="c1"># Define scenario level output directory</span>
+                <span class="n">scenario_out_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">case_out_dir</span><span class="p">,</span> <span class="n">scenario_info</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">])</span>
+                <span class="n">make_dir</span><span class="p">(</span><span class="n">scenario_out_dir</span><span class="p">,</span> <span class="n">comm</span><span class="p">)</span>
+                <span class="n">comm</span><span class="o">.</span><span class="n">Barrier</span><span class="p">()</span>
+                <span class="c1"># Save case info yaml file in the case_out_dir to pass in subprocess</span>
+                <span class="n">scenario_info_fpath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">scenario_out_dir</span><span class="p">,</span> <span class="s2">&quot;scenario_info.yaml&quot;</span><span class="p">)</span>
+                <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">scenario_info_fpath</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">scenario_info_fhandle</span><span class="p">:</span>
+                    <span class="n">yaml</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">scenario_info</span><span class="p">,</span> <span class="n">scenario_info_fhandle</span><span class="p">,</span> <span class="n">sort_keys</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                
+                <span class="c1"># Extract the Angle of attacks for which the simulation has to be run</span>
+                <span class="n">aoa_list</span> <span class="o">=</span> <span class="n">scenario_info</span><span class="p">[</span><span class="s1">&#39;aoa_list&#39;</span><span class="p">]</span>
+                <span class="n">aoa_csv_string</span> <span class="o">=</span> <span class="s1">&#39;&quot;&#39;</span> <span class="o">+</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">aoa</span><span class="p">)</span> <span class="k">for</span> <span class="n">aoa</span> <span class="ow">in</span> <span class="n">aoa_list</span><span class="p">]))</span> <span class="o">+</span> <span class="s1">&#39;&quot;&#39;</span> <span class="c1"># Convert the aoa list to a csv string</span>
+                <span class="n">scenario_sim_info</span> <span class="o">=</span> <span class="p">{}</span> <span class="c1"># Creating scenario level sim info dictionary for overall sim info file</span>
+
+                <span class="k">for</span> <span class="n">ii</span><span class="p">,</span> <span class="n">mesh_file</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">case_info</span><span class="p">[</span><span class="s1">&#39;mesh_files&#39;</span><span class="p">]):</span> <span class="c1"># Loop for refinement levels</span>
+                    <span class="c1"># Print simulation info message</span>
+                    <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="s1">&#39;Hierarchy&#39;</span><span class="si">:</span><span class="s2">&lt;20</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">hierarchy_info</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span><span class="si">}</span><span class="se">\n</span><span class="si">{</span><span class="s1">&#39;Case Name&#39;</span><span class="si">:</span><span class="s2">&lt;20</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">case_info</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span><span class="si">}</span><span class="se">\n</span><span class="si">{</span><span class="s1">&#39;Scenario&#39;</span><span class="si">:</span><span class="s2">&lt;20</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">scenario_info</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span><span class="si">}</span><span class="se">\n</span><span class="si">{</span><span class="s1">&#39;Aero Mesh File&#39;</span><span class="si">:</span><span class="s2">&lt;20</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">mesh_file</span><span class="si">}</span><span class="s2">&quot;</span>
+                    <span class="n">print_msg</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="s1">&#39;SIMULATION INFO&#39;</span><span class="si">:</span><span class="s2">^30</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">comm</span><span class="p">)</span>
+                    <span class="n">AOAList</span> <span class="o">=</span> <span class="p">[]</span>
+                    <span class="n">CLList</span> <span class="o">=</span> <span class="p">[]</span>
+                    <span class="n">CDList</span> <span class="o">=</span> <span class="p">[]</span>
+                    <span class="n">TList</span> <span class="o">=</span> <span class="p">[]</span>
+                    <span class="n">FList</span> <span class="o">=</span> <span class="p">[]</span> <span class="c1"># Fail flag list</span>
+
+                    <span class="n">refinement_level_dict</span> <span class="o">=</span> <span class="p">{}</span> <span class="c1"># Creating refinement level sim info dictionary for overall sim info file</span>
+                    <span class="n">refinement_out_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">scenario_out_dir</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">mesh_file</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="n">make_dir</span><span class="p">(</span><span class="n">refinement_out_dir</span><span class="p">,</span> <span class="n">comm</span><span class="p">)</span>
+                    <span class="n">aero_grid_fpath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">case_info</span><span class="p">[</span><span class="s1">&#39;meshes_folder_path&#39;</span><span class="p">],</span> <span class="n">mesh_file</span><span class="p">)</span>
+                    <span class="c1"># Add struct mesh file for aerostructural case else set it to none</span>
+                    <span class="k">if</span> <span class="n">problem_type</span> <span class="o">==</span> <span class="n">ProblemType</span><span class="o">.</span><span class="n">AEROSTRUCTURAL</span><span class="p">:</span>
+                        <span class="n">struct_mesh_file</span> <span class="o">=</span> <span class="n">case_info</span><span class="p">[</span><span class="s1">&#39;struct_options&#39;</span><span class="p">][</span><span class="s1">&#39;mesh_fpath&#39;</span><span class="p">]</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">struct_mesh_file</span> <span class="o">=</span> <span class="s1">&#39;none&#39;</span>
+
+                    <span class="c1"># Run subprocess</span>
+                    <span class="c1"># Initially running all the aoa in a subprocess. However the optimal number of aoa for single subprocess should be determined and modified accordingly.</span>
+                    <span class="n">other_sim_info</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">value</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">sim_info_copy</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">key</span> <span class="o">!=</span> <span class="s1">&#39;hierarchies&#39;</span><span class="p">}</span> <span class="c1"># To pass just the sim_info without hierarchies</span>
+                    <span class="k">if</span> <span class="n">simulation</span><span class="o">.</span><span class="n">subprocess_flag</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+                        <span class="n">run_as_subprocess</span><span class="p">(</span><span class="n">other_sim_info</span><span class="p">,</span> <span class="n">case_info_fpath</span><span class="p">,</span> <span class="n">scenario_info_fpath</span><span class="p">,</span> <span class="n">refinement_out_dir</span><span class="p">,</span> <span class="n">aoa_csv_string</span><span class="p">,</span> <span class="n">aero_grid_fpath</span><span class="p">,</span> <span class="n">struct_mesh_file</span><span class="p">,</span>  <span class="n">comm</span><span class="p">,</span> <span class="n">simulation</span><span class="o">.</span><span class="n">record_subprocess</span><span class="p">)</span>
+                    <span class="k">elif</span> <span class="n">simulation</span><span class="o">.</span><span class="n">subprocess_flag</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
+                        <span class="n">problem</span> <span class="o">=</span> <span class="n">Problem</span><span class="p">(</span><span class="n">case_info_fpath</span><span class="p">,</span> <span class="n">scenario_info_fpath</span><span class="p">,</span> <span class="n">refinement_out_dir</span><span class="p">,</span> <span class="n">aoa_csv_string</span><span class="p">,</span> <span class="n">aero_grid_fpath</span><span class="p">,</span> <span class="n">struct_mesh_file</span><span class="p">)</span>
+                        <span class="n">problem</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+                    <span class="n">failed_aoa_list</span> <span class="o">=</span> <span class="p">[]</span> <span class="c1"># Initiate a list to store a list of aoa failed in this refinement level</span>
+            
+                    <span class="k">for</span> <span class="n">aoa</span> <span class="ow">in</span> <span class="n">aoa_list</span><span class="p">:</span> <span class="c1"># loop for angles of attack reads the info, adds additional info if needed for the output file for each aoa</span>
+                        <span class="n">aoa</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">aoa</span><span class="p">)</span> <span class="c1"># making sure aoa is a float</span>
+                        <span class="n">aoa_out_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">refinement_out_dir</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;aoa_</span><span class="si">{</span><span class="n">aoa</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span> <span class="c1"># aoa output directory -- Written to store in the parent directory</span>
+                        <span class="n">aoa_info_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">aoa_out_dir</span> <span class="p">,</span><span class="sa">f</span><span class="s2">&quot;aoa_</span><span class="si">{</span><span class="n">aoa</span><span class="si">}</span><span class="s2">.yaml&quot;</span><span class="p">)</span> <span class="c1"># name of the simulation info file at the aoa level directory</span>
+                        <span class="n">aoa_level_dict</span> <span class="o">=</span> <span class="p">{}</span> <span class="c1"># Creating aoa level sim info dictionary for overall sim info file</span>
+
+                        <span class="c1"># Checking for existing sucessful simualtion info, </span>
+                        <span class="k">try</span><span class="p">:</span>
+                            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">aoa_info_file</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">aoa_file</span><span class="p">:</span> <span class="c1"># open the simulation info file</span>
+                                <span class="n">aoa_sim_info</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">safe_load</span><span class="p">(</span><span class="n">aoa_file</span><span class="p">)</span>
+
+                            <span class="n">fail_flag</span> <span class="o">=</span> <span class="n">aoa_sim_info</span><span class="p">[</span><span class="s1">&#39;fail_flag&#39;</span><span class="p">]</span> <span class="c1"># Read the fail flag</span>
+
+                            <span class="k">if</span> <span class="n">fail_flag</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="c1"># Refers successful simulation and makes sure only the sucessful simulations are added to the csv file.</span>
+                                <span class="c1"># Add the simulation info to list to be saved as a csv file in the refinement out directory</span>
+                                <span class="n">AOAList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">aoa_sim_info</span><span class="p">[</span><span class="s1">&#39;AOA&#39;</span><span class="p">])</span>
+                                <span class="n">CLList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">aoa_sim_info</span><span class="p">[</span><span class="s1">&#39;cl&#39;</span><span class="p">])</span>
+                                <span class="n">CDList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">aoa_sim_info</span><span class="p">[</span><span class="s1">&#39;cd&#39;</span><span class="p">])</span>
+                                <span class="n">TList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">aoa_sim_info</span><span class="p">[</span><span class="s1">&#39;wall_time&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot; sec&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)))</span>
+                                <span class="n">FList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fail_flag</span><span class="p">)</span>
+
+                                <span class="c1"># Store the basic info that is needed to be stored in refinement level dictionary</span>
+                                <span class="n">aoa_level_dict</span> <span class="o">=</span> <span class="p">{</span>
+                                    <span class="s1">&#39;cl&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">aoa_sim_info</span><span class="p">[</span><span class="s1">&#39;cl&#39;</span><span class="p">]),</span>
+                                    <span class="s1">&#39;cd&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">aoa_sim_info</span><span class="p">[</span><span class="s1">&#39;cd&#39;</span><span class="p">]),</span>
+                                    <span class="s1">&#39;wall_time&#39;</span><span class="p">:</span> <span class="n">aoa_sim_info</span><span class="p">[</span><span class="s1">&#39;wall_time&#39;</span><span class="p">],</span>
+                                    <span class="s1">&#39;fail_flag&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">fail_flag</span><span class="p">),</span>
+                                    <span class="s1">&#39;out_dir&#39;</span><span class="p">:</span> <span class="n">aoa_out_dir</span><span class="p">,</span>
+                                <span class="p">}</span>
+                                <span class="n">refinement_level_dict</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;aoa_</span><span class="si">{</span><span class="n">aoa</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">aoa_level_dict</span>
+                                
+                            <span class="k">elif</span> <span class="n">fail_flag</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span> <span class="c1"># refers to failed simulation</span>
+                                <span class="n">failed_aoa_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">aoa</span><span class="p">)</span> <span class="c1"># Add to the list of failed aoa</span>
+                            
+                            <span class="c1"># Save the aoa_out_dict as an yaml file with the updated info</span>
+                            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">aoa_info_file</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">interim_out_yaml</span><span class="p">:</span>
+                                <span class="n">yaml</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">aoa_sim_info</span><span class="p">,</span> <span class="n">interim_out_yaml</span><span class="p">,</span> <span class="n">sort_keys</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                        <span class="k">except</span><span class="p">:</span>
+                            <span class="n">failed_aoa_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">aoa</span><span class="p">)</span> <span class="c1"># Add to the list of failed aoa</span>
+                    <span class="c1">################################# End of AOA loop ########################################</span>
+                    <span class="n">refinement_level_dict</span><span class="p">[</span><span class="s2">&quot;failed_aoa&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">failed_aoa_list</span>
+                    <span class="c1"># Write simulation results to a csv file</span>
+                    <span class="n">refinement_level_data</span> <span class="o">=</span> <span class="p">{</span>
+                        <span class="s2">&quot;Alpha&quot;</span><span class="p">:</span> <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">alpha</span><span class="si">:</span><span class="s2">6.2f</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">alpha</span> <span class="ow">in</span> <span class="n">AOAList</span><span class="p">],</span>
+                        <span class="s2">&quot;CL&quot;</span><span class="p">:</span> <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">cl</span><span class="si">:</span><span class="s2">8.4f</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">cl</span> <span class="ow">in</span> <span class="n">CLList</span><span class="p">],</span>
+                        <span class="s2">&quot;CD&quot;</span><span class="p">:</span> <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">cd</span><span class="si">:</span><span class="s2">8.4f</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">cd</span> <span class="ow">in</span> <span class="n">CDList</span><span class="p">],</span>
+                        <span class="s2">&quot;FFlag&quot;</span><span class="p">:</span> <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="n">FF</span><span class="p">)</span><span class="si">:</span><span class="s2">12f</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">FF</span> <span class="ow">in</span> <span class="n">FList</span><span class="p">],</span>
+                        <span class="s2">&quot;WTime&quot;</span><span class="p">:</span> <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">wall_time</span><span class="si">:</span><span class="s2">10.2f</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">wall_time</span> <span class="ow">in</span> <span class="n">TList</span><span class="p">]</span>
+                    <span class="p">}</span>
+
+                    <span class="c1"># Define the output file path</span>
+                    <span class="n">refinement_level_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">aoa_out_dir</span><span class="p">)</span>
+                    <span class="n">ADflow_out_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">refinement_level_dir</span><span class="p">,</span> <span class="s2">&quot;ADflow_output.csv&quot;</span><span class="p">)</span>
+                    
+                    <span class="n">df_new</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">refinement_level_data</span><span class="p">)</span> <span class="c1"># Create a panda DataFrame</span>
+                    <span class="c1"># If the file exists, load existing data and append new data</span>
+                    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">ADflow_out_file</span><span class="p">):</span>
+                        <span class="n">df_existing</span> <span class="o">=</span> <span class="n">load_csv_data</span><span class="p">(</span><span class="n">ADflow_out_file</span><span class="p">,</span> <span class="n">comm</span><span class="p">)</span>
+                        <span class="n">df_combined</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">df</span> <span class="k">for</span> <span class="n">df</span> <span class="ow">in</span> <span class="p">[</span><span class="n">df_existing</span><span class="p">,</span> <span class="n">df_new</span><span class="p">]</span> <span class="k">if</span> <span class="n">df</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">],</span> <span class="n">ignore_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> 
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">df_combined</span> <span class="o">=</span> <span class="n">df_new</span>
+                    <span class="c1"># Ensure Alpha column is float for sorting and deduplication</span>
+                    <span class="n">df_combined</span><span class="p">[</span><span class="s1">&#39;Alpha&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_numeric</span><span class="p">(</span><span class="n">df_combined</span><span class="p">[</span><span class="s1">&#39;Alpha&#39;</span><span class="p">],</span> <span class="n">errors</span><span class="o">=</span><span class="s1">&#39;coerce&#39;</span><span class="p">)</span>
+                    <span class="n">df_combined</span><span class="o">.</span><span class="n">dropna</span><span class="p">(</span><span class="n">subset</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Alpha&#39;</span><span class="p">],</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                    <span class="n">df_combined</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">(</span><span class="n">subset</span><span class="o">=</span><span class="s1">&#39;Alpha&#39;</span><span class="p">,</span> <span class="n">keep</span><span class="o">=</span><span class="s1">&#39;last&#39;</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                    <span class="n">df_combined</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">by</span><span class="o">=</span><span class="s1">&#39;Alpha&#39;</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                    <span class="n">df_combined</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">ADflow_out_file</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                    
+                    <span class="c1"># Add csv file location to the overall simulation out file</span>
+                    <span class="n">refinement_level_dict</span><span class="p">[</span><span class="s1">&#39;csv_file&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ADflow_out_file</span>
+                    <span class="n">refinement_level_dict</span><span class="p">[</span><span class="s1">&#39;refinement_out_dir&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">refinement_level_dir</span>
+
+                    <span class="c1"># Add refinement level dict to scenario level dict</span>
+                    <span class="n">scenario_sim_info</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">mesh_file</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">refinement_level_dict</span>
+                <span class="c1">################################# End of refinement loop ########################################</span>
+
+                <span class="c1"># Add scenario level simulation to the overall simulation out file</span>
+                <span class="n">scenario_out_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">refinement_level_dir</span><span class="p">)</span>
+                <span class="n">scenario_sim_info</span><span class="p">[</span><span class="s1">&#39;scenario_out_dir&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">scenario_out_dir</span>
+                <span class="n">sim_out_info</span><span class="p">[</span><span class="s1">&#39;hierarchies&#39;</span><span class="p">][</span><span class="n">hierarchy</span><span class="p">][</span><span class="s1">&#39;cases&#39;</span><span class="p">][</span><span class="n">case</span><span class="p">][</span><span class="s1">&#39;scenarios&#39;</span><span class="p">][</span><span class="n">scenario</span><span class="p">][</span><span class="s1">&#39;sim_info&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">scenario_sim_info</span>
+
+                <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">scenario_info_fpath</span><span class="p">):</span> <span class="c1"># Remove the scenario_info yaml file</span>
+                    <span class="k">if</span> <span class="n">comm</span><span class="o">.</span><span class="n">rank</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+                        <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">scenario_info_fpath</span><span class="p">)</span>
+            <span class="c1">################################# End of scenarios loop ########################################</span>
+            
+            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">case_info_fpath</span><span class="p">):</span> <span class="c1"># Remove the case_info yaml file</span>
+                <span class="k">if</span> <span class="n">comm</span><span class="o">.</span><span class="n">rank</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+                    <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">case_info_fpath</span><span class="p">)</span>
+        <span class="c1">################################# End of case loop ########################################</span>
+    <span class="c1">################################# End of hierarchy loop ########################################</span>
+
+    <span class="n">end_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+    <span class="n">end_wall_time</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2"> %H:%M:%S&quot;</span><span class="p">)</span>
+    <span class="n">net_run_time</span> <span class="o">=</span> <span class="n">end_time</span> <span class="o">-</span> <span class="n">start_time</span>
+    <span class="n">sim_out_info</span><span class="p">[</span><span class="s1">&#39;overall_sim_info&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;start_time&#39;</span><span class="p">:</span> <span class="n">start_wall_time</span><span class="p">,</span>
+        <span class="s1">&#39;end_time&#39;</span><span class="p">:</span> <span class="n">end_wall_time</span><span class="p">,</span>
+        <span class="s1">&#39;total_wall_time&#39;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">net_run_time</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> sec&quot;</span>
+    <span class="p">}</span>
+
+    <span class="c1"># Store the final simulation out file.</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">simulation</span><span class="o">.</span><span class="n">final_out_file</span><span class="p">):</span>
+        <span class="n">prev_sim_info</span><span class="p">,</span><span class="n">_</span> <span class="o">=</span> <span class="n">load_yaml_input</span><span class="p">(</span><span class="n">simulation</span><span class="o">.</span><span class="n">final_out_file</span><span class="p">,</span> <span class="n">comm</span><span class="p">)</span> <span class="c1"># Load the previous sim_out_info</span>
+        <span class="n">deep_update</span><span class="p">(</span><span class="n">prev_sim_info</span><span class="p">,</span> <span class="n">sim_out_info</span><span class="p">)</span>  <span class="c1"># Updates old sim data with the new sim data.</span>
+        <span class="n">final_sim_out_info</span> <span class="o">=</span> <span class="n">prev_sim_info</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">final_sim_out_info</span> <span class="o">=</span> <span class="n">sim_out_info</span>
+    <span class="k">if</span> <span class="n">comm</span><span class="o">.</span><span class="n">rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">simulation</span><span class="o">.</span><span class="n">final_out_file</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">final_out_yaml_handle</span><span class="p">:</span>
+            <span class="n">yaml</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">final_sim_out_info</span><span class="p">,</span> <span class="n">final_out_yaml_handle</span><span class="p">,</span> <span class="n">sort_keys</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">comm</span><span class="o">.</span><span class="n">Barrier</span><span class="p">()</span></div>
+
+
+<span class="c1">################################################################################</span>
+<span class="c1"># Code for generating and submitting job script on HPC</span>
+<span class="c1">################################################################################   </span>
+<div class="viewcode-block" id="submit_job_on_hpc">
+<a class="viewcode-back" href="../../../api.html#mdss.src.main_helper.submit_job_on_hpc">[docs]</a>
+<span class="k">def</span> <span class="nf">submit_job_on_hpc</span><span class="p">(</span><span class="n">sim_info</span><span class="p">,</span> <span class="n">yaml_file_path</span><span class="p">,</span> <span class="n">wait_for_job</span><span class="p">,</span> <span class="n">comm</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generates and submits job script on an HPC cluster.</span>
+
+<span class="sd">    This function reads a slurm job script template, updates it with specific HPC parameters and file paths, saves the customized script to the output directory, and submits the job on the HPC cluster.</span>
+
+<span class="sd">    Inputs</span>
+<span class="sd">    ------</span>
+<span class="sd">    - **sim_info** : dict</span>
+<span class="sd">        Dictionary containing simulation details details.</span>
+<span class="sd">    - **yaml_file_path** : str</span>
+<span class="sd">        Path to the YAML file containing simulation information.</span>
+<span class="sd">    - **comm** : MPI communicator  </span>
+<span class="sd">        An MPI communicator object to handle parallelism.</span>
+
+
+<span class="sd">    Outputs</span>
+<span class="sd">    -------</span>
+<span class="sd">    - **None**</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    - Supports customization for the GL cluster with Slurm job scheduling.</span>
+<span class="sd">    - Uses regex to update the job script with provided parameters.</span>
+<span class="sd">    - Ensures that the correct Python and YAML file paths are embedded in the job script.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">out_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">sim_info</span><span class="p">[</span><span class="s1">&#39;out_dir&#39;</span><span class="p">])</span>
+    <span class="n">hpc_info</span> <span class="o">=</span> <span class="n">sim_info</span><span class="p">[</span><span class="s1">&#39;hpc_info&#39;</span><span class="p">]</span> <span class="c1"># Extract HPC info</span>
+    <span class="n">python_fname</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">out_dir</span><span class="p">,</span> <span class="s2">&quot;run_sim.py&quot;</span><span class="p">)</span> <span class="c1"># Python script to be run on on HPC</span>
+    <span class="n">out_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">out_dir</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">hpc_info</span><span class="p">[</span><span class="s1">&#39;job_name&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">_%j.txt&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">hpc_info</span><span class="p">[</span><span class="s1">&#39;cluster&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;GL&#39;</span><span class="p">:</span>
+        <span class="c1"># Fill in the template of the job script(can be found in `templates.py`) with values from hpc_info, provided by the user</span>
+        <span class="n">job_script</span> <span class="o">=</span> <span class="n">gl_job_script</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="n">job_name</span><span class="o">=</span><span class="n">hpc_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;job_name&#39;</span><span class="p">),</span>
+            <span class="n">account_name</span><span class="o">=</span><span class="n">hpc_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;account_name&#39;</span><span class="p">),</span>
+            <span class="n">partition</span><span class="o">=</span><span class="n">hpc_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;partition&#39;</span><span class="p">),</span>
+            <span class="n">time</span><span class="o">=</span><span class="n">hpc_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;time&#39;</span><span class="p">,</span> <span class="s1">&#39;1:00:00&#39;</span><span class="p">),</span>
+            <span class="n">nodes</span><span class="o">=</span><span class="n">hpc_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;nodes&#39;</span><span class="p">),</span>
+            <span class="n">nproc</span><span class="o">=</span><span class="n">hpc_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;nproc&#39;</span><span class="p">),</span>
+            <span class="n">nproc_per_node</span><span class="o">=</span><span class="n">hpc_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;nproc_per_node&#39;</span><span class="p">),</span>
+            <span class="n">mem_per_cpu</span><span class="o">=</span><span class="n">hpc_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;mem_per_cpu&#39;</span><span class="p">,</span> <span class="s1">&#39;1000m&#39;</span><span class="p">),</span>
+            <span class="n">mail_types</span><span class="o">=</span><span class="n">hpc_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;mail_types&#39;</span><span class="p">,</span> <span class="s1">&#39;NONE&#39;</span><span class="p">),</span>
+            <span class="n">email_id</span><span class="o">=</span><span class="n">hpc_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;email_id&#39;</span><span class="p">,</span> <span class="s1">&#39;NONE&#39;</span><span class="p">),</span>
+            <span class="n">out_file</span><span class="o">=</span><span class="n">out_file</span><span class="p">,</span>
+            <span class="n">python_file_path</span><span class="o">=</span><span class="n">python_fname</span><span class="p">,</span>
+            <span class="n">yaml_file_path</span><span class="o">=</span><span class="n">yaml_file_path</span>
+        <span class="p">)</span>
+        
+        <span class="n">job_script_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">out_dir</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">hpc_info</span><span class="p">[</span><span class="s1">&#39;job_name&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">_job_file.sh&quot;</span><span class="p">)</span> <span class="c1"># Define the path for the job script</span>
+
+        <span class="k">if</span> <span class="n">comm</span><span class="o">.</span><span class="n">rank</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">job_script_path</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span> <span class="c1"># Save the job script to be submitted on great lakes</span>
+                <span class="n">file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">job_script</span><span class="p">)</span>
+
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">python_fname</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span> <span class="c1"># Write the python file(can be found in `templates.py`) to be run using the above created job script.</span>
+                <span class="n">file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">python_code_for_hpc</span><span class="p">)</span>
+            
+            <span class="n">subprocess_out</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">([</span><span class="s2">&quot;sbatch&quot;</span><span class="p">,</span> <span class="n">job_script_path</span><span class="p">],</span> <span class="n">stdout</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">,</span> <span class="n">stderr</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="c1"># Subprocess to submit the job script on Great Lakes</span>
+            <span class="n">job_id</span> <span class="o">=</span> <span class="n">subprocess_out</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">print_msg</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Job </span><span class="si">{</span><span class="n">job_id</span><span class="si">}</span><span class="s2"> submitted.&quot;</span><span class="p">,</span> <span class="s2">&quot;notice&quot;</span><span class="p">,</span> <span class="n">comm</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">wait_for_job</span><span class="p">:</span>
+                <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+                    <span class="n">check_cmd</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;squeue&quot;</span><span class="p">,</span> <span class="s2">&quot;--job&quot;</span><span class="p">,</span> <span class="n">job_id</span><span class="p">]</span>
+                    <span class="n">result</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">check_cmd</span><span class="p">,</span> <span class="n">stdout</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">,</span> <span class="n">stderr</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">job_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">stdout</span><span class="p">:</span>
+                        <span class="n">print_msg</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Job </span><span class="si">{</span><span class="n">job_id</span><span class="si">}</span><span class="s2"> completed.&quot;</span><span class="p">,</span> <span class="s1">&#39;notice&#39;</span><span class="p">,</span> <span class="n">comm</span><span class="p">)</span>
+                        <span class="k">break</span>
+                    <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>  <span class="c1"># Check every 10 seconds</span>
+        <span class="k">return</span> <span class="n">job_id</span></div>
+
+    
+<span class="c1">################################################################################</span>
+<span class="c1"># Helper Functions for running the simulations as subprocesses</span>
+<span class="c1">################################################################################</span>
+<div class="viewcode-block" id="run_as_subprocess">
+<a class="viewcode-back" href="../../../api.html#mdss.src.main_helper.run_as_subprocess">[docs]</a>
+<span class="k">def</span> <span class="nf">run_as_subprocess</span><span class="p">(</span><span class="n">sim_info</span><span class="p">,</span> <span class="n">case_info_fpath</span><span class="p">,</span> <span class="n">scenario_info_fpath</span><span class="p">,</span> <span class="n">ref_out_dir</span><span class="p">,</span> <span class="n">aoa_csv_string</span><span class="p">,</span> <span class="n">aero_grid_fpath</span><span class="p">,</span> <span class="n">struct_mesh_fpath</span><span class="p">,</span> <span class="n">comm</span><span class="p">,</span> <span class="n">record_flag</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Executes a set of Angles of Attack using mpirun for local machine and srun for HPC(Great Lakes).</span>
+
+<span class="sd">    Inputs</span>
+<span class="sd">    ------</span>
+<span class="sd">    - **sim_info** : dict  </span>
+<span class="sd">        Dictionary containing simulation details, such as output directory, job name, and nproc.</span>
+<span class="sd">    - **case_info_fpath** : str  </span>
+<span class="sd">        Path to the case info yaml file</span>
+<span class="sd">    - **scenario_info_fpath** : str  </span>
+<span class="sd">        Path to the scenario info yaml file</span>
+<span class="sd">    - **ref_out_dir** : str  </span>
+<span class="sd">        Path to the refinement level directory</span>
+<span class="sd">    - **aoa_csv_string** : str </span>
+<span class="sd">        A list of angles of attack, in the form of csv string, that to be simulated in this subprocess</span>
+<span class="sd">    - **aero_grid_fpath** : </span>
+<span class="sd">        Path to the aero grid file that to be used for this simulation.</span>
+<span class="sd">    - **struct_mesh_fpath**: str</span>
+<span class="sd">        Path to the structural mesh file that to be used. Pass str(None) when running aero problem.</span>
+<span class="sd">    - **comm** : MPI communicator  </span>
+<span class="sd">        An MPI communicator object to handle parallelism.</span>
+<span class="sd">    - **record_flag**: bool=False, Optional</span>
+<span class="sd">        Optional flag, strores ouput of the subprocess in a text file.</span>
+
+<span class="sd">    Outputs</span>
+<span class="sd">    -------</span>
+<span class="sd">    - **None**  </span>
+<span class="sd">        This function does not return any value but performs the following actions:</span>
+<span class="sd">        1. Creates necessary directories and input files.</span>
+<span class="sd">        2. Launches a subprocess to execute the simulation using `mpirun` or `srun`.</span>
+<span class="sd">        3. Prints standard output and error logs from the subprocess for debugging.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    - The function ensures the proper setup of the simulation environment for the given angle of attack.</span>
+<span class="sd">    - The generated Python script and YAML input file are specific to each simulation run.</span>
+<span class="sd">    - Captures and displays `stdout` and `stderr` from the subprocess for troubleshooting.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">out_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">sim_info</span><span class="p">[</span><span class="s1">&#39;out_dir&#39;</span><span class="p">])</span>
+    <span class="n">python_fname</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">out_dir</span><span class="p">,</span> <span class="s2">&quot;script_for_subprocess.py&quot;</span><span class="p">)</span>
+    <span class="n">machine_type</span> <span class="o">=</span> <span class="n">MachineType</span><span class="o">.</span><span class="n">from_string</span><span class="p">(</span><span class="n">sim_info</span><span class="p">[</span><span class="s1">&#39;machine_type&#39;</span><span class="p">])</span>
+    <span class="n">subprocess_out_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ref_out_dir</span><span class="p">,</span> <span class="s2">&quot;subprocess_out.txt&quot;</span><span class="p">)</span>
+    <span class="n">shell</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">python_fname</span><span class="p">):</span> <span class="c1"># Saves the python script, that is used to run subprocess in the output directory, if the file do not exist already.</span>
+        <span class="k">if</span> <span class="n">comm</span><span class="o">.</span><span class="n">rank</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">python_fname</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span> <span class="c1"># Open the file in write mode</span>
+                <span class="n">file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">python_code_for_subprocess</span><span class="p">)</span>
+
+    <span class="n">env</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    
+    <span class="n">python_version</span> <span class="o">=</span> <span class="n">sim_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;python_version&#39;</span><span class="p">,</span> <span class="s1">&#39;python&#39;</span><span class="p">)</span> <span class="c1"># Update python with user defined version or defaults to current python version</span>
+    <span class="k">if</span> <span class="n">shutil</span><span class="o">.</span><span class="n">which</span><span class="p">(</span><span class="n">python_version</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="c1"># Check if the python executable exists</span>
+        <span class="n">python_version</span> <span class="o">=</span> <span class="s1">&#39;python&#39;</span>
+        <span class="n">print_msg</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">python_version</span><span class="si">}</span><span class="s2"> not found! Falling back to default &#39;python&#39;.&quot;</span><span class="p">,</span> <span class="s1">&#39;warning&#39;</span><span class="p">,</span> <span class="n">comm</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">comm</span><span class="o">.</span><span class="n">rank</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+        <span class="n">print_msg</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Starting subprocess for the following aoa: </span><span class="si">{</span><span class="n">aoa_csv_string</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;notice&quot;</span><span class="p">,</span> <span class="n">comm</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">machine_type</span><span class="o">==</span><span class="n">MachineType</span><span class="o">.</span><span class="n">LOCAL</span><span class="p">:</span>
+            <span class="n">nproc</span> <span class="o">=</span> <span class="n">sim_info</span><span class="p">[</span><span class="s1">&#39;nproc&#39;</span><span class="p">]</span>
+            <span class="n">run_cmd</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;mpirun&#39;</span><span class="p">,</span> <span class="s1">&#39;-np&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">nproc</span><span class="p">),</span> <span class="n">python_version</span><span class="p">]</span>
+            
+        <span class="k">elif</span> <span class="n">machine_type</span><span class="o">==</span><span class="n">MachineType</span><span class="o">.</span><span class="n">HPC</span><span class="p">:</span>
+            <span class="n">run_cmd</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;srun&#39;</span><span class="p">,</span> <span class="n">python_version</span><span class="p">]</span>
+        <span class="n">run_cmd</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">python_fname</span><span class="p">,</span> <span class="s1">&#39;--caseInfoFile&#39;</span><span class="p">,</span> <span class="n">case_info_fpath</span><span class="p">,</span> <span class="s1">&#39;--scenarioInfoFile&#39;</span><span class="p">,</span> <span class="n">scenario_info_fpath</span><span class="p">,</span> 
+                <span class="s1">&#39;--refLevelDir&#39;</span><span class="p">,</span> <span class="n">ref_out_dir</span><span class="p">,</span> <span class="s1">&#39;--aoaList&#39;</span><span class="p">,</span> <span class="n">aoa_csv_string</span><span class="p">,</span> <span class="s1">&#39;--aeroGrid&#39;</span><span class="p">,</span> <span class="n">aero_grid_fpath</span><span class="p">,</span> <span class="s1">&#39;--structMesh&#39;</span><span class="p">,</span> <span class="n">struct_mesh_fpath</span><span class="p">])</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">subprocess_out_file</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">outfile</span><span class="p">:</span>
+            <span class="n">p</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">(</span><span class="n">run_cmd</span><span class="p">,</span> 
+                <span class="n">env</span><span class="o">=</span><span class="n">env</span><span class="p">,</span>
+                <span class="n">stdout</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">,</span>  <span class="c1"># Capture standard output</span>
+                <span class="n">stderr</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">,</span>  <span class="c1"># Capture standard error</span>
+                <span class="n">text</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>  <span class="c1"># Ensure output is in text format, not bytes</span>
+                <span class="p">)</span>
+            
+            <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">p</span><span class="o">.</span><span class="n">stdout</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">line</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>        <span class="c1"># Optional: real-time terminal output</span>
+                <span class="k">if</span> <span class="n">record_flag</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+                    <span class="n">outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+                    <span class="n">outfile</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+
+            <span class="n">p</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span> <span class="c1"># Wait for subprocess to end</span>
+        
+        <span class="n">_</span><span class="p">,</span> <span class="n">stderr</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">communicate</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">stderr</span><span class="p">:</span>
+            <span class="n">print_msg</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">stderr</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s1">&#39;subprocess error/warning&#39;</span><span class="p">,</span> <span class="n">comm</span><span class="p">)</span>
+        <span class="n">print_msg</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Subprocess completed&quot;</span><span class="p">,</span> <span class="s2">&quot;notice&quot;</span><span class="p">,</span> <span class="n">comm</span><span class="p">)</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Sinaendhran Pujali Elilarasan, Sanjan Muchandimath.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

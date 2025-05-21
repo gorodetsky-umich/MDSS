@@ -1,0 +1,441 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>API &mdash; Multi-Disciplinary Simulation Suite  documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="_static/extra.css?v=375f2796" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="_static/doctools.js?v=9a2dae69"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="_static/copybutton.js?v=f281be69"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Additional Information" href="additionalInfo.html" />
+    <link rel="prev" title="Test Cases and Expected Results" href="tutorials/test_cases.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Multi-Disciplinary Simulation Suite
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation and Dependencies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="inputs.html">Inputs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="outputs.html">Outputs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/index.html">Tutorials</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#mdss.src.main.post_process"><code class="docutils literal notranslate"><span class="pre">post_process</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#mdss.src.main.post_process.custom_compare"><code class="docutils literal notranslate"><span class="pre">post_process.custom_compare()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mdss.src.main.post_process.gen_case_plots"><code class="docutils literal notranslate"><span class="pre">post_process.gen_case_plots()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#mdss.src.main.simulation"><code class="docutils literal notranslate"><span class="pre">simulation</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#mdss.src.main.simulation.run"><code class="docutils literal notranslate"><span class="pre">simulation.run()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#mdss.src.main_helper.execute"><code class="docutils literal notranslate"><span class="pre">execute()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#mdss.src.main_helper.run_as_subprocess"><code class="docutils literal notranslate"><span class="pre">run_as_subprocess()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#mdss.src.main_helper.submit_job_on_hpc"><code class="docutils literal notranslate"><span class="pre">submit_job_on_hpc()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="additionalInfo.html">Additional Information</a></li>
+<li class="toctree-l1"><a class="reference internal" href="acknowledgements.html">Acknowledgements</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Multi-Disciplinary Simulation Suite</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">API</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/api.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-mdss.src.main">
+<span id="api"></span><h1>API<a class="headerlink" href="#module-mdss.src.main" title="Link to this heading"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="mdss.src.main.post_process">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">mdss.src.main.</span></span><span class="sig-name descname"><span class="pre">post_process</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">out_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_options</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mdss/src/main.html#post_process"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mdss.src.main.post_process" title="Link to this definition"></a></dt>
+<dd><p>Performs post-processing operations for simulation results.</p>
+<p>This class provides functionality to visualize and compare aerodynamic performance data
+such as Lift Coefficient (C&lt;sub&gt;L&lt;/sub&gt;) and Drag Coefficient (C&lt;sub&gt;D&lt;/sub&gt;) against Angle of Attack (Alpha),
+based on the simulation configuration provided via a YAML file.</p>
+<section id="inputs">
+<h2>Inputs<a class="headerlink" href="#inputs" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><dl class="simple">
+<dt><strong>out_dir</strong>: str</dt><dd><p>Path to the output directory. The output directory should contain the final out file from the simulation.</p>
+</dd>
+</dl>
+</li>
+</ul>
+<dl class="py method">
+<dt class="sig sig-object py" id="mdss.src.main.post_process.custom_compare">
+<span class="sig-name descname"><span class="pre">custom_compare</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">custom_compare_info</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plt_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mdss/src/main.html#post_process.custom_compare"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mdss.src.main.post_process.custom_compare" title="Link to this definition"></a></dt>
+<dd><p>Generates a combined plot comparing specific scenarios across hierarchies and cases.</p>
+<p>This method creates a figure with two subplots: one for C&lt;sub&gt;L&lt;/sub&gt; vs Alpha and another for C&lt;sub&gt;D&lt;/sub&gt; vs Alpha.
+This method creates a figure with two subplots: one for C&lt;sub&gt;L&lt;/sub&gt; vs Alpha and another for C&lt;sub&gt;D&lt;/sub&gt; vs Alpha.
+It overlays selected scenarios (across different cases and hierarchies) and creates a shared legend
+to highlight which scenario each marker represents.</p>
+<section id="id1">
+<h3>Inputs<a class="headerlink" href="#id1" title="Link to this heading"></a></h3>
+<ul>
+<li><dl>
+<dt><strong>custom_compare_info</strong>: dict</dt><dd><p>A dictionary defining the scenarios to be compared.
+The structure of the dictionary should be:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s2">&quot;hierarchy_name&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;case_name&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;scenarios&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;scenario_name_1&quot;</span><span class="p">,</span> <span class="s2">&quot;scenario_name_2&quot;</span><span class="p">],</span>
+            <span class="s2">&quot;mesh_files&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;mesh_level_1&quot;</span><span class="p">,</span> <span class="s2">&quot;mesh_level_2&quot;</span><span class="p">]</span>  <span class="c1"># Optional</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><dl class="simple">
+<dt><em>hierarchy_name</em>: str</dt><dd><p>Name of the hierarchy the scenario belongs to.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><em>case_name</em>: str</dt><dd><p>Name of the case within the hierarchy.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><em>scenarios</em>: list[str]</dt><dd><p>List of scenario names to be plotted.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><em>mesh_files</em>: list[str], optional</dt><dd><p>List of mesh refinement levels to include for that scenario. If not specified, defaults to all mesh files under the case.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><strong>plt_name</strong>: str</dt><dd><p>Name used for the plot title and the saved file name (PNG format).</p>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+<section id="outputs">
+<h3>Outputs<a class="headerlink" href="#outputs" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><dl class="simple">
+<dt><strong>PNG File</strong>:</dt><dd><p>A side-by-side comparison plot showing C&lt;sub&gt;L&lt;/sub&gt; and C&lt;sub&gt;D&lt;/sub&gt; vs Alpha for all selected scenarios.
+The plot is saved in the output directory specified during initialization.</p>
+</dd>
+</dl>
+</li>
+</ul>
+<p class="rubric">Notes</p>
+<ul class="simple">
+<li><p>Each scenario is plotted using a consistent color, with markers indicating refinement levels.</p></li>
+<li><p>Experimental data is included when available.</p></li>
+<li><p>A shared legend (outside the plot) shows scenario identifiers and their corresponding markers.</p></li>
+</ul>
+</section>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mdss.src.main.post_process.gen_case_plots">
+<span class="sig-name descname"><span class="pre">gen_case_plots</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/mdss/src/main.html#post_process.gen_case_plots"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mdss.src.main.post_process.gen_case_plots" title="Link to this definition"></a></dt>
+<dd><p>Generates plots comparing experimental data with simulation results for each case and hierarchy.</p>
+<p>This method loops through all hierarchies, cases, and scenarios in the simulation output,
+and generates side-by-side plots of C&lt;sub&gt;L&lt;/sub&gt; and C&lt;sub&gt;D&lt;/sub&gt; versus Angle of Attack (Alpha) for each case.
+Each scenario is plotted using a distinct marker, and each mesh refinement level is plotted using a different color.
+Experimental data, if provided, is overlaid for validation.</p>
+<section id="id2">
+<h3>Outputs<a class="headerlink" href="#id2" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><dl class="simple">
+<dt><em>PNG File</em>:</dt><dd><p>A comparison plot showing C&lt;sub&gt;L&lt;/sub&gt; and C&lt;sub&gt;D&lt;/sub&gt; vs Alpha for all scenarios and refinement levels of a case.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><em>PNG File</em>:</dt><dd><p>A comparison plot showing C_L and C&lt;sub&gt;D&lt;/sub&gt; vs Alpha for all scenarios and refinement levels of a case.
+The file is saved in the scenario output directory for each case using the case name.</p>
+</dd>
+</dl>
+</li>
+</ul>
+<p class="rubric">Notes</p>
+<ul class="simple">
+<li><p>Experimental data is optional. If not provided, only simulation data is plotted.</p></li>
+<li><p>Markers distinguish scenarios; colors distinguish mesh refinement levels.</p></li>
+<li><p>A shared legend is placed outside the figure to indicate scenario markers.</p></li>
+<li><p>Axis spines are formatted using <cite>niceplots.adjust_spines()</cite> and figures are saved at high resolution (400 dpi).</p></li>
+<li><p>Figures are titled using the case name and saved using <cite>niceplots.save_figs()</cite>.</p></li>
+</ul>
+</section>
+</dd></dl>
+
+</section>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="mdss.src.main.simulation">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">mdss.src.main.</span></span><span class="sig-name descname"><span class="pre">simulation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">yaml_input</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mdss/src/main.html#simulation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mdss.src.main.simulation" title="Link to this definition"></a></dt>
+<dd><p>Executes aero(structural) simulations using the <cite>Top</cite> class defined in [<cite>aerostruct.py</cite>](aerostruct.py).</p>
+<p>This class sets up and runs aerodynamic and/or aerostructural simulations based on input parameters provided via a YAML configuration file. It validates the input, manages directories, and handles outputs, including summary files. The simulations are run using subprocesses.</p>
+<section id="id3">
+<h2>Inputs<a class="headerlink" href="#id3" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><dl class="simple">
+<dt><strong>yaml_input</strong><span class="classifier">str</span></dt><dd><p>Path to the YAML file or raw YAML string containing simulation configuration and information.</p>
+</dd>
+</dl>
+</li>
+</ul>
+<dl class="py method">
+<dt class="sig sig-object py" id="mdss.src.main.simulation.run">
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/mdss/src/main.html#simulation.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mdss.src.main.simulation.run" title="Link to this definition"></a></dt>
+<dd><p>Executes the simulation on either a local machine or an HPC.</p>
+<p>This method checks the simulation settings from the input YAML file. Based on the machine_type, it either runs the simulation locally or generates an HPC job script for execution.</p>
+<p class="rubric">Notes</p>
+<ul class="simple">
+<li><p>For local execution, it directly calls <cite>run_problem()</cite>.</p></li>
+<li><p>For HPC execution, it creates a Python file and a job script, then submits the job.</p></li>
+</ul>
+</dd></dl>
+
+</section>
+</dd></dl>
+
+<p id="module-mdss.src.main_helper">Helper functions for the “main.py” file.
+Helps run simulations and manages output files.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="mdss.src.main_helper.execute">
+<span class="sig-prename descclassname"><span class="pre">mdss.src.main_helper.</span></span><span class="sig-name descname"><span class="pre">execute</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">simulation</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mdss/src/main_helper.html#execute"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mdss.src.main_helper.execute" title="Link to this definition"></a></dt>
+<dd><p>Runs the aerodynamic and/or aerostructural simulations as subprocesses.</p>
+<p>This method iterates through all hierarchies, cases, refinement levels, and angles of attack defined in the input YAML file. Runs the simulation by calling <cite>aerostruct.py</cite>, and stores the results.</p>
+<section id="id4">
+<h2>Outputs<a class="headerlink" href="#id4" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><dl class="simple">
+<dt><strong>A CSV file</strong>:</dt><dd><p>Contains results for each angle of attack at the current refinement level.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><strong>A YAML file</strong>:</dt><dd><p>Stores simulation data for each angle of attack in the corresponding directory.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><strong>A final YAML file</strong>:</dt><dd><p>Summarizes all simulation results across hierarchies, cases, and refinement levels.</p>
+</dd>
+</dl>
+</li>
+</ul>
+<p class="rubric">Notes</p>
+<p>This method ensures that:</p>
+<ul class="simple">
+<li><p>Existing successful simulations are skipped.</p></li>
+<li><p>Directories are created dynamically if they do not exist.</p></li>
+<li><p>Simulation results are saved in structured output files.</p></li>
+</ul>
+</section>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mdss.src.main_helper.run_as_subprocess">
+<span class="sig-prename descclassname"><span class="pre">mdss.src.main_helper.</span></span><span class="sig-name descname"><span class="pre">run_as_subprocess</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sim_info</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">case_info_fpath</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scenario_info_fpath</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref_out_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aoa_csv_string</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aero_grid_fpath</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">struct_mesh_fpath</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">record_flag</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mdss/src/main_helper.html#run_as_subprocess"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mdss.src.main_helper.run_as_subprocess" title="Link to this definition"></a></dt>
+<dd><p>Executes a set of Angles of Attack using mpirun for local machine and srun for HPC(Great Lakes).</p>
+<section id="id5">
+<h2>Inputs<a class="headerlink" href="#id5" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><dl class="simple">
+<dt><strong>sim_info</strong><span class="classifier">dict</span></dt><dd><p>Dictionary containing simulation details, such as output directory, job name, and nproc.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><strong>case_info_fpath</strong><span class="classifier">str</span></dt><dd><p>Path to the case info yaml file</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><strong>scenario_info_fpath</strong><span class="classifier">str</span></dt><dd><p>Path to the scenario info yaml file</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><strong>ref_out_dir</strong><span class="classifier">str</span></dt><dd><p>Path to the refinement level directory</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><strong>aoa_csv_string</strong><span class="classifier">str</span></dt><dd><p>A list of angles of attack, in the form of csv string, that to be simulated in this subprocess</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><strong>aero_grid_fpath</strong> :</dt><dd><p>Path to the aero grid file that to be used for this simulation.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><strong>struct_mesh_fpath</strong>: str</dt><dd><p>Path to the structural mesh file that to be used. Pass str(None) when running aero problem.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><strong>comm</strong><span class="classifier">MPI communicator</span></dt><dd><p>An MPI communicator object to handle parallelism.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><strong>record_flag</strong>: bool=False, Optional</dt><dd><p>Optional flag, strores ouput of the subprocess in a text file.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+<section id="id6">
+<h2>Outputs<a class="headerlink" href="#id6" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><dl class="simple">
+<dt><strong>None</strong></dt><dd><p>This function does not return any value but performs the following actions:
+1. Creates necessary directories and input files.
+2. Launches a subprocess to execute the simulation using <cite>mpirun</cite> or <cite>srun</cite>.
+3. Prints standard output and error logs from the subprocess for debugging.</p>
+</dd>
+</dl>
+</li>
+</ul>
+<p class="rubric">Notes</p>
+<ul class="simple">
+<li><p>The function ensures the proper setup of the simulation environment for the given angle of attack.</p></li>
+<li><p>The generated Python script and YAML input file are specific to each simulation run.</p></li>
+<li><p>Captures and displays <cite>stdout</cite> and <cite>stderr</cite> from the subprocess for troubleshooting.</p></li>
+</ul>
+</section>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mdss.src.main_helper.submit_job_on_hpc">
+<span class="sig-prename descclassname"><span class="pre">mdss.src.main_helper.</span></span><span class="sig-name descname"><span class="pre">submit_job_on_hpc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sim_info</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">yaml_file_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wait_for_job</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comm</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mdss/src/main_helper.html#submit_job_on_hpc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mdss.src.main_helper.submit_job_on_hpc" title="Link to this definition"></a></dt>
+<dd><p>Generates and submits job script on an HPC cluster.</p>
+<p>This function reads a slurm job script template, updates it with specific HPC parameters and file paths, saves the customized script to the output directory, and submits the job on the HPC cluster.</p>
+<section id="id7">
+<h2>Inputs<a class="headerlink" href="#id7" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><dl class="simple">
+<dt><strong>sim_info</strong><span class="classifier">dict</span></dt><dd><p>Dictionary containing simulation details details.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><strong>yaml_file_path</strong><span class="classifier">str</span></dt><dd><p>Path to the YAML file containing simulation information.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><strong>comm</strong><span class="classifier">MPI communicator</span></dt><dd><p>An MPI communicator object to handle parallelism.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+<section id="id8">
+<h2>Outputs<a class="headerlink" href="#id8" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><strong>None</strong></p></li>
+</ul>
+<p class="rubric">Notes</p>
+<ul class="simple">
+<li><p>Supports customization for the GL cluster with Slurm job scheduling.</p></li>
+<li><p>Uses regex to update the job script with provided parameters.</p></li>
+<li><p>Ensures that the correct Python and YAML file paths are embedded in the job script.</p></li>
+</ul>
+</section>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="tutorials/test_cases.html" class="btn btn-neutral float-left" title="Test Cases and Expected Results" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="additionalInfo.html" class="btn btn-neutral float-right" title="Additional Information" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Sinaendhran Pujali Elilarasan, Sanjan Muchandimath.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

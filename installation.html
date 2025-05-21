@@ -1,0 +1,398 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Installation and Dependencies &mdash; Multi-Disciplinary Simulation Suite  documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="_static/extra.css?v=375f2796" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="_static/doctools.js?v=9a2dae69"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="_static/copybutton.js?v=f281be69"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Inputs" href="inputs.html" />
+    <link rel="prev" title="Introduction" href="introduction.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Multi-Disciplinary Simulation Suite
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Installation and Dependencies</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#dependencies">Dependencies</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#core-framework-dependencies">Core Framework Dependencies</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#python-libraries">Python Libraries</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#getting-started">Getting Started</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#installation-of-dependencies">Installation of Dependencies</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#local-machine">Local machine</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#using-docker-recommended">Using Docker (Recommended)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#from-scratch">From Scratch</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#hpc-systems-great-lakes">HPC Systems (Great Lakes)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#singularity">Singularity</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#scratch">Scratch</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#package-installation">Package Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#verification">Verification</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="inputs.html">Inputs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="outputs.html">Outputs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/index.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="additionalInfo.html">Additional Information</a></li>
+<li class="toctree-l1"><a class="reference internal" href="acknowledgements.html">Acknowledgements</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Multi-Disciplinary Simulation Suite</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Installation and Dependencies</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/installation.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="installation-and-dependencies">
+<h1>Installation and Dependencies<a class="headerlink" href="#installation-and-dependencies" title="Link to this heading"></a></h1>
+<section id="dependencies">
+<h2>Dependencies<a class="headerlink" href="#dependencies" title="Link to this heading"></a></h2>
+<section id="core-framework-dependencies">
+<h3>Core Framework Dependencies<a class="headerlink" href="#core-framework-dependencies" title="Link to this heading"></a></h3>
+<p>The framework requires tools developed by NASA (<a class="reference external" href="https://github.com/OpenMDAO/OpenMDAO"><code class="docutils literal notranslate"><span class="pre">OpenMDAO</span></code></a> and <a class="reference external" href="https://github.com/OpenMDAO/mphys"><code class="docutils literal notranslate"><span class="pre">MPhys</span></code></a>) and
+the MDO Lab (MACH-Aero framework). The
+<a class="reference external" href="https://mdolab-mach-aero.readthedocs-hosted.com/en/latest/index.html">MACH-Aero</a>
+framework houses all the core packages needed to run CFD simulations.
+Below is the list of software required:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://github.com/OpenMDAO/OpenMDAO"><code class="docutils literal notranslate"><span class="pre">OpenMDAO</span></code></a></p></li>
+<li><p><a class="reference external" href="https://github.com/OpenMDAO/mphys"><code class="docutils literal notranslate"><span class="pre">MPhys&gt;=2.0.0</span></code></a></p></li>
+<li><p><a class="reference external" href="https://github.com/mdolab/baseclasses"><code class="docutils literal notranslate"><span class="pre">mdolab-baseclasses</span></code></a></p></li>
+<li><p><a class="reference external" href="https://github.com/mdolab/idwarp"><code class="docutils literal notranslate"><span class="pre">IDWarp</span></code></a></p></li>
+<li><p><a class="reference external" href="https://github.com/mdolab/adflow"><code class="docutils literal notranslate"><span class="pre">ADflow&gt;=2.12.0</span></code></a></p></li>
+<li><p><a class="reference external" href="https://github.com/smdogroup/tacs"><code class="docutils literal notranslate"><span class="pre">TACS&gt;=3.8.0</span></code></a> (Required for aerostructural simulations)</p></li>
+<li><p><a class="reference external" href="https://github.com/smdogroup/funtofem"><code class="docutils literal notranslate"><span class="pre">funtofem&gt;=0.3.9</span></code></a> (Required for aerostructural simulations)</p></li>
+</ul>
+<p>These software packages may have additional third-party dependencies
+like PETSc and OpenMPI. A detailed guide on the additional dependencies
+required is available
+<a class="reference external" href="https://mdolab-mach-aero.readthedocs-hosted.com/en/latest/installInstructions/installFromScratch.html">here</a>.</p>
+</section>
+<section id="python-libraries">
+<h3>Python Libraries<a class="headerlink" href="#python-libraries" title="Link to this heading"></a></h3>
+<p>The following Python libraries are also required:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">numpy&gt;=1.21</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">scipy&gt;=1.7</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">mpi4py&gt;=3.1.4</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">petsc4py</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">pyyaml</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">matplotlib</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">pandas</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">pydantic</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">niceplots</span></code></p></li>
+</ul>
+</section>
+</section>
+<hr class="docutils" />
+<section id="getting-started">
+<h2>Getting Started<a class="headerlink" href="#getting-started" title="Link to this heading"></a></h2>
+<p>To begin using this framework, follow these steps:</p>
+<ol class="arabic">
+<li><div class="line-block">
+<div class="line"><strong>Create a Directory</strong></div>
+<div class="line">Set up a directory on your machine where you want to store this
+framework along with the necessary software packages.</div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>mkdir<span class="w"> </span>&lt;directory-path&gt;
+$<span class="w"> </span><span class="nb">cd</span><span class="w"> </span>&lt;directory-path&gt;
+</pre></div>
+</div>
+</li>
+<li><div class="line-block">
+<div class="line"><strong>Install Dependencies</strong></div>
+<div class="line">Follow the <a class="reference external" href="#installation-of-dependencies">Installation of
+Dependencies</a> section to ensure
+all required dependencies are installed on your system.</div>
+</div>
+</li>
+<li><div class="line-block">
+<div class="line"><strong>Install the Package</strong></div>
+<div class="line">Complete the setup by following the steps outlined in the <a class="reference external" href="#package-installation">Package
+Installation</a> section.</div>
+</div>
+</li>
+</ol>
+<p>By completing these steps, you’ll have the framework ready for use.</p>
+</section>
+<section id="installation-of-dependencies">
+<h2>Installation of Dependencies<a class="headerlink" href="#installation-of-dependencies" title="Link to this heading"></a></h2>
+<p>There are two types of installation methods available - from scratch and
+through Docker. If you are on a local machine, we recommend using Docker
+as it is the easiest option. If you are on an HPC machine, only the
+scratch installation method is available. Singularity support will be
+added later. Please follow the appropriate link.</p>
+<ul class="simple">
+<li><p><a class="reference external" href="#using-docker-recommended">Local machine (Docker)</a></p></li>
+<li><p><a class="reference external" href="#from-scratch">Local machine (Scratch)</a></p></li>
+<li><p><a class="reference external" href="#singularity">HPC - Great Lakes (Singularity)</a></p></li>
+<li><p><a class="reference external" href="#scratch">HPC - Great Lakes (Scratch)</a></p></li>
+</ul>
+<section id="local-machine">
+<h3>Local machine<a class="headerlink" href="#local-machine" title="Link to this heading"></a></h3>
+<section id="using-docker-recommended">
+<h4>Using Docker (Recommended)<a class="headerlink" href="#using-docker-recommended" title="Link to this heading"></a></h4>
+<p>Docker is highly recommended for ease of installation:</p>
+<ol class="arabic simple">
+<li><p>Setup Docker: If you do not have Docker installed in your system,
+follow the <a class="reference external" href="https://docs.docker.com/">Docker Guide</a> to set it up.</p></li>
+<li><p>Pull a Docker image: Official images for GCC and INTEL compilers are
+available
+<a class="reference external" href="https://mdolab-mach-aero.readthedocs-hosted.com/en/latest/installInstructions/dockerInstructions.html">here</a>.
+Follow the instructions in the link to pull an image compatible to
+your systems’ architecture.</p></li>
+<li><p>Initialize and start a container, follow the instructions mentioned
+<a class="reference external" href="https://mdolab-mach-aero.readthedocs-hosted.com/en/latest/installInstructions/dockerInstructions.html#initialize-docker-container">here</a>
+to initialize and start a container. Mount the directory
+<code class="docutils literal notranslate"><span class="pre">&lt;directory-path&gt;</span></code> into the folder mentioned in
+<a class="reference external" href="https://mdolab-mach-aero.readthedocs-hosted.com/en/latest/installInstructions/dockerInstructions.html#initialize-docker-container">here</a>.</p></li>
+<li><p>Inside the container, navigate to the <code class="docutils literal notranslate"><span class="pre">mount</span></code> directory and clone
+this repository following the instructions in the <a class="reference external" href="#package-installation">Package
+Installation</a> section.</p></li>
+<li><p>Run the testcase (TBD)</p></li>
+</ol>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If you are referencing any paths inside the container, they must
+be with respect to the container’s folder architecture, not your host
+machine.</p>
+</div>
+</section>
+<section id="from-scratch">
+<h4>From Scratch<a class="headerlink" href="#from-scratch" title="Link to this heading"></a></h4>
+<p>To manually install all dependencies, we will refer to the instructions
+found in the <a class="reference external" href="https://mdolab-mach-aero.readthedocs-hosted.com/en/latest/installInstructions/installFromScratch.html">Scratch Installation
+Guide</a>.</p>
+<p>(Sanjan needs to fix the local install bash file, unable to identify
+issue with petsc. Will do soon.)</p>
+</section>
+</section>
+<section id="hpc-systems-great-lakes">
+<h3>HPC Systems (Great Lakes)<a class="headerlink" href="#hpc-systems-great-lakes" title="Link to this heading"></a></h3>
+<section id="singularity">
+<h4>Singularity<a class="headerlink" href="#singularity" title="Link to this heading"></a></h4>
+<p>TBD</p>
+</section>
+<section id="scratch">
+<h4>Scratch<a class="headerlink" href="#scratch" title="Link to this heading"></a></h4>
+<p>These instructions assume that you are on the Great Lakes HPC at UMich.</p>
+<ol class="arabic">
+<li><p>Add the following lines to your <code class="docutils literal notranslate"><span class="pre">~/.bashrc</span></code> file:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Load required modules</span>
+module<span class="w"> </span>load<span class="w"> </span>gcc<span class="w">              </span><span class="c1"># GNU Compiler</span>
+module<span class="w"> </span>load<span class="w"> </span>openmpi<span class="w">          </span><span class="c1"># MPI Libraries</span>
+module<span class="w"> </span>load<span class="w"> </span>python/3.9.12<span class="w">    </span><span class="c1"># Python 3.9.12</span>
+module<span class="w"> </span>load<span class="w"> </span>cmake<span class="w">            </span><span class="c1"># CMake for build systems</span>
+
+<span class="c1"># PETSc Installation</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">PETSC_ARCH</span><span class="o">=</span>real-opt
+<span class="nb">export</span><span class="w"> </span><span class="nv">PETSC_DIR</span><span class="o">=</span>&lt;directory-path&gt;/packages/petsc-3.15.3
+
+<span class="c1"># CGNS Installation</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">CGNS_HOME</span><span class="o">=</span>&lt;directory-path&gt;/packages/CGNS-4.4.0/opt-gfortran
+<span class="nb">export</span><span class="w"> </span><span class="nv">PATH</span><span class="o">=</span><span class="nv">$PATH</span>:<span class="nv">$CGNS_HOME</span>/bin
+<span class="nb">export</span><span class="w"> </span><span class="nv">LD_LIBRARY_PATH</span><span class="o">=</span><span class="nv">$LD_LIBRARY_PATH</span>:<span class="nv">$CGNS_HOME</span>/lib
+</pre></div>
+</div>
+<p>Replace <code class="docutils literal notranslate"><span class="pre">&lt;directory-path&gt;</span></code> with your installation directory path. Do not forget to <code class="docutils literal notranslate"><span class="pre">source</span> <span class="pre">~/.bashrc</span></code> after editing.</p>
+</li>
+<li><p>Clone the repository:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/gorodetsky-umich/mdss.git
+</pre></div>
+</div>
+<p>Copy and execute the installation script:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span><span class="nb">cd</span><span class="w"> </span>mdss
+
+$<span class="w"> </span>cp<span class="w"> </span>mdss/install_packages_gl.sh<span class="w"> </span>&lt;directory-path&gt;/
+
+$<span class="w"> </span>chmod<span class="w"> </span>+x<span class="w"> </span>install_packages_gl.sh
+
+$<span class="w"> </span>./install_packages_gl.sh
+</pre></div>
+</div>
+</li>
+</ol>
+</section>
+</section>
+</section>
+<section id="package-installation">
+<h2>Package Installation<a class="headerlink" href="#package-installation" title="Link to this heading"></a></h2>
+<p>The following steps are common for personal computers and HPC systems:</p>
+<ol class="arabic">
+<li><p>Clone the repository:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/gorodetsky-umich/mdss.git
+</pre></div>
+</div>
+</li>
+<li><p>Navigate into the directory:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span><span class="nb">cd</span><span class="w"> </span>mdss
+</pre></div>
+</div>
+</li>
+<li><p>Install the package:</p>
+<ul>
+<li><p>Without dependencies:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>.
+</pre></div>
+</div>
+</li>
+<li><p>With dependencies:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>.<span class="w"> </span>-r<span class="w"> </span>requirements.txt
+</pre></div>
+</div>
+</li>
+<li><p>Editable installation:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
+</pre></div>
+</div>
+</li>
+<li><p>Editable installation with dependencies:</p>
+<blockquote>
+<div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.<span class="w"> </span>-r<span class="w"> </span>requirements.txt
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+</ul>
+</li>
+</ol>
+</section>
+<section id="verification">
+<h2>Verification<a class="headerlink" href="#verification" title="Link to this heading"></a></h2>
+<p>To verify the installation of packages, run a MACH-Aero tutorial
+available available on the <a class="reference external" href="https://mdolab-mach-aero.readthedocs-hosted.com/en/latest/machAeroTutorials/aero_adflow.html">MDO lab
+website</a>.
+The files required to run the tutprial can be obtained from the the
+<a class="reference external" href="https://github.com/mdolab/MACH-Aero.git">MACH-Aero github repo</a>.</p>
+<p><strong>Follow the steps to run a MACH-Aero tutorial:</strong></p>
+<ol class="arabic simple">
+<li><p>Clone the MACH-Aero repo</p></li>
+</ol>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/mdolab/MACH-Aero.git
+</pre></div>
+</div>
+<ol class="arabic simple" start="2">
+<li><p>Create a new directory to run the tutorial</p></li>
+</ol>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>mkdir<span class="w"> </span>&lt;path-to-tutorial-directory&gt;
+$<span class="w"> </span><span class="nb">cd</span><span class="w"> </span>&lt;path-to-tutorial-directory&gt;
+</pre></div>
+</div>
+<ol class="arabic simple" start="3">
+<li><p>Copy the necessary files</p></li>
+</ol>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>cp<span class="w"> </span>&lt;path-to-mach-aero-directory&gt;/tutorial/aero/analysis/wing_vol.cgns<span class="w"> </span>.
+$<span class="w"> </span>cp<span class="w"> </span>&lt;path-to-mach-aero-directory&gt;/tutorial/aero/analysis/aero_run.py
+</pre></div>
+</div>
+<ol class="arabic simple" start="4">
+<li><p>Run the python file To run using one processor:</p></li>
+</ol>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>aero_run.py
+</pre></div>
+</div>
+<p>To run using multiple processors:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>mpirun<span class="w"> </span>-np<span class="w"> </span>&lt;nproc&gt;<span class="w"> </span>python<span class="w"> </span>aero_run.py
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Running using multiple processors helps to identify the problems with <code class="docutils literal notranslate"><span class="pre">openmpi</span></code> and <code class="docutils literal notranslate"><span class="pre">petsc</span></code> installations.</p>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="introduction.html" class="btn btn-neutral float-left" title="Introduction" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="inputs.html" class="btn btn-neutral float-right" title="Inputs" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Sinaendhran Pujali Elilarasan, Sanjan Muchandimath.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,231 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Usage &mdash; Multi-Disciplinary Simulation Suite  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="../_static/extra.css?v=375f2796" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../_static/doctools.js?v=9a2dae69"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="../_static/copybutton.js?v=f281be69"></script>
+      <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Test Cases and Expected Results" href="test_cases.html" />
+    <link rel="prev" title="Tutorials" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Multi-Disciplinary Simulation Suite
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation and Dependencies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../inputs.html">Inputs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../outputs.html">Outputs</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Tutorials</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Usage</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#run-a-script-from-examples">Run a script from examples</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#example-usage">Example usage</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#running-simulations">Running Simulations</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#additional-information">Additional Information</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#grid-files">Grid Files</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#experimental-data">Experimental data</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="test_cases.html">Test Cases and Expected Results</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../api.html">API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../additionalInfo.html">Additional Information</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../acknowledgements.html">Acknowledgements</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Multi-Disciplinary Simulation Suite</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Tutorials</a></li>
+      <li class="breadcrumb-item active">Usage</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/tutorials/usage.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="usage">
+<h1>Usage<a class="headerlink" href="#usage" title="Link to this heading"></a></h1>
+<section id="run-a-script-from-examples">
+<h2>Run a script from examples<a class="headerlink" href="#run-a-script-from-examples" title="Link to this heading"></a></h2>
+<p>The <a class="reference external" href="#running-simulations">script</a> below runs a simulation of the NACA 0012 Airfoil, and is included in the <code class="docutils literal notranslate"><span class="pre">examples</span></code> folder.</p>
+<p><strong>To run the above python script:</strong></p>
+<ul class="simple">
+<li><p>Copy the examples directory to a different location (to avoid changes to your clone of the repository):</p></li>
+</ul>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>cp<span class="w"> </span>-r<span class="w"> </span>&lt;path-to-repository&gt;/examples<span class="w"> </span>&lt;path-to-examples-directory&gt;
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>Navigate into the directory:</p></li>
+</ul>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span><span class="nb">cd</span><span class="w"> </span>&lt;path-to-examples-directory&gt;
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>Run the python script:</p></li>
+</ul>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>python<span class="w"> </span>example.py<span class="w"> </span>--inputFile<span class="w"> </span>&lt;path-to-input-yaml-file&gt;
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<ul class="simple">
+<li><p>The script can be run in a docker container or on a local machine.</p></li>
+<li><p>If you are using a docker container, make sure to mount the examples directory to the container.</p></li>
+<li><p>If you are using a local machine, make sure to have the required dependencies installed.</p></li>
+<li><p>The script can be run in parallel by using the <code class="docutils literal notranslate"><span class="pre">--parallel</span></code> flag.</p></li>
+<li><p>The script can be run in batch mode by using the <code class="docutils literal notranslate"><span class="pre">--batch</span></code> flag.</p></li>
+<li><p>The script can be run in debug mode by using the <code class="docutils literal notranslate"><span class="pre">--debug</span></code> flag.</p></li>
+</ul>
+</div>
+<ul class="simple">
+<li><p>Do not use <code class="docutils literal notranslate"><span class="pre">mpirun</span></code> to run a script with <code class="docutils literal notranslate"><span class="pre">mdss</span></code>. Because, it runs simulations on subprocesses and using <code class="docutils literal notranslate"><span class="pre">mpirun</span></code> results in an error.</p></li>
+<li><p>Example input yaml files to run on local machines are stored in <code class="docutils literal notranslate"><span class="pre">examples/inputs/Local</span></code> directory, and for Great Lakes HPC cluster, an example file is stored in <code class="docutils literal notranslate"><span class="pre">examples/inputs/GL</span></code>.</p></li>
+<li><p>Make sure to modify the file and file paths to absolute paths in the yaml file when running in a docker container.</p></li>
+</ul>
+<p>Use <code class="docutils literal notranslate"><span class="pre">examples/inputs/Local/naca0012_sinInfo.yaml</span></code> or <code class="docutils literal notranslate"><span class="pre">examples/inputs/GL/naca0012_sinInfo.yaml</span></code> (for Great Lakes) to test the package with NACA0012 airfoil.</p>
+<p>After execution, the following results are expected which are saved in
+the specified output directory.</p>
+<ul class="simple">
+<li><p>A copy of the input yaml file in the output directory.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">overall_sim_info.yaml</span></code> in the output directory.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ADflow_Results.png</span></code> in each experimental level directory, that is a plot comparing <span class="math notranslate nohighlight">\(C_L\)</span>, and <span class="math notranslate nohighlight">\(C_D\)</span> values at all refinement levels to the experimental data(if provided).</p></li>
+</ul>
+<a class="reference internal image-reference" href="../_images/ADflow_Results.png"><img alt="Results for NACA 0012" class="align-center" src="../_images/ADflow_Results.png" style="width: 120.0%; height: 480.0px;" />
+</a>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">ADflow_output.csv</span></code> in each refinement level directory, that is a
+file containg Angle of Attack(AoA), CL, and CD data.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">aoa_&lt;aoa&gt;.yaml</span></code> in aoa level directory, that contains the
+simulation information particular to that angle of attack.</p></li>
+<li><p>Default ADflow outputs: A tecplot file, a CGNS surface file, and a
+CGNS volume file.</p></li>
+</ul>
+</section>
+<section id="example-usage">
+<h2>Example usage<a class="headerlink" href="#example-usage" title="Link to this heading"></a></h2>
+<p>Here are quick examples of how to different classes and functions in <code class="docutils literal notranslate"><span class="pre">mdss</span></code>:</p>
+<section id="running-simulations">
+<h3>Running Simulations<a class="headerlink" href="#running-simulations" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">mdss</span> <span class="kn">import</span> <span class="n">simulation</span>
+<span class="kn">from</span> <span class="nn">mdss</span> <span class="kn">import</span> <span class="n">post_process</span>
+
+<span class="c1"># Initialize the runner with configuration file</span>
+<span class="n">sim</span> <span class="o">=</span> <span class="n">simulation</span><span class="p">(</span><span class="s1">&#39;/path/to/input-yaml-file&#39;</span><span class="p">)</span>
+
+<span class="c1"># Run the simulation series</span>
+<span class="n">sim</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+
+<span class="c1"># Run the post-processing</span>
+<span class="n">pp</span> <span class="o">=</span> <span class="n">post_process</span><span class="p">(</span><span class="s1">&#39;/path/to/output-directory&#39;</span><span class="p">)</span>
+<span class="n">pp</span><span class="o">.</span><span class="n">gen_case_plots</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="additional-information">
+<h2>Additional Information<a class="headerlink" href="#additional-information" title="Link to this heading"></a></h2>
+<section id="grid-files">
+<h3>Grid Files<a class="headerlink" href="#grid-files" title="Link to this heading"></a></h3>
+<p>Grids for NACA 0012 and Mc Donnell Dolugas 30P-30N are provided under <code class="docutils literal notranslate"><span class="pre">examples/grids</span></code> in the examples directory. The other grids (CRM clean, and DLR High-Lift) including
+Naca 0012 and 30P-30N can be found at <a class="reference external" href="https://www.dropbox.com/scl/fo/fezdu5be849c78vze7l19/ACCsSHpLGEwCcyFEPWj2FB0?rlkey=ixbr0606y3vx5eadrs61b9cz3&amp;st=i4evwxed&amp;dl=0">Dropbox folder</a>.</p>
+<p>Aero and structural grid files for the Mach Aero Wing can be downladed from <a class="reference external" href="http://umich.edu/~mdolaboratory/repo_files/mphys/mphys_input_files.tar.gz">mphys repo</a>. An example input yaml file for the Mach Aero Wing is provided in <code class="docutils literal notranslate"><span class="pre">examples/inputs/Local/mach_aero_wing.yaml</span></code>. The example yaml file is set up to run on local machines.</p>
+</section>
+<section id="experimental-data">
+<h3>Experimental data<a class="headerlink" href="#experimental-data" title="Link to this heading"></a></h3>
+<p>Experimental data for NACA 0012 and Mc Donnell Dolugas 30P-30N are provided under <code class="docutils literal notranslate"><span class="pre">examples/exp_data</span></code> in the examples directory. The
+other dat (CRM clean, and DLR High-Lift) including Naca 0012 and 30P-30N, and their references can be found at <a class="reference external" href="https://www.dropbox.com/scl/fo/18rcs9bh0qmf19ymptrt2/AHx-xyYSXk_wGXqhvVV2yMM?rlkey=kp0vovsegpddfn78wfjiv8gbi&amp;st=2czi5hbu&amp;dl=0">Dropbox
+folder</a>.</p>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="Tutorials" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="test_cases.html" class="btn btn-neutral float-right" title="Test Cases and Expected Results" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Sinaendhran Pujali Elilarasan, Sanjan Muchandimath.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

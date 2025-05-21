@@ -1,0 +1,373 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Inputs &mdash; Multi-Disciplinary Simulation Suite  documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="_static/extra.css?v=375f2796" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="_static/doctools.js?v=9a2dae69"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="_static/copybutton.js?v=f281be69"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Outputs" href="outputs.html" />
+    <link rel="prev" title="Installation and Dependencies" href="installation.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Multi-Disciplinary Simulation Suite
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation and Dependencies</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Inputs</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#yaml-configuration-file">YAML Configuration File</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#input-yaml-file-structure">Input YAML file Structure</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#aero-options">Aero Options</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#default-aero-options-for-aerodynamic-problem">Default <code class="docutils literal notranslate"><span class="pre">aero_options</span></code> for aerodynamic problem</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#default-aero-options-for-aerostructural-problems">Default <code class="docutils literal notranslate"><span class="pre">aero_options</span></code> for aerostructural problems</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#scenarios">Scenarios</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#location-of-mesh-files">Location of Mesh Files</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#solver-options">Solver Options</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#default-solver-options">Default <code class="docutils literal notranslate"><span class="pre">solver_options</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="outputs.html">Outputs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/index.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="additionalInfo.html">Additional Information</a></li>
+<li class="toctree-l1"><a class="reference internal" href="acknowledgements.html">Acknowledgements</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Multi-Disciplinary Simulation Suite</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Inputs</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/inputs.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="inputs">
+<h1>Inputs<a class="headerlink" href="#inputs" title="Link to this heading"></a></h1>
+<p>The <a class="reference external" href="https://github.com/gorodetsky-umich/MDSS.git"><code class="docutils literal notranslate"><span class="pre">mdss</span></code></a> package requires an <a class="reference external" href="#yaml-configuration-file">yaml
+file</a> to configure and execute simulations.</p>
+<section id="yaml-configuration-file">
+<h2>YAML Configuration File<a class="headerlink" href="#yaml-configuration-file" title="Link to this heading"></a></h2>
+<p>A YAML file is required to define the simulation parameters and organize
+test cases. The YAML file structure and respective descriptions are
+given below.</p>
+<section id="input-yaml-file-structure">
+<h3>Input YAML file Structure<a class="headerlink" href="#input-yaml-file-structure" title="Link to this heading"></a></h3>
+<p>The YAML file organizes simulation data into a structured hierarchy,
+enabling clear configuration of cases and experimental conditions. Below
+is the structure used in the YAML file:</p>
+<div class="literal-block-wrapper docutils container" id="id1">
+<div class="code-block-caption"><span class="caption-text">Example YAML file</span><a class="headerlink" href="#id1" title="Link to this code"></a></div>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">out_dir</span><span class="p">:</span><span class="w">                                                </span><span class="c1"># str, path to the output directory</span>
+<span class="nt">python_version</span><span class="p">:</span><span class="w">  </span><span class="l l-Scalar l-Scalar-Plain">/usr/bin/python</span><span class="w">                        </span><span class="c1"># Optional[str], path to the python env to use</span>
+<span class="nt">machine_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">local</span><span class="w">                                     </span><span class="c1"># str, local/hpc</span>
+<span class="nt">nproc</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">8</span><span class="w">                                                </span><span class="c1"># int, number of processors, required when machine_type is local</span>
+
+<span class="c1">######################################################################################</span>
+<span class="c1"># `hpc_info` is required only if machine_type is hpc</span>
+<span class="c1">######################################################################################</span>
+<span class="nt">hpc_info</span><span class="p">:</span><span class="w">                                               </span><span class="c1"># dict, required only if machine_type is hpc</span>
+<span class="w">  </span><span class="nt">cluster</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">GL</span><span class="w">                                           </span><span class="c1"># str, name of the cluster. GL for Great Lakes</span>
+<span class="w">  </span><span class="nt">job_name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">example</span><span class="w">                                     </span><span class="c1"># str, name of the job</span>
+<span class="w">  </span><span class="nt">account_name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">test_account</span><span class="w">                            </span><span class="c1"># str, account name</span>
+<span class="w">  </span><span class="nt">partition</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">standard</span><span class="w">                                   </span><span class="c1"># str, partition name</span>
+<span class="w">  </span><span class="nt">time</span><span class="p">:</span><span class="w">   </span><span class="l l-Scalar l-Scalar-Plain">01:00:00</span><span class="w">                                      </span><span class="c1"># str, time in D-H:M:S format</span>
+<span class="w">  </span><span class="nt">nodes</span><span class="p">:</span><span class="w">  </span><span class="l l-Scalar l-Scalar-Plain">1</span><span class="w">                                             </span><span class="c1"># int, number of nodes</span>
+<span class="w">  </span><span class="nt">nproc</span><span class="p">:</span><span class="w">  </span><span class="l l-Scalar l-Scalar-Plain">10</span><span class="w">                                            </span><span class="c1"># int, total number of processors</span>
+<span class="w">  </span><span class="nt">nproc_per_node</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10</span><span class="w">                                    </span><span class="c1"># int, number of processors per node</span>
+<span class="w">  </span><span class="nt">mem_per_cpu</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000mb</span><span class="w">                                   </span><span class="c1"># Optional[str], memory per cpu</span>
+<span class="w">  </span><span class="nt">mail_types</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">NONE</span><span class="w">                                      </span><span class="c1"># Optional[str], mail types</span>
+<span class="w">  </span><span class="nt">email_id</span><span class="p">:</span><span class="w">  </span><span class="l l-Scalar l-Scalar-Plain">example@test.com</span><span class="w">                           </span><span class="c1"># Optional[str], email id</span>
+
+<span class="nt">hierarchies</span><span class="p">:</span><span class="w">                                            </span><span class="c1"># list[dict], List of hierarchies</span>
+
+<span class="c1"># First hierarchy</span>
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">first_hierarchy</span><span class="w">                                 </span><span class="c1"># str, name of the hierarchy</span>
+
+<span class="w">  </span><span class="nt">cases</span><span class="p">:</span><span class="w">                                                </span><span class="c1"># list[dict], list of cases in this hierarchy</span>
+
+<span class="w">  </span><span class="c1"># First case in the hierarchy</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w">  </span><span class="l l-Scalar l-Scalar-Plain">first_case</span><span class="w">                                   </span><span class="c1"># str, name of the case</span>
+<span class="w">    </span><span class="nt">meshes_folder_path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">grids/</span><span class="w">                          </span><span class="c1"># str, path to the folder containing the mesh files for this case</span>
+<span class="w">    </span><span class="nt">mesh_files</span><span class="p">:</span><span class="w">                                         </span><span class="c1"># list[str], list of mesh file names</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">mesh_L0.cgns</span><span class="w">                                      </span><span class="c1"># str, name of the first mesh file</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">mesh_L1.cgns</span><span class="w">                                      </span><span class="c1"># str, name of the second mesh file</span>
+
+<span class="w">    </span><span class="nt">geometry_info</span><span class="p">:</span><span class="w">                                      </span><span class="c1"># dict, dictionary of geometry info</span>
+<span class="w">      </span><span class="nt">chordRef</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.0</span><span class="w">                                     </span><span class="c1"># float, reference chord length</span>
+<span class="w">      </span><span class="nt">areaRef</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.0</span><span class="w">                                      </span><span class="c1"># float, reference area</span>
+
+<span class="w">    </span><span class="nt">aero_options</span><span class="p">:</span><span class="w">                                       </span><span class="c1"># Optional[dict], dictionary of ADflow solver parameters. For more information see aero options section</span>
+<span class="w">      </span><span class="c1"># ......</span>
+<span class="w">  </span>
+<span class="w">    </span><span class="nt">scenarios</span><span class="p">:</span><span class="w">                                          </span><span class="c1"># list[dict], list of dictionaries containing scenario info</span>
+<span class="w">   </span>
+<span class="w">    </span><span class="c1"># First experimental set in current case</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w">  </span><span class="l l-Scalar l-Scalar-Plain">cruise</span><span class="w">                                     </span><span class="c1"># str, name of the scenario</span>
+<span class="w">      </span><span class="nt">aoa_list</span><span class="p">:</span><span class="w">                                         </span><span class="c1"># list[float], list of angle of attacks(AoA) to run in with the experimental info</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.0</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2.0</span>
+<span class="w">      </span><span class="nt">reynolds</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">9.0e6</span><span class="w">                                   </span><span class="c1"># float, Reynold&#39;s number </span>
+<span class="w">      </span><span class="nt">mach</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.2</span><span class="w">                                         </span><span class="c1"># float, Mach number</span>
+<span class="w">      </span><span class="nt">Temp</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">298</span><span class="w">                                         </span><span class="c1"># float, Temperature in Kelvin scale</span>
+<span class="w">      </span><span class="nt">exp_data</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">exp_data/first_case.csv</span><span class="w">                 </span><span class="c1"># str, path to experimental data</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="c1"># Second scenario in current case</span>
+
+<span class="w">    </span><span class="c1">######################################################################################</span>
+<span class="w">    </span><span class="c1"># The following structural options are required only for Aero-structural problems</span>
+<span class="w">    </span><span class="c1">######################################################################################</span>
+<span class="w">    </span><span class="nt">struct_options</span><span class="p">:</span><span class="w">                                     </span><span class="c1"># dict, structural options,</span>
+<span class="w">      </span><span class="nt">isym</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span><span class="w">                                           </span><span class="c1"># int, direction of symmetry. 1 for y-symmetry, 2 for z-symmetry</span>
+<span class="w">      </span><span class="nt">t</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.005</span><span class="w">                                          </span><span class="c1"># float, Shell Thickness in m</span>
+<span class="w">      </span><span class="nt">mesh_fpath</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/path/to/structural/mesh</span><span class="w">              </span><span class="c1"># str, path to the structural mesh file</span>
+
+<span class="w">      </span><span class="nt">struct_properties</span><span class="p">:</span><span class="w">                                </span><span class="c1"># Optional[dict], a dictionary containing structural properties</span>
+<span class="w">        </span><span class="nt">rho</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2500.0</span><span class="w">                                     </span><span class="c1"># Optional[float], Density in kg/m^3</span>
+<span class="w">        </span><span class="nt">E</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">70.0e9</span><span class="w">                                       </span><span class="c1"># Optional[float], Young&#39;s modulus in N/m^2</span>
+<span class="w">        </span><span class="nt">nu</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.30</span><span class="w">                                        </span><span class="c1"># Optional[float], Poisson&#39;s ratio</span>
+<span class="w">        </span><span class="nt">kcorr</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.83333</span><span class="w">                                  </span><span class="c1"># Optional[float}, Shear correction factor</span>
+<span class="w">        </span><span class="nt">ys</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">350.0e6</span><span class="w">                                     </span><span class="c1"># Optional[float], Yield stress in N/m^2</span>
+
+<span class="w">      </span><span class="nt">load_info</span><span class="p">:</span><span class="w">                                        </span><span class="c1"># Optional[dict], a dictionary containing load info </span>
+<span class="w">        </span><span class="nt">g</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">0.0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">-9.81</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0.0</span><span class="p p-Indicator">]</span><span class="w">                            </span><span class="c1"># Optional[list[float]], g-vector in m/s^2, the default is [0, -9.81, 0]</span>
+<span class="w">        </span><span class="nt">inertial_load_factor</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.0</span><span class="w">                       </span><span class="c1"># optional[float], times of &#39;g&#39;.</span>
+
+<span class="w">      </span><span class="nt">solver_options</span><span class="p">:</span><span class="w">                                   </span><span class="c1"># Optional[dict], solver options for coupling. Check solver options section for more info</span>
+<span class="w">        </span><span class="nt">linear_solver_options</span><span class="p">:</span><span class="w">                          </span><span class="c1"># Optional[dict], linear solver options, see documentation for more info.</span>
+<span class="w">        </span><span class="nt">nonlinear_solver_options</span><span class="p">:</span><span class="w">                       </span><span class="c1"># Optional[dict], nonlinear solver options, see documentation for more info.</span>
+<span class="w">                      </span>
+<span class="w">  </span><span class="c1"># Second case in current hierarchy</span>
+
+<span class="c1"># Second hierarchy</span>
+</pre></div>
+</div>
+</div>
+<p>Please note that adherence to this structure is essential; any deviation
+may lead to errors when running simulations. Examples of correctly
+formatted YAML files are provided in the <code class="docutils literal notranslate"><span class="pre">examples/inputs</span></code> folder.</p>
+<p>These yaml script can also be used as a starting point for generating
+custom YAML files.</p>
+</section>
+<section id="aero-options">
+<h3>Aero Options<a class="headerlink" href="#aero-options" title="Link to this heading"></a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">aero_options</span></code> is a dictionary containing options specific to the
+ADflow CFD solver, allowing users to customize the solver’s behavior to
+suit their simulation needs. Detailed descriptions of these parameters
+and their usage can be found in the <a class="reference external" href="https://mdolab-adflow.readthedocs-hosted.com/en/latest/options.html">ADflow
+Documentation</a>.</p>
+<p>If the dictionary is empty or if the default parameters are not
+modified, the code will use a predefined set of default solver options.
+These defaults are designed to provide a reliable baseline configuration
+for running simulations effectively without requiring manual
+adjustments.</p>
+<section id="default-aero-options-for-aerodynamic-problem">
+<h4>Default <code class="docutils literal notranslate"><span class="pre">aero_options</span></code> for aerodynamic problem<a class="headerlink" href="#default-aero-options-for-aerodynamic-problem" title="Link to this heading"></a></h4>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span> <span class="c1"># Print Options</span>
+<span class="s2">&quot;printIterations&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+<span class="s2">&quot;printAllOptions&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+<span class="s2">&quot;printIntro&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+<span class="s2">&quot;printTiming&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+<span class="c1"># I/O Parameters</span>
+<span class="s2">&quot;outputDirectory&quot;</span><span class="p">:</span> <span class="s2">&quot;.&quot;</span><span class="p">,</span>
+<span class="s2">&quot;monitorvariables&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;resrho&quot;</span><span class="p">,</span> <span class="s2">&quot;resturb&quot;</span><span class="p">,</span> <span class="s2">&quot;cl&quot;</span><span class="p">,</span> <span class="s2">&quot;cd&quot;</span><span class="p">,</span> <span class="s2">&quot;yplus&quot;</span><span class="p">],</span>
+<span class="s2">&quot;writeTecplotSurfaceSolution&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+<span class="s2">&quot;solutionPrecision&quot;</span><span class="p">:</span> <span class="s2">&quot;double&quot;</span><span class="p">,</span>                                      <span class="c1">#  Best for restart</span>
+<span class="s2">&quot;volumeVariables&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;resrho&#39;</span><span class="p">,</span> <span class="s1">&#39;mach&#39;</span><span class="p">],</span>
+<span class="c1"># Physics Parameters</span>
+<span class="s2">&quot;equationType&quot;</span><span class="p">:</span> <span class="s2">&quot;RANS&quot;</span><span class="p">,</span>
+<span class="s2">&quot;liftindex&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>                                                     <span class="c1"># z is the lift direction</span>
+<span class="c1"># Solver Parameters</span>
+<span class="s2">&quot;smoother&quot;</span><span class="p">:</span> <span class="s2">&quot;DADI&quot;</span><span class="p">,</span>
+<span class="s2">&quot;CFL&quot;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span>
+<span class="s2">&quot;CFLCoarse&quot;</span><span class="p">:</span> <span class="mf">0.25</span><span class="p">,</span>
+<span class="s2">&quot;MGCycle&quot;</span><span class="p">:</span> <span class="s2">&quot;sg&quot;</span><span class="p">,</span>
+<span class="s2">&quot;MGStartLevel&quot;</span><span class="p">:</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span>
+<span class="s2">&quot;nCyclesCoarse&quot;</span><span class="p">:</span> <span class="mi">250</span><span class="p">,</span>
+<span class="c1"># ANK Solver Parameters</span>
+<span class="s2">&quot;useANKSolver&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+<span class="s2">&quot;nSubiterTurb&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
+<span class="c1"># Termination Criteria</span>
+<span class="s2">&quot;L2Convergence&quot;</span><span class="p">:</span> <span class="mf">1e-12</span><span class="p">,</span>
+<span class="s2">&quot;L2ConvergenceCoarse&quot;</span><span class="p">:</span> <span class="mf">1e-2</span><span class="p">,</span>
+<span class="s2">&quot;nCycles&quot;</span><span class="p">:</span> <span class="mi">75000</span><span class="p">,</span>
+</pre></div>
+</div>
+</section>
+<section id="default-aero-options-for-aerostructural-problems">
+<h4>Default <code class="docutils literal notranslate"><span class="pre">aero_options</span></code> for aerostructural problems<a class="headerlink" href="#default-aero-options-for-aerostructural-problems" title="Link to this heading"></a></h4>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span> <span class="c1"># Print Options</span>
+<span class="s2">&quot;printIterations&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+<span class="s2">&quot;printAllOptions&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+<span class="s2">&quot;printIntro&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+<span class="s2">&quot;printTiming&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+<span class="c1"># I/O Parameters</span>
+<span class="s2">&quot;outputDirectory&quot;</span><span class="p">:</span> <span class="s1">&#39;.&#39;</span><span class="p">,</span>
+<span class="s2">&quot;monitorvariables&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;resrho&quot;</span><span class="p">,</span> <span class="s2">&quot;resturb&quot;</span><span class="p">,</span> <span class="s2">&quot;cl&quot;</span><span class="p">,</span> <span class="s2">&quot;cd&quot;</span><span class="p">,</span> <span class="s2">&quot;yplus&quot;</span><span class="p">],</span>
+<span class="s2">&quot;writeTecplotSurfaceSolution&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+<span class="c1"># Physics Parameters</span>
+<span class="s2">&quot;equationType&quot;</span><span class="p">:</span> <span class="s2">&quot;RANS&quot;</span><span class="p">,</span>
+<span class="s2">&quot;liftindex&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>                                                   <span class="c1"># z is the lift direction</span>
+<span class="c1"># Solver Parameters</span>
+<span class="s2">&quot;smoother&quot;</span><span class="p">:</span> <span class="s2">&quot;DADI&quot;</span><span class="p">,</span>
+<span class="s2">&quot;CFL&quot;</span><span class="p">:</span> <span class="mf">1.5</span><span class="p">,</span>
+<span class="s2">&quot;CFLCoarse&quot;</span><span class="p">:</span> <span class="mf">1.25</span><span class="p">,</span>
+<span class="s2">&quot;MGCycle&quot;</span><span class="p">:</span> <span class="s2">&quot;sg&quot;</span><span class="p">,</span>
+<span class="s2">&quot;MGStartLevel&quot;</span><span class="p">:</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span>
+<span class="s2">&quot;nCyclesCoarse&quot;</span><span class="p">:</span> <span class="mi">250</span><span class="p">,</span>
+<span class="c1"># ANK Solver Parameters</span>
+<span class="s2">&quot;useANKSolver&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+<span class="s2">&quot;nSubiterTurb&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
+<span class="c1"># Termination Criteria</span>
+<span class="s2">&quot;L2Convergence&quot;</span><span class="p">:</span> <span class="mf">1e-12</span><span class="p">,</span>
+<span class="s2">&quot;L2ConvergenceCoarse&quot;</span><span class="p">:</span> <span class="mf">1e-2</span><span class="p">,</span>
+<span class="s2">&quot;L2ConvergenceRel&quot;</span><span class="p">:</span> <span class="mf">1e-3</span><span class="p">,</span>
+<span class="s2">&quot;nCycles&quot;</span><span class="p">:</span> <span class="mi">10000</span><span class="p">,</span>
+<span class="c1"># force integration</span>
+<span class="s2">&quot;forcesAsTractions&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="scenarios">
+<h3>Scenarios<a class="headerlink" href="#scenarios" title="Link to this heading"></a></h3>
+<p>To define the problem, referred to as the <strong>AeroProblem</strong> (focused on
+aerodynamics), flight conditions along with the name and a list of Angle
+of Attacks(AoA) is required, and path to the experimental data is
+optional.</p>
+<p>Check
+<a class="reference external" href="https://mdolab-baseclasses.readthedocs-hosted.com/en/latest/pyAero_problem.html">mdolab-baseclasses</a>
+for valid combinations flight conditions.The other properties will be
+calculated automatically by <code class="docutils literal notranslate"><span class="pre">mdolab-baseclasses</span></code> based on the
+specified values and the governing gas laws.</p>
+</section>
+<section id="location-of-mesh-files">
+<h3>Location of Mesh Files<a class="headerlink" href="#location-of-mesh-files" title="Link to this heading"></a></h3>
+<p>Specifying the location of the mesh files requires two inputs in every
+case:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">meshes_folder_path</span></code> gets the path to the folder that contains the
+mesh files</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">mesh_files</span></code> gets the list of file names, that to be run, in the
+folder specified above.</p></li>
+</ul>
+</section>
+<section id="solver-options">
+<h3>Solver Options<a class="headerlink" href="#solver-options" title="Link to this heading"></a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">solver_options</span></code> is a dictionary containing options for
+<code class="docutils literal notranslate"><span class="pre">NonlinearBlockGS</span></code> and <code class="docutils literal notranslate"><span class="pre">LinearBlockGS</span></code> solvers available in
+<code class="docutils literal notranslate"><span class="pre">openMDAO</span></code>. If these are not provided, the default options will be
+used. For more more information on these solvers visit the <a class="reference external" href="https://openmdao.org/newdocs/versions/latest/features/building_blocks/solvers/solvers.html">openMDAO
+documentation</a></p>
+<section id="default-solver-options">
+<h4>Default <code class="docutils literal notranslate"><span class="pre">solver_options</span></code><a class="headerlink" href="#default-solver-options" title="Link to this heading"></a></h4>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="s">&quot;linear_solver_options&quot;</span><span class="p p-Indicator">:</span>
+<span class="w">  </span><span class="s">&quot;atol&quot;</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1e-08,</span><span class="w">                         </span><span class="c1"># absolute error tolerance</span>
+<span class="w">  </span><span class="s">&quot;err_on_non_converge&quot;</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">True,</span><span class="w">           </span><span class="c1"># When True, AnalysisError will be raised if not converged</span>
+<span class="w">  </span><span class="s">&quot;maxiter&quot;</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">25,</span><span class="w">                         </span><span class="c1"># maximum number of iterations</span>
+<span class="w">  </span><span class="s">&quot;rtol&quot;</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1e-8,</span><span class="w">                          </span><span class="c1"># relative error tolerance</span>
+<span class="w">  </span><span class="s">&quot;use_aitken&quot;</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">True,</span><span class="w">                    </span><span class="c1"># set to True to use Aitken</span>
+
+<span class="s">&quot;nonlinear_solver_options&quot;</span><span class="p p-Indicator">:</span>
+<span class="w">  </span><span class="s">&quot;atol&quot;</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1e-08,</span><span class="w">                         </span><span class="c1"># absolute error tolerance</span>
+<span class="w">  </span><span class="s">&quot;err_on_non_converge&quot;</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">True,</span><span class="w">           </span><span class="c1"># When True, AnalysisError will be raised if not converged</span>
+<span class="w">  </span><span class="s">&quot;reraise_child_analysiserror&quot;</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">False,</span><span class="w">  </span><span class="c1"># When the option is true, a solver will raise any AnalysisError that arises during sub-solve; when false, it will continue solving.</span>
+<span class="w">  </span><span class="s">&quot;maxiter&quot;</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">25,</span><span class="w">                         </span><span class="c1"># maximum number of iterations</span>
+<span class="w">  </span><span class="s">&quot;rtol&quot;</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1e-08,</span><span class="w">                         </span><span class="c1"># relative error tolerance</span>
+<span class="w">  </span><span class="s">&quot;use_aitken&quot;</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">True,</span><span class="w">                    </span><span class="c1"># set to True to use Aitken</span>
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="installation.html" class="btn btn-neutral float-left" title="Installation and Dependencies" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="outputs.html" class="btn btn-neutral float-right" title="Outputs" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Sinaendhran Pujali Elilarasan, Sanjan Muchandimath.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
