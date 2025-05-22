@@ -12,7 +12,7 @@ from typing import Optional, Literal
 
 from mdss.src.main import simulation
 from mdss.utils.helpers import *
-from mdss.resources.yaml_config import check_input_yaml
+from mdss.resources.yaml_config import check_input_yaml, ref_scenario_info
 
 
 comm = MPI.COMM_WORLD
@@ -283,15 +283,24 @@ class custom_sim(simulation):
         case_info['aoa_list'] = [float(aoa) for aoa in case_info['aoa_list']]  # Ensures all angles of attack to float and converts a numpy array to a list
         # Extract only fields that were explicitly provided (non-None)
         for key, value in case_info.items():
-            if value is None or key == 'out_dir':
+            if value is None or key in ['out_dir', 'aoa_list']:
                 continue  # Skip unset or None fields
             elif key in {'aero_options', 'struct_options'}:
                 case.setdefault(key, {}).update(value)
             else:
                 case[key] = value
-        # Update the angle of attack in the scenario
+
+        # Update the angle of attack in the scenario and scenario information
         scenario = case['scenarios'][0]
         scenario['aoa_list'] = case_info['aoa_list']
+        ref_scenario_info.model_validate(scenario)
+        # Update the scenario information in the case
+        for key, value in scenario.items():
+            if value is None or key in ['name', 'aoa_list', 'exp_data']:
+                continue
+            else:
+                scenario[key] = float(value)  # Convert all the other values to float
+        
         
         if comm.rank == 0:
             randn = random.randint(1000, 9999)
