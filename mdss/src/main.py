@@ -52,7 +52,9 @@ class simulation():
         self.record_subprocess = False # To toggle to record subprocess output.
         
         if self.machine_type == MachineType.HPC:
+            self.submit_job = True # Toggle to run directly without submitting a Job. Intended for testing in interactive mode.
             self.wait_for_job = False # To toggle to wait for the job to finish.
+
 
         # Create the output directory if it doesn't exist
         make_dir(self.out_dir, comm)
@@ -77,7 +79,10 @@ class simulation():
             execute(self)
 
         elif self.machine_type == MachineType.HPC: # Running on a HPC currently supports Great Lakes.
-            job_id = submit_job_on_hpc(sim_info_copy, self.info_file, self.wait_for_job, comm) # Submit job script
+            if self.submit_job:
+                job_id = submit_job_on_hpc(sim_info_copy, self.info_file, self.wait_for_job, comm) # Submit job script
+            else:
+                execute(self)
 
                        
 ################################################################################
@@ -359,7 +364,7 @@ class post_process:
         Notes
         ------
         - Experimental data will only be plotted if the provided `exp_data` file is valid.
-        - Simulation results are expected to be located in `${scenario_out_dir}/${mesh_file}/ADflow_output.csv`.
+        - Simulation results are expected to be located in `${scenario_out_dir}/${mesh_file}/f"{mesh_file}_output.csv"`.
         """
         scenario_label = scenario_name.replace("_", " ")
 
@@ -380,7 +385,7 @@ class post_process:
             self._add_plot_from_csv(axs, exp_data, **exp_args)
         for ii, mesh_file in enumerate(mesh_files): # Loop for refinement levels
             refinement_level_dir = os.path.join(scenario_out_dir, f"{mesh_file}")
-            ADflow_out_file = os.path.join(refinement_level_dir, "ADflow_output.csv")
+            refinement_level_csv_out_file = os.path.join(refinement_level_dir, f"{mesh_file}_output.csv")
             # Update kwargs
             plot_args = {
                     'label': f"{label} - {mesh_file}",
@@ -389,7 +394,7 @@ class post_process:
                     'marker': self._get_marker_style(ii),
                     'markersize': markersize,
                 }
-            self._add_plot_from_csv(axs, ADflow_out_file, **plot_args) # To add simulation data to the plots
+            self._add_plot_from_csv(axs, refinement_level_csv_out_file, **plot_args) # To add simulation data to the plots
         
         scenario_legend_entry = Line2D([0], [0], marker=marker, color=color, linestyle='', markersize=markersize, label=label) # Create a legend entry for the scenario
         return scenario_legend_entry

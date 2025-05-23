@@ -93,6 +93,7 @@ def execute(simulation):
                 aoa_list = scenario_info['aoa_list']
                 aoa_csv_string = '"' + ",".join(map(str, [float(aoa) for aoa in aoa_list])) + '"' # Convert the aoa list to a csv string
                 scenario_sim_info = {} # Creating scenario level sim info dictionary for overall sim info file
+                scenario_sim_info['scenario_out_dir'] = scenario_out_dir
 
                 for ii, mesh_file in enumerate(case_info['mesh_files']): # Loop for refinement levels
                     # Print simulation info message
@@ -107,6 +108,7 @@ def execute(simulation):
                     refinement_level_dict = {} # Creating refinement level sim info dictionary for overall sim info file
                     refinement_out_dir = os.path.join(scenario_out_dir, f"{mesh_file}")
                     make_dir(refinement_out_dir, comm)
+                    refinement_level_csv_out_file = os.path.join(refinement_out_dir, f"{mesh_file}_output.csv")
                     aero_grid_fpath = os.path.join(case_info['meshes_folder_path'], mesh_file)
                     # Add struct mesh file for aerostructural case else set it to none
                     if problem_type == ProblemType.AEROSTRUCTURAL:
@@ -173,15 +175,11 @@ def execute(simulation):
                         "FFlag": [f"{int(FF):12f}" for FF in FList],
                         "WTime": [f"{wall_time:10.2f}" for wall_time in TList]
                     }
-
-                    # Define the output file path
-                    refinement_level_dir = os.path.dirname(aoa_out_dir)
-                    ADflow_out_file = os.path.join(refinement_level_dir, "ADflow_output.csv")
                     
                     df_new = pd.DataFrame(refinement_level_data) # Create a panda DataFrame
                     # If the file exists, load existing data and append new data
-                    if os.path.exists(ADflow_out_file):
-                        df_existing = load_csv_data(ADflow_out_file, comm)
+                    if os.path.exists(refinement_level_csv_out_file):
+                        df_existing = load_csv_data(refinement_level_csv_out_file, comm)
                         df_combined = pd.concat([df for df in [df_existing, df_new] if df is not None], ignore_index=True) 
                     else:
                         df_combined = df_new
@@ -190,19 +188,17 @@ def execute(simulation):
                     df_combined.dropna(subset=['Alpha'], inplace=True)
                     df_combined.drop_duplicates(subset='Alpha', keep='last', inplace=True)
                     df_combined.sort_values(by='Alpha', inplace=True)
-                    df_combined.to_csv(ADflow_out_file, index=False)
+                    df_combined.to_csv(refinement_level_csv_out_file, index=False)
                     
                     # Add csv file location to the overall simulation out file
-                    refinement_level_dict['csv_file'] = ADflow_out_file
-                    refinement_level_dict['refinement_out_dir'] = refinement_level_dir
+                    refinement_level_dict['csv_file'] = refinement_level_csv_out_file
+                    refinement_level_dict['refinement_out_dir'] = refinement_out_dir
 
                     # Add refinement level dict to scenario level dict
                     scenario_sim_info[f"{mesh_file}"] = refinement_level_dict
                 ################################# End of refinement loop ########################################
 
                 # Add scenario level simulation to the overall simulation out file
-                scenario_out_dir = os.path.dirname(refinement_level_dir)
-                scenario_sim_info['scenario_out_dir'] = scenario_out_dir
                 sim_out_info['hierarchies'][hierarchy]['cases'][case]['scenarios'][scenario]['sim_info'] = scenario_sim_info
 
                 if os.path.exists(scenario_info_fpath): # Remove the scenario_info yaml file
