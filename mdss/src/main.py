@@ -3,17 +3,14 @@ import time
 import copy
 from datetime import date, datetime
 
-import pandas as pd
-import numpy as np
 import yaml
 import matplotlib.pyplot as plt
-import matplotlib.cm as cm
 from matplotlib.lines import Line2D
 from matplotlib.legend import Legend
 import niceplots
 from mpi4py import MPI
 
-from mdss.utils.helpers import load_yaml_file, load_csv_data, make_dir, print_msg, MachineType
+from mdss.utils.helpers import load_yaml_input, load_csv_data, make_dir, print_msg, MachineType, YAMLInputType
 from mdss.src.main_helper import execute, submit_job_on_hpc
 from mdss.resources.misc_defaults import def_plot_options
 from mdss.resources.yaml_config import ref_plot_options, check_input_yaml
@@ -29,29 +26,35 @@ class simulation():
 
     Inputs
     ----------
-    - **info_file** : str
-        Path to the YAML file containing simulation configuration and information.
-    
-    Methods
-    -------
-    **run()**
-        Helps to execute the simulation on either a local machine or an HPC.
+    - **yaml_input** : str
+        Path to the YAML file or raw YAML string containing simulation configuration and information.
     """
 
-    def __init__(self, info_file):
-        # Validate the input yaml file
-        check_input_yaml(info_file)
+    def __init__(self, yaml_input: str):
+        check_input_yaml(yaml_input)  # Validate the input yaml file
         msg = f"YAML file validation is successful"
         print_msg(msg, None, comm)
 
-        self.info_file = info_file
-        self.sim_info = load_yaml_file(self.info_file, comm)
+        self.sim_info, self.yaml_input_type = load_yaml_input(yaml_input, comm)
         self.out_dir = os.path.abspath(self.sim_info['out_dir'])
+
+        if self.yaml_input_type == YAMLInputType.FILE:
+            self.info_file = yaml_input
+        elif self.yaml_input_type == YAMLInputType.STRING:
+            self.info_file = os.path.join(self.out_dir, "input.yaml")
+            with open(self.info_file, 'w') as f:
+                yaml.dump(self.sim_info, f, sort_keys=False)
+
         self.machine_type = MachineType.from_string(self.sim_info['machine_type'])  # Convert string to enum
         # Additional options
         self.final_out_file = os.path.join(self.out_dir, "overall_sim_info.yaml") # Set the overall simulation info file name.
         self.subprocess_flag = True # To toggle opting subprocess.
         self.record_subprocess = False # To toggle to record subprocess output.
+        
+        if self.machine_type == MachineType.HPC:
+            self.submit_job = True # Toggle to run directly without submitting a Job. Intended for testing in interactive mode.
+            self.wait_for_job = False # To toggle to wait for the job to finish.
+
 
         # Create the output directory if it doesn't exist
         make_dir(self.out_dir, comm)
@@ -76,7 +79,10 @@ class simulation():
             execute(self)
 
         elif self.machine_type == MachineType.HPC: # Running on a HPC currently supports Great Lakes.
-            submit_job_on_hpc(sim_info_copy, self.info_file, comm) # Submit job script
+            if self.submit_job:
+                job_id = submit_job_on_hpc(sim_info_copy, self.info_file, self.wait_for_job, comm) # Submit job script
+            else:
+                execute(self)
 
                        
 ################################################################################
@@ -91,36 +97,16 @@ class post_process:
     based on the simulation configuration provided via a YAML file.
 
     Inputs
-    ------
+    ------ 
     - **out_dir**: str  
         Path to the output directory. The output directory should contain the final out file from the simulation.
-
-    Methods
-    -------
-    - **gen_case_plots()**  
-        Generates case-wise plots comparing experimental and simulation results across scenarios and refinement levels.
-
-    - **compare_scenarios(scenarios_list, plt_name)**  
-        Generates a combined plot comparing selected scenarios across multiple hierarchies and cases.
-
-    - **_add_plot_from_csv(axs, csv_file, **kwargs)**  
-        Adds a single line plot for C<sub>L</sub> and C<sub>D</sub> from a CSV file to existing subplots.
-
-    - **_add_scenario_level_plots(axs, scenario_name, exp_data, mesh_files, scenario_out_dir, **kwargs)**  
-        Adds plots for a given scenario, including experimental and refinement-level simulation results.
-
-    - **_create_fig(title, niceplots_style=None)**  
-        Initializes and returns a styled matplotlib figure with two subplots.
-
-    - **_get_marker_style(idx)**  
-        Returns a marker style based on the index, used to distinguish between scenarios visually.
     """
 
     def __init__(self, out_dir: str, plot_options: dict={}):
         self.out_dir = os.path.abspath(out_dir)
         self.final_out_file = os.path.join(self.out_dir, "overall_sim_info.yaml") # Setting the overall simulation info file.
         try:
-            self.sim_out_info = load_yaml_file(self.final_out_file, comm)
+            self.sim_out_info,_ = load_yaml_input(self.final_out_file, comm)
         except:
             msg = f"{self.final_out_file} does not exist. Make sure it is the right output directory."
             print_msg(msg, None, comm)
@@ -144,6 +130,8 @@ class post_process:
         --------
         - *PNG File*:
             A comparison plot showing C<sub>L</sub> and C<sub>D</sub> vs Alpha for all scenarios and refinement levels of a case.  
+        - *PNG File*:
+            A comparison plot showing C_L and C<sub>D</sub> vs Alpha for all scenarios and refinement levels of a case.  
             The file is saved in the scenario output directory for each case using the case name.
 
         Notes
@@ -162,11 +150,14 @@ class post_process:
                 colors = self.plot_options.colors
                 if not colors:  # Checks if the list is empty
                     colors = niceplots.get_colors_list()
+                colors = self.plot_options.colors
+                if not colors:  # Checks if the list is empty
+                    colors = niceplots.get_colors_list()
                 for scenario, scenario_info in enumerate(case_info['scenarios']): # loop for scenarios that may present
                     scenario_out_dir = scenario_info['sim_info']['scenario_out_dir']
                     plot_args = {
                         'label': scenario_info['name'].replace("_", " ").upper(),
-                        'color': colors[scenario]
+                        'color': colors[scenario],
                     }
                     # To generate plots comparing the refinement levels
                     scenario_legend_entry = self._add_scenario_level_plots(axs, scenario_info['name'], scenario_info.get('exp_data', None), case_info['mesh_files'], scenario_out_dir, **plot_args)
@@ -181,6 +172,7 @@ class post_process:
         Generates a combined plot comparing specific scenarios across hierarchies and cases.
 
         This method creates a figure with two subplots: one for C<sub>L</sub> vs Alpha and another for C<sub>D</sub> vs Alpha.
+        This method creates a figure with two subplots: one for C<sub>L</sub> vs Alpha and another for C<sub>D</sub> vs Alpha.
         It overlays selected scenarios (across different cases and hierarchies) and creates a shared legend
         to highlight which scenario each marker represents.
 
@@ -189,16 +181,18 @@ class post_process:
         - **custom_compare_info**: dict  
             A dictionary defining the scenarios to be compared.  
             The structure of the dictionary should be:
-            ```python
-            {
-                "hierarchy_name": {
-                    "case_name": {
-                        "scenarios": ["scenario_name_1", "scenario_name_2"],
-                        "mesh_files": ["mesh_level_1", "mesh_level_2"]  # Optional
+
+            .. code:: python
+
+                {
+                    "hierarchy_name": {
+                        "case_name": {
+                            "scenarios": ["scenario_name_1", "scenario_name_2"],
+                            "mesh_files": ["mesh_level_1", "mesh_level_2"]  # Optional
+                        }
                     }
                 }
-            }
-            ```
+            
             - *hierarchy_name*: str  
                 Name of the hierarchy the scenario belongs to.
             - *case_name*: str  
@@ -370,7 +364,7 @@ class post_process:
         Notes
         ------
         - Experimental data will only be plotted if the provided `exp_data` file is valid.
-        - Simulation results are expected to be located in `${scenario_out_dir}/${mesh_file}/ADflow_output.csv`.
+        - Simulation results are expected to be located in `${scenario_out_dir}/${mesh_file}/f"{mesh_file}_output.csv"`.
         """
         scenario_label = scenario_name.replace("_", " ")
 
@@ -391,7 +385,7 @@ class post_process:
             self._add_plot_from_csv(axs, exp_data, **exp_args)
         for ii, mesh_file in enumerate(mesh_files): # Loop for refinement levels
             refinement_level_dir = os.path.join(scenario_out_dir, f"{mesh_file}")
-            ADflow_out_file = os.path.join(refinement_level_dir, "ADflow_output.csv")
+            refinement_level_csv_out_file = os.path.join(refinement_level_dir, f"{mesh_file}_output.csv")
             # Update kwargs
             plot_args = {
                     'label': f"{label} - {mesh_file}",
@@ -400,7 +394,7 @@ class post_process:
                     'marker': self._get_marker_style(ii),
                     'markersize': markersize,
                 }
-            self._add_plot_from_csv(axs, ADflow_out_file, **plot_args) # To add simulation data to the plots
+            self._add_plot_from_csv(axs, refinement_level_csv_out_file, **plot_args) # To add simulation data to the plots
         
         scenario_legend_entry = Line2D([0], [0], marker=marker, color=color, linestyle='', markersize=markersize, label=label) # Create a legend entry for the scenario
         return scenario_legend_entry
@@ -440,14 +434,12 @@ class post_process:
         fig, axs = plt.subplots(1, 2, figsize=(14, 6), layout="constrained")
         fig.suptitle(title)
 
-        titles = ['$C_L$ vs Alpha', '$C_D$ vs Alpha']
         ylabels = ['$C_L$', '$C_D$']
 
-        for ax, subplot_title, ylabel in zip(axs, titles, ylabels):
-            ax.set_title(subplot_title)
-            ax.set_xlabel('Alpha (deg)')
-            ax.set_ylabel(ylabel)
-            ax.grid(True)
+        for ax, ylabel in zip(axs, ylabels):
+            ax.set_xlabel('Alpha (deg)', fontsize=18)
+            ax.set_ylabel(ylabel, fontsize=18)
+            ax.grid(False)
 
         return fig, axs
     
@@ -470,7 +462,7 @@ class post_process:
                             bbox_to_anchor=(1.0, 0.75),
                             title='Meshes',
                             frameon=True,
-                            fontsize=10,
+                            fontsize=18,
                             labelspacing=0.3)
 
         #fig.add_artist(scenario_legend)

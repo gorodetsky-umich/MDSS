@@ -39,16 +39,14 @@ execute(sim) # Run the simulation
 ################################################################################
 gl_job_script = """#!/bin/bash
 #SBATCH --job-name={job_name}
+#SBATCH --account={account_name}
+#SBATCH --partition={partition}
+#SBATCH --time={time}
 #SBATCH --nodes={nodes}
 #SBATCH --ntasks={nproc}
-#SBATCH --ntasks-per-node=36
-#SBATCH --cpus-per-task=1
-#SBATCH --exclusive
+#SBATCH --ntasks-per-node={nproc_per_node}
 #SBATCH --mem-per-cpu={mem_per_cpu}
-#SBATCH --time={time}
-#SBATCH --account={account_name}
-#SBATCH --partition=standard
-#SBATCH --mail-type=BEGIN,END,FAIL
+#SBATCH --mail-type={mail_types}
 #SBATCH --mail-user={email_id}
 #SBATCH --output={out_file}
 

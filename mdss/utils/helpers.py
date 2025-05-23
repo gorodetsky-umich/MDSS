@@ -61,6 +61,32 @@ class MachineType(Enum):
         raise ValueError(f"Unknown machine type: {machine_name}")
 
 ################################################################################
+# Input YAML type
+################################################################################
+class YAMLInputType(Enum):
+    """
+    Enum representing the type of YAML input: either a file or a string.
+
+    Attributes
+    ----------
+    - **FILE** (YAMLInputType): Input is a path to a YAML file.
+    - **STRING** (YAMLInputType): Input is a raw YAML-formatted string.
+    """
+    FILE = 1, ["file", "FILE", "File", "yaml_file", "YAML_FILE", "path"]
+    STRING = 2, ["string", "STRING", "String", "yaml_string", "YAML_STRING", "raw"]
+
+    def __init__(self, id, aliases):
+        self.id = id
+        self.aliases = aliases
+
+    @classmethod
+    def from_string(cls, input_type):
+        for member in cls:
+            if input_type in member.aliases:
+                return member
+        raise ValueError(f"Unknown YAML input type: {input_type}")
+
+################################################################################
 # Helper Functions
 ################################################################################
 def print_msg(msg, msg_type, comm=None):
@@ -107,17 +133,17 @@ def make_dir(dir_path, comm=None):
         if comm is None or comm.rank == 0:
             os.makedirs(dir_path)
 
-def load_yaml_file(yaml_file, comm):
+def load_yaml_input(yaml_input, comm=None):
     """
     Loads a YAML file and returns its content as a dictionary.
 
-    This function attempts to read the specified YAML file and parse its content into a Python dictionary. If the file cannot be loaded due to errors, it provides a detailed error message.
+    This function attempts to load YAML either from a provided file path or directly from a YAML-formatted string. It returns the parsed content as a Python dictionary. If errors occur, it logs them using the provided MPI communicator.
 
     Inputs
     ------
-    - **yaml_file** : str
-        Path to the YAML file to be loaded.
-    - **comm** : MPI communicator  
+    - **yaml_input** : str
+        Path to the YAML file or a raw yaml string to be loaded.
+    - **comm** : MPI communicator, optional  
         An MPI communicator object to handle parallelism.
 
     Outputs
@@ -125,24 +151,27 @@ def load_yaml_file(yaml_file, comm):
     - **dict or None**
         A dictionary containing the content of the YAML file if successful, or None if an error occurs.
     """
+    comm_rank = getattr(comm, "rank", 0)
     try:
-        # Attempt to open and read the YAML file
-        with open(yaml_file, 'r') as file:
-            dict_info = yaml.safe_load(file)
-        return dict_info
-    except FileNotFoundError:
-        # Handle the case where the YAML file is not found
-        if comm.rank == 0:  # Only the root process prints this error
-            print(f"FileNotFoundError: The info file '{yaml_file}' was not found.")
+        if isinstance(yaml_input, str) and yaml_input.strip().lower().endswith(('.yaml', '.yml')):
+            if not os.path.isfile(yaml_input):
+                if comm.rank == 0:
+                    print(f"FileNotFoundError: The info file '{yaml_input}' was not found.")
+                return None
+            with open(yaml_input, 'r') as file:
+                dict_info = yaml.safe_load(file)
+            return dict_info, YAMLInputType.FILE
+        else:
+            dict_info = yaml.safe_load(yaml_input)
+            return dict_info, YAMLInputType.STRING
+
     except yaml.YAMLError as ye:
-        # Errors in YAML parsing
-        if comm.rank == 0:  # Only the root process prints this error
-            print(f"YAMLError: There was an issue reading '{yaml_file}'. Check the YAML formatting. Error: {ye}")
+        if comm_rank == 0:
+            print(f"YAMLError: Issue reading YAML input. Check formatting. Error: {ye}")
     except Exception as e:
-        # General error catch in case of other unexpected errors
-        if comm.rank == 0:  # Only the root process prints this error
-            print(f"An unexpected error occurred while loading the info file: {e}")
-    return None
+        if comm_rank == 0:
+            print(f"Unexpected error occurred while loading YAML: {e}")
+    return None, None
 
 def load_csv_data(csv_file, comm):
     """
