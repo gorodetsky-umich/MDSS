@@ -24,9 +24,8 @@ hierarchies:
       areaRef: 1.0
     aero_options:
       useANKSolver: true
-      nSubiterTurb: 20
+      nSubiterTurb: 3
       useNKSolver: false
-      NKSwitchTol: 1.0e-06
       ANKCoupledSwitchTol: 0.001
       ANKSecondOrdSwitchTol: 1.0e-12
       L2Convergence: 1.0e-08
@@ -34,8 +33,10 @@ hierarchies:
     scenarios:
     - name: cruise_1
       aoa_list:
-      - 0
-      - 5
+        - -0.05
+        - 2.05
+        - 4.04
+        - 6.09
       reynolds: 1000000.0
       mach: 0.7
       T: 298.0

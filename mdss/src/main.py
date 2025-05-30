@@ -24,9 +24,9 @@ class simulation():
 
     This class sets up and runs aerodynamic and/or aerostructural simulations based on input parameters provided via a YAML configuration file. It validates the input, manages directories, and handles outputs, including summary files. The simulations are run using subprocesses.
 
-    Inputs
+    Parameters
     ----------
-    - **yaml_input** : str
+    yaml_input: str
         Path to the YAML file or raw YAML string containing simulation configuration and information.
     """
 
@@ -36,7 +36,8 @@ class simulation():
         print_msg(msg, None, comm)
 
         self.sim_info, self.yaml_input_type = load_yaml_input(yaml_input, comm)
-        self.out_dir = os.path.abspath(self.sim_info['out_dir'])
+        self.sim_info['out_dir'] = os.path.abspath(self.sim_info['out_dir'])
+        self.out_dir = self.sim_info['out_dir']
 
         if self.yaml_input_type == YAMLInputType.FILE:
             self.info_file = yaml_input
@@ -93,12 +94,12 @@ class post_process:
     Performs post-processing operations for simulation results.
 
     This class provides functionality to visualize and compare aerodynamic performance data
-    such as Lift Coefficient (C<sub>L</sub>) and Drag Coefficient (C<sub>D</sub>) against Angle of Attack (Alpha),
+    such as Lift Coefficient (:math:`C_L`) and Drag Coefficient (:math:`C_D`) against Angle of Attack (Alpha),
     based on the simulation configuration provided via a YAML file.
 
-    Inputs
-    ------ 
-    - **out_dir**: str  
+    Parameters
+    ----------
+    out_dir: str  
         Path to the output directory. The output directory should contain the final out file from the simulation.
     """
 
@@ -122,17 +123,13 @@ class post_process:
         Generates plots comparing experimental data with simulation results for each case and hierarchy.
 
         This method loops through all hierarchies, cases, and scenarios in the simulation output,
-        and generates side-by-side plots of C<sub>L</sub> and C<sub>D</sub> versus Angle of Attack (Alpha) for each case.
+        and generates side-by-side plots of :math:`C_L` and :math:`C_D` versus Angle of Attack (Alpha) for each case.
         Each scenario is plotted using a distinct marker, and each mesh refinement level is plotted using a different color.
         Experimental data, if provided, is overlaid for validation.
 
-        Outputs
+        Returns
         --------
-        - *PNG File*:
-            A comparison plot showing C<sub>L</sub> and C<sub>D</sub> vs Alpha for all scenarios and refinement levels of a case.  
-        - *PNG File*:
-            A comparison plot showing C_L and C<sub>D</sub> vs Alpha for all scenarios and refinement levels of a case.  
-            The file is saved in the scenario output directory for each case using the case name.
+        A comparison plot showing :math:`C_L` and :math:`C_D` vs Alpha for all scenarios and refinement levels of a case. The file is saved in the scenario output directory for each case using the case name.
 
         Notes
         ------
@@ -171,16 +168,15 @@ class post_process:
         """
         Generates a combined plot comparing specific scenarios across hierarchies and cases.
 
-        This method creates a figure with two subplots: one for C<sub>L</sub> vs Alpha and another for C<sub>D</sub> vs Alpha.
-        This method creates a figure with two subplots: one for C<sub>L</sub> vs Alpha and another for C<sub>D</sub> vs Alpha.
+        This method creates a figure with two subplots: one for :math:`C_L` vs Alpha and another for :math:`C_D` vs Alpha.
+        This method creates a figure with two subplots: one for :math:`C_L` vs Alpha and another for :math:`C_D` vs Alpha.
         It overlays selected scenarios (across different cases and hierarchies) and creates a shared legend
         to highlight which scenario each marker represents.
 
-        Inputs
-        -------
-        - **custom_compare_info**: dict  
-            A dictionary defining the scenarios to be compared.  
-            The structure of the dictionary should be:
+        Parameters
+        ----------
+        custom_compare_info: dict  
+            A dictionary defining the scenarios to be compared. The structure of the dictionary should be:
 
             .. code:: python
 
@@ -202,14 +198,12 @@ class post_process:
             - *mesh_files*: list[str], optional  
                 List of mesh refinement levels to include for that scenario. If not specified, defaults to all mesh files under the case.
 
-        - **plt_name**: str  
+        plt_name: str  
             Name used for the plot title and the saved file name (PNG format).
 
-        Outputs
+        Returns
         --------
-        - **PNG File**:
-            A side-by-side comparison plot showing C<sub>L</sub> and C<sub>D</sub> vs Alpha for all selected scenarios.  
-            The plot is saved in the output directory specified during initialization.
+        A side-by-side comparison plot showing :math:`C_L` and :math:`C_D` vs Alpha for all selected scenarios. The plot is saved in the output directory specified during initialization.
 
         Notes
         ------
@@ -266,18 +260,18 @@ class post_process:
         """
         Adds a plot of Angle of Attack vs Lift and Drag Coefficients from a CSV file.
 
-        This method expects two subplots: one for C<sub>L</sub> (Lift Coefficient) vs Alpha, and one for C<sub>D</sub> (Drag Coefficient) vs Alpha.
+        This method expects two subplots: one for :math:`C_L` (Lift Coefficient) vs Alpha, and one for :math:`C_D` (Drag Coefficient) vs Alpha.
         The CSV must contain the columns: 'Alpha', 'CL', and 'CD'.
 
-        Inputs
-        -------
-        - **axs**: list[matplotlib.axes._subplots.AxesSubplot]
-            A list of two matplotlib axes. axs[0] is used for plotting C<sub>L</sub> vs Alpha, and axs[1] for C<sub>D</sub> vs Alpha.
+        Parameters
+        ----------
+        axs: list[matplotlib.axes._subplots.AxesSubplot]
+            A list of two matplotlib axes. axs[0] is used for plotting :math:`C_L` vs Alpha, and axs[1] for :math:`C_D` vs Alpha.
         
-        - **csv_file**: str
+        csv_file: str
             Path to the CSV file containing simulation or experimental data. The file must have 'Alpha', 'CL', and 'CD' columns.
         
-        - ****kwargs**:
+        **kwargs: dict
             Optional keyword arguments to customize the plot appearance.
                 - *label* : str  
                     Label for the plotted line (used in legends). Default is None.
@@ -288,11 +282,11 @@ class post_process:
                 - *marker* : str  
                     Marker style for the data points. Default is 's'.
 
-        Outputs
+        Returns
         --------
-        - **Adds plot lines to the existing subplots**:
-            - axs[0] will have a line for C<sub>L</sub> vs Alpha.
-            - axs[1] will have a line for C<sub>D</sub> vs Alpha.
+        Adds plot lines to the existing subplots:
+            - axs[0] will have a line for :math:`C_L` vs Alpha.
+            - axs[1] will have a line for :math:`C_D` vs Alpha.
 
         Notes
         ------
@@ -326,24 +320,24 @@ class post_process:
         - Loops over mesh refinement levels and plots ADflow results from each mesh file.
         - Creates a `Line2D` entry for the scenario to be used in an external legend.
 
-        Inputs
-        -------
-        - **axs**: list[matplotlib.axes._subplots.AxesSubplot]  
-            A list of two matplotlib axes. axs[0] is for C<sub>L</sub> vs Alpha, and axs[1] is for C<sub>D</sub> vs Alpha.
+        Parameters
+        ----------
+        axs: list[matplotlib.axes._subplots.AxesSubplot]  
+            A list of two matplotlib axes. axs[0] is for :math:`C_L` vs Alpha, and axs[1] is for :math:`C_D` vs Alpha.
 
-        - **scenario_name**: str  
+        scenario_name: str  
             Name of the scenario, used for labeling and legend entry.
 
-        - **exp_data**: str or None  
+        exp_data: str or None  
             Path to the experimental data CSV file. If None, no experimental data is plotted.
 
-        - **mesh_files**: list[str]  
+        mesh_files: list[str]  
             List of mesh refinement levels to be plotted (e.g., ['coarse', 'medium', 'fine']).
 
-        - **scenario_out_dir**: str  
+        scenario_out_dir: str  
             Path to the scenario's output directory, where refinement-level folders are located.
 
-        - ****kwargs**:
+        **kwargs: dict
             Optional styling arguments passed to `_add_plot_from_csv()`:
                 - *label* : str  
                     Label for the scenario used in the external legend. Defaults to a cleaned version of `scenario_name`.
@@ -356,9 +350,9 @@ class post_process:
                 - *markersize* : int  
                     Size of the legend marker. Defaults to 10.
 
-        Outputs
+        Returns
         --------
-        - **scenario_legend_entry**: matplotlib.lines.Line2D  
+        scenario_legend_entry: matplotlib.lines.Line2D  
             A legend entry representing the scenario (based on marker and label) to be added to the external legend.
 
         Notes
@@ -401,25 +395,25 @@ class post_process:
     
     def _create_fig(self, title, niceplots_style=None):
         """
-        Creates a matplotlib figure with subplots for C<sub>L</sub> and C<sub>D</sub> vs Alpha.
+        Creates a matplotlib figure with subplots for :math:`C_L` and :math:`C_D` vs Alpha.
 
         This method initializes the figure layout and applies consistent niceplots styling.
 
-        Inputs
-        -------
-        - **title**: str  
+        Parameters
+        ----------
+        title: str  
             Title to be shown at the top of the figure.
         
-        - **niceplots_style**: str or None  
+        niceplots_style: str or None  
             Optional name of the niceplots style to apply. If None, uses `self.niceplots_style`.
 
-        Outputs
+        Returns
         --------
-        - **fig**: matplotlib.figure.Figure  
+        fig: matplotlib.figure.Figure  
             The created figure object.
 
-        - **axs**: list[matplotlib.axes._subplots.AxesSubplot]  
-            A list of two subplots for plotting C<sub>L</sub> and C<sub>D</sub> vs Alpha.
+        axs: list[matplotlib.axes._subplots.AxesSubplot]  
+            A list of two subplots for plotting :math:`C_L` and :math:`C_D` vs Alpha.
 
         Notes
         ------
@@ -444,6 +438,18 @@ class post_process:
         return fig, axs
     
     def _set_legends(self, fig, axs, scenario_legend_entries):
+        """
+        Sets legends to the plots.
+
+        Parameters
+        ----------
+        fig: matplotlib.figure.Figure  
+            The created figure object.
+
+        axs: list[matplotlib.axes._subplots.AxesSubplot]  
+            A list of two subplots for plotting :math:`C_L` and :math:`C_D` vs Alpha.
+
+        """
 
         mesh_handles, mesh_labels = axs[0].get_legend_handles_labels()
         # Create the legends
@@ -476,14 +482,14 @@ class post_process:
         Function to loop though the marker styles listed here.
         Add more if needed.
 
-        Inputs
-        -------
-        - **idx**: int
+        Parameters
+        ----------
+        idx: int
             Index of the current loop
         
-        Outputs
+        Returns
         --------
-        - **Marker Style**: str
+        Marker Style: str
             Marker style for the current index
         """
         markers = ['s', 'o', '^', 'v','X', 'P', '.', 'H', 'p', '*', 'h', '+', 'x']

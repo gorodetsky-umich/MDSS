@@ -26,7 +26,6 @@ default_aero_options_aerodynamic = {
     "MGStartLevel": -1,
     # ANK Solver Parameters
     "useANKSolver": True,
-    "nSubiterTurb": 5,
     # Termination Criteria
     "L2Convergence": 1e-12,
     "L2ConvergenceCoarse": 1e-2,

@@ -29,8 +29,8 @@ class update_yaml_input():
     """
     Modifies the YAML input.
 
-    Inputs
-    ------
+    Parameters
+    ----------
     - **info_file** : str
         Path to the YAML file containing simulation configuration and information.
     """
@@ -52,12 +52,12 @@ class update_yaml_input():
         """
         Modifies the aero options in the YAML input.
 
-        Inputs
-        ------
-        - **aero_options_updt** : dict
-            A  dictionary containg the aero options to modify.
+        Parameters
+        ----------
+        aero_options_updt: dict
+            A  dictionary containing the aero options to modify.
         
-        - **case_names**: list[str]
+        case_names: list[str]
             A list containing the names of the cases to modify.
             
         """
@@ -69,18 +69,19 @@ class update_yaml_input():
     
     def aero_meshes(self, mesh_files, case_names, option,  meshes_folder_path=None):
         """
-        Adds mesh files to specifies cases and optionally modifies the path to the folder contating meshes, when provided.
-        Inputs
-        ------
-        - **mesh_files**: list[str]
+        Adds mesh files to specifies cases and optionally modifies the path to the folder containing meshes, when provided.
+        
+        Parameters
+        ----------
+        mesh_files: list[str]
             A list containing the mesh file names to append or modify or remove.
-        - **case_names**: list[str]
+        case_names: list[str]
             A list containing the names of the cases to modify.
-        - **option**: str
+        option: str
             'a' to append (add the given aoa to the existing list)
             'm' to modify the list (to overwrite)
             'r' to remove the aoa from the file.
-        - **meshes_folder_path**: str, optional
+        meshes_folder_path: Optional[str]
             Path to the folder containing meshes
         """
         for hierarchy, hierarchy_info in enumerate(self.sim_info['hierarchies']): # loop for Hierarchy level
@@ -100,18 +101,18 @@ class update_yaml_input():
         """
         Appends, removes and modifies the Angles of Attack listed in `scenario`.
 
-        Inputs
-        ------
-        - **aoa_list** : list
-            A list containg aoa to append or modify or remove.
+        Parameters
+        ----------
+        aoa_list: list
+            A list containing aoa to append or modify or remove.
         
-        - **case_names**: list[str]
+        case_names: list[str]
             A list containing the names of the cases to modify.
         
-        - **scenario_names**: list[str]
+        scenario_names: list[str]
             A list containing the name of the scenarios to modify.
 
-        - **option**: str
+        option: str
             'a' to append (add the given aoa to the existing list)
             'm' to modify the list (to overwrite)
             'r' to remove the aoa from the file.
@@ -132,9 +133,9 @@ class update_yaml_input():
         """
          Writes the modified input file.
 
-        Inputs
-        ------
-        - **fname** : str, Optional
+        Parameters
+        ----------
+        new_fname: Optional[str]
             New file name along with the path. Overwrites the original file, when a new name is not provided.
         """
         if comm.rank == 0:
@@ -145,6 +146,8 @@ class update_yaml_input():
 
     def return_yaml_string(self):
         """
+        Returns
+        -------
         Returns the YAML string representation of the simulation information.
         """
         return yaml.dump(self.sim_info, sort_keys=False)
@@ -167,14 +170,14 @@ def get_sim_data(yaml_input):
     nested dictionary (`sim_data`) with details about simulation hierarchies, cases,
     scenarios, refinement levels, and angles of attack.
 
-    Inputs
-    ------
-    - **yaml_input** : str
+    Parameters
+    ----------
+    yaml_input: str
         Path to the input YAML file or raw YAML string containing simulation information or configuration.
 
-    Outputs
+    Returns
     -------
-    **sim_data**: dict
+    sim_data: dict
         A dictionary containing simulation data.
     """
     check_input_yaml(yaml_input)
@@ -184,7 +187,7 @@ def get_sim_data(yaml_input):
     sim_data = {} # Initiating a dictionary to store simulation data
 
     if 'overall_sim_info' in sim_info.keys():  # if the file is output info file, loads the overall_sim_info.yaml
-        print_msg(f"File provided is an ouput yaml file. Continuing to read data", 'notice', comm)
+        print_msg(f"File provided is an output yaml file. Continuing to read data", 'notice', comm)
         overall_sim_info = sim_info
     else:
         print_msg(f"File provided is an input yaml file. Checking for existing simulation results in {sim_info['out_dir']}", 'notice', comm)
@@ -248,9 +251,9 @@ class custom_sim(simulation):
     It sets up and executes a simulation based on the provided case information.
     It validates the input, prepares a temporary directory for files, and cleans up after the run.
 
-    Inputs
-    ------
-    - **yaml_input**: str
+    Parameters
+    ----------
+    yaml_input: str
         The YAML file path or raw YAML string for the simulation.
 
     Notes
@@ -259,6 +262,7 @@ class custom_sim(simulation):
     - Deletes the temporary directory after the simulation run.
     """
     def __init__(self, yaml_input:str, out_dir:str=None):
+        self.yaml_input = yaml_input
         super().__init__(yaml_input)  # Leverages validation, parsing, and setup from `simulation`
         if comm.rank == 0:
             if os.path.exists(self.sim_info['out_dir']) and not os.listdir(self.sim_info['out_dir']):  # Check if the output directory exits and is empty
@@ -266,10 +270,11 @@ class custom_sim(simulation):
     
     def run(self, case_info):
         """
-        Inputs
+        Parameters
         ----------
-        - **case_info**: dict
+        case_info: dict
             A dictionary containing the case information. It should follow the structure defined by the `ref_case_info` class:
+            
             - `out_dir` (str): Path to the output directory.
             - `meshes_folder_path` (str): Path to the directory containing mesh files.
             - `mesh_files` (list[str]): List of mesh file names.
@@ -342,13 +347,25 @@ class custom_sim(simulation):
         # Call the parent class's run method to execute the simulation
         super().run()  
 
+        comm.Barrier() 
+
         # Read the simulation data from the final output file
         if os.path.exists(self.final_out_file):
             sim_data = get_sim_data(self.final_out_file)
+        else:
+            raise FileNotFoundError(f"Expected output file not found: {self.final_out_file}")
 
+        sim_data = comm.bcast(sim_data, root=0)
+        comm.Barrier()  # Ensure all ranks are done reading
+        
         # Cleanup temp directory if created
         if 'out_dir' not in case_info and comm.rank == 0:
             shutil.rmtree(self.out_dir)
 
+        # Reset sim_info
+        self.sim_info, self.yaml_input_type = load_yaml_input(self.yaml_input, comm)
+        self.sim_info['out_dir'] = os.path.abspath(self.sim_info['out_dir'])
+        self.out_dir = self.sim_info['out_dir']
+        
         return sim_data
         

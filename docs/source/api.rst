@@ -6,3 +6,6 @@ API
 
 .. automodule:: mdss.src.main_helper
     :members:
+
+.. automodule:: mdss.utils.utils
+    :members:

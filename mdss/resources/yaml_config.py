@@ -71,7 +71,7 @@ class ref_struct_properties(BaseModel):
     E: float=None       # Young's modulus in N/m^2
     nu: float=None      # Poisson's ratio
     kcorr: float=None   # Shear correction factor
-    ys: float=None      # Yeild stress
+    ys: float=None      # Yield stress
 
 class ref_load_info(BaseModel):
     g: Optional[list[float]]=None
@@ -97,7 +97,7 @@ class ref_case_info(BaseModel):
     scenarios: list[ref_scenario_info]
 
     @model_validator(mode = 'before')
-    def file_existance_checks(cls, values):
+    def file_existence_checks(cls, values):
         # To Check if correct problem type is assigned
         try:
             cls.problem_type = ProblemType.from_string(values.get('problem'))  # Convert string to enum
@@ -219,14 +219,14 @@ def check_input_yaml(yaml_input):
 
     This function checks whether the YAML input conforms to the expected template structure. It validates each section, including simulation, HPC, hierarchies, cases, and scenarios.
 
-    Inputs
+    Parameters
     ----------
-    - **yaml_file** : str
-        Path to the YAML file to be validated.
+    yaml_input: str
+        YAML string or Path to the YAML file to be validated.
 
-    Outputs
-    ------
-    **ValidationError**
+    Returns
+    -------
+    ValidationError
         If the YAML file does not conform to the expected structure.
 
     Notes

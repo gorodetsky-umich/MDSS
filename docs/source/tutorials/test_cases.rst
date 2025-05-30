@@ -15,7 +15,7 @@ Hierarchy: 2D Clean
 Case: NACA 0012
 ~~~~~~~~~~~~~~~
 
-**Geomerty Info:**
+**Geometry Info:**
 
 .. code:: yaml
 
@@ -60,7 +60,7 @@ Hierarchy: 2D High-Lift
 Case: Mc Donnell Dolugas 30P-30N
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-**Geomerty Info:**
+**Geometry Info:**
 
 .. code:: yaml
 
@@ -108,7 +108,7 @@ Hierarchy: 3D Clean
 Case: NASA Common Research Model, Clean Configuration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-**Geomerty Info:**
+**Geometry Info:**
 
 .. code:: yaml
 
@@ -173,7 +173,7 @@ Hierarchy: Aerostructural
 Case: Mach Aero Wing
 ~~~~~~~~~~~~~~~~~~~~
 
-**Geomerty Info:**
+**Geometry Info:**
 
 .. code:: yaml
 

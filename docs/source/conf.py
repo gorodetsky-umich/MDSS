@@ -1,3 +1,4 @@
+# from sphinx_mdolab_theme.config import *  # Import MDOlab theme configuration
 # -- Path setup --------------------------------------------------------------
 
 # If extensions (or modules to document with autodoc) are in another directory,
@@ -21,6 +22,7 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.napoleon',      # For Google/NumPy style docstrings
     'sphinx.ext.viewcode',      # Adds links to highlighted source code
+    'sphinx.ext.mathjax',  # For rendering mathematical expressions
     'sphinx_copybutton',
 ]
 
