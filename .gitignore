@@ -1,9 +1,22 @@
 output/
 **/__pycache__/
 /build/
+/docs/build/
 *.egg-info/
 # mkdocs documentation
 /site
+/old_docs
+mkdocs.yml
+*make.bat
+# Ignore CPython extension build artifacts
+*.cpython-*.so
+*.cpython-*.pyd
+*.cpython-*.pyc
+
+# Ignore CPython extension build artifacts
+*.cpython-*.so
+*.cpython-*.pyd
+*.cpython-*.pyc
 
 # Ignore CPython extension build artifacts
 *.cpython-*.so

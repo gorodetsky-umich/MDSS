@@ -10,7 +10,7 @@ import pandas as pd
 from mpi4py import MPI
 
 # Module imports
-from mdss.utils.helpers import ProblemType, MachineType, make_dir, print_msg, load_yaml_file, deep_update, load_csv_data
+from mdss.utils.helpers import ProblemType, MachineType, make_dir, print_msg, load_yaml_input, deep_update, load_csv_data
 from mdss.resources.templates import gl_job_script, python_code_for_hpc, python_code_for_subprocess
 try:
     from mdss.src.aerostruct import Problem
@@ -28,14 +28,19 @@ def execute(simulation):
     Runs the aerodynamic and/or aerostructural simulations as subprocesses.
 
     This method iterates through all hierarchies, cases, refinement levels, and angles of attack defined in the input YAML file. Runs the simulation by calling `aerostruct.py`, and stores the results.
+    
+    Parameters
+    ----------
+    simulation: mdss.src.main.simulation
+        Simulation class of MDSS
 
-    Outputs
+    Returns
     -------
-    - **A CSV file**:
+    A CSV file:
         Contains results for each angle of attack at the current refinement level.
-    - **A YAML file**:
+    A YAML file:
         Stores simulation data for each angle of attack in the corresponding directory.
-    - **A final YAML file**:
+    A final YAML file:
         Summarizes all simulation results across hierarchies, cases, and refinement levels.
 
     Notes
@@ -69,7 +74,7 @@ def execute(simulation):
             # Assign problem type
             problem_type = ProblemType.from_string(case_info['problem'])  # Convert string to enum
 
-            # Define case level outptut directory
+            # Define case level output directory
             case_out_dir = os.path.join(simulation.out_dir, hierarchy_info['name'], case_info['name'])
             make_dir(case_out_dir, comm)
             comm.Barrier()
@@ -91,8 +96,8 @@ def execute(simulation):
                 
                 # Extract the Angle of attacks for which the simulation has to be run
                 aoa_list = scenario_info['aoa_list']
-                aoa_csv_string = ",".join(map(str, [float(aoa) for aoa in aoa_list]))
                 scenario_sim_info = {} # Creating scenario level sim info dictionary for overall sim info file
+                scenario_sim_info['scenario_out_dir'] = scenario_out_dir
 
                 for ii, mesh_file in enumerate(case_info['mesh_files']): # Loop for refinement levels
                     # Print simulation info message
@@ -103,10 +108,12 @@ def execute(simulation):
                     CDList = []
                     TList = []
                     FList = [] # Fail flag list
+                    failed_aoa_list = [] # List to store the failed aoa
 
                     refinement_level_dict = {} # Creating refinement level sim info dictionary for overall sim info file
                     refinement_out_dir = os.path.join(scenario_out_dir, f"{mesh_file}")
                     make_dir(refinement_out_dir, comm)
+                    refinement_level_csv_out_file = os.path.join(refinement_out_dir, f"{mesh_file}_output.csv")
                     aero_grid_fpath = os.path.join(case_info['meshes_folder_path'], mesh_file)
                     # Add struct mesh file for aerostructural case else set it to none
                     if problem_type == ProblemType.AEROSTRUCTURAL:
@@ -114,15 +121,40 @@ def execute(simulation):
                     else:
                         struct_mesh_file = 'none'
 
-                    # Run subprocess
-                    # Initially running all the aoa in a subprocess. However the optimal number of aoa for single subprocess should be determined and modified accordingly.
-                    other_sim_info = {key: value for key, value in sim_info_copy.items() if key != 'hierarchies'} # To pass just the sim_info without hierarchies
-                    if simulation.subprocess_flag is True:
-                        run_as_subprocess(other_sim_info, case_info_fpath, scenario_info_fpath, refinement_out_dir, aoa_csv_string, aero_grid_fpath, struct_mesh_file,  comm, simulation.record_subprocess)
-                    elif simulation.subprocess_flag is False:
-                        problem = Problem(case_info_fpath, scenario_info_fpath, refinement_out_dir, aoa_csv_string, aero_grid_fpath, struct_mesh_file)
-                        problem.run()
-                    failed_aoa_list = [] # Initiate a list to store a list of aoa failed in this refinement level
+                    # Loop to check for existing successful simulations
+                    filtered_aoa_list = aoa_list.copy() # Copying the aoa_list to filter out the failed aoa later
+                    skipped_aoa_list = [] # List to store the skipped aoa due to existing successful simulation
+                    for aoa in aoa_list:
+                        aoa = float(aoa) # making sure aoa is a float
+                        aoa_out_dir = os.path.join(refinement_out_dir, f"aoa_{aoa}") # aoa output directory -- Written to store in the parent directory
+                        aoa_info_file = os.path.join(aoa_out_dir ,f"aoa_{aoa}.yaml") # name of the simulation info file at the aoa level directory
+                        # Checking for existing successful simulation info, 
+                        try:
+                            with open(aoa_info_file, 'r') as aoa_file: # open the simulation info file
+                                aoa_sim_info = yaml.safe_load(aoa_file)
+
+                            fail_flag = aoa_sim_info['fail_flag'] # Read the fail flag
+
+                            if fail_flag == 0: # Refers successful simulation and makes sure only the successful simulations are added to the csv file.
+                                filtered_aoa_list.remove(aoa) # Remove the aoa from the filtered aoa list
+                                skipped_aoa_list.append(aoa) # Add the aoa to the skipped aoa list
+                        except:
+                            continue
+                    
+                    filtered_aoa_csv_string = '"' + ",".join(map(str, [float(aoa) for aoa in filtered_aoa_list])) + '"' # Convert the filtered aoa list to a csv string
+                    skipped_aoa_csv_string = '"' + ",".join(map(str, [float(aoa) for aoa in skipped_aoa_list])) + '"' # Convert the skipped aoa list to a csv string
+                    if len(skipped_aoa_list) != 0: # If no aoa is left to run, then skip the simulation
+                        msg = f"Skipping the following AoA: {skipped_aoa_csv_string}\nReason: Existing successful simulation found"
+                        print_msg(msg, 'notice', comm)
+                    
+                    if len(filtered_aoa_list) != 0: # If no aoa is left to run, then skip the simulation
+                        # Initially running all the aoa in a subprocess. However the optimal number of aoa for single subprocess should be determined and modified accordingly.
+                        other_sim_info = {key: value for key, value in sim_info_copy.items() if key != 'hierarchies'} # To pass just the sim_info without hierarchies
+                        if simulation.subprocess_flag is True:
+                            run_as_subprocess(other_sim_info, case_info_fpath, scenario_info_fpath, refinement_out_dir, filtered_aoa_csv_string, aero_grid_fpath, struct_mesh_file,  comm, simulation.record_subprocess)
+                        elif simulation.subprocess_flag is False:
+                            problem = Problem(case_info_fpath, scenario_info_fpath, refinement_out_dir, filtered_aoa_csv_string, aero_grid_fpath, struct_mesh_file)
+                            problem.run()
             
                     for aoa in aoa_list: # loop for angles of attack reads the info, adds additional info if needed for the output file for each aoa
                         aoa = float(aoa) # making sure aoa is a float
@@ -130,14 +162,14 @@ def execute(simulation):
                         aoa_info_file = os.path.join(aoa_out_dir ,f"aoa_{aoa}.yaml") # name of the simulation info file at the aoa level directory
                         aoa_level_dict = {} # Creating aoa level sim info dictionary for overall sim info file
 
-                        # Checking for existing sucessful simualtion info, 
+                        # Checking for existing successful simulation info, 
                         try:
                             with open(aoa_info_file, 'r') as aoa_file: # open the simulation info file
                                 aoa_sim_info = yaml.safe_load(aoa_file)
 
                             fail_flag = aoa_sim_info['fail_flag'] # Read the fail flag
 
-                            if fail_flag == 0: # Refers successful simulation and makes sure only the sucessful simulations are added to the csv file.
+                            if fail_flag == 0: # Refers successful simulation and makes sure only the successful simulations are added to the csv file.
                                 # Add the simulation info to list to be saved as a csv file in the refinement out directory
                                 AOAList.append(aoa_sim_info['AOA'])
                                 CLList.append(aoa_sim_info['cl'])
@@ -154,15 +186,15 @@ def execute(simulation):
                                     'out_dir': aoa_out_dir,
                                 }
                                 refinement_level_dict[f"aoa_{aoa}"] = aoa_level_dict
-                                
-                            elif fail_flag == 1: # refers to failed simulation
-                                failed_aoa_list.append(aoa) # Add to the list of failed aoa
-                            
+                            else: # If the simulation failed, then add the aoa to the failed aoa list
+                                if aoa not in failed_aoa_list:
+                                    failed_aoa_list.append(aoa)
                             # Save the aoa_out_dict as an yaml file with the updated info
                             with open(aoa_info_file, 'w') as interim_out_yaml:
                                 yaml.dump(aoa_sim_info, interim_out_yaml, sort_keys=False)
                         except:
-                            failed_aoa_list.append(aoa) # Add to the list of failed aoa
+                            if aoa not in failed_aoa_list: # If aoa is not in the failed aoa list, then add it to the failed aoa list
+                                failed_aoa_list.append(aoa) # Add to the list of failed aoa
                     ################################# End of AOA loop ########################################
                     refinement_level_dict["failed_aoa"] = failed_aoa_list
                     # Write simulation results to a csv file
@@ -173,15 +205,11 @@ def execute(simulation):
                         "FFlag": [f"{int(FF):12f}" for FF in FList],
                         "WTime": [f"{wall_time:10.2f}" for wall_time in TList]
                     }
-
-                    # Define the output file path
-                    refinement_level_dir = os.path.dirname(aoa_out_dir)
-                    ADflow_out_file = os.path.join(refinement_level_dir, "ADflow_output.csv")
                     
                     df_new = pd.DataFrame(refinement_level_data) # Create a panda DataFrame
                     # If the file exists, load existing data and append new data
-                    if os.path.exists(ADflow_out_file):
-                        df_existing = load_csv_data(ADflow_out_file, comm)
+                    if os.path.exists(refinement_level_csv_out_file):
+                        df_existing = load_csv_data(refinement_level_csv_out_file, comm)
                         df_combined = pd.concat([df for df in [df_existing, df_new] if df is not None], ignore_index=True) 
                     else:
                         df_combined = df_new
@@ -190,19 +218,17 @@ def execute(simulation):
                     df_combined.dropna(subset=['Alpha'], inplace=True)
                     df_combined.drop_duplicates(subset='Alpha', keep='last', inplace=True)
                     df_combined.sort_values(by='Alpha', inplace=True)
-                    df_combined.to_csv(ADflow_out_file, index=False)
+                    df_combined.to_csv(refinement_level_csv_out_file, index=False)
                     
                     # Add csv file location to the overall simulation out file
-                    refinement_level_dict['csv_file'] = ADflow_out_file
-                    refinement_level_dict['refinement_out_dir'] = refinement_level_dir
+                    refinement_level_dict['csv_file'] = refinement_level_csv_out_file
+                    refinement_level_dict['refinement_out_dir'] = refinement_out_dir
 
                     # Add refinement level dict to scenario level dict
                     scenario_sim_info[f"{mesh_file}"] = refinement_level_dict
                 ################################# End of refinement loop ########################################
 
                 # Add scenario level simulation to the overall simulation out file
-                scenario_out_dir = os.path.dirname(refinement_level_dir)
-                scenario_sim_info['scenario_out_dir'] = scenario_out_dir
                 sim_out_info['hierarchies'][hierarchy]['cases'][case]['scenarios'][scenario]['sim_info'] = scenario_sim_info
 
                 if os.path.exists(scenario_info_fpath): # Remove the scenario_info yaml file
@@ -227,7 +253,7 @@ def execute(simulation):
 
     # Store the final simulation out file.
     if os.path.exists(simulation.final_out_file):
-        prev_sim_info = load_yaml_file(simulation.final_out_file, comm) # Load the previous sim_out_info
+        prev_sim_info,_ = load_yaml_input(simulation.final_out_file, comm) # Load the previous sim_out_info
         deep_update(prev_sim_info, sim_out_info)  # Updates old sim data with the new sim data.
         final_sim_out_info = prev_sim_info
     else:
@@ -240,25 +266,20 @@ def execute(simulation):
 ################################################################################
 # Code for generating and submitting job script on HPC
 ################################################################################   
-def submit_job_on_hpc(sim_info, yaml_file_path, comm):
+def submit_job_on_hpc(sim_info, yaml_file_path, wait_for_job, comm):
     """
     Generates and submits job script on an HPC cluster.
 
     This function reads a slurm job script template, updates it with specific HPC parameters and file paths, saves the customized script to the output directory, and submits the job on the HPC cluster.
 
-    Inputs
-    ------
-    - **sim_info** : dict
+    Parameters
+    ----------
+    sim_info: dict
         Dictionary containing simulation details details.
-    - **yaml_file_path** : str
+    yaml_file_path: str
         Path to the YAML file containing simulation information.
-    - **comm** : MPI communicator  
+    comm: MPI communicator  
         An MPI communicator object to handle parallelism.
-
-
-    Outputs
-    -------
-    - **None**
 
     Notes
     -----
@@ -269,21 +290,21 @@ def submit_job_on_hpc(sim_info, yaml_file_path, comm):
     out_dir = os.path.abspath(sim_info['out_dir'])
     hpc_info = sim_info['hpc_info'] # Extract HPC info
     python_fname = os.path.join(out_dir, "run_sim.py") # Python script to be run on on HPC
-    out_file = os.path.join(out_dir, f"{hpc_info['job_name']}_job_out.txt")
+    out_file = os.path.join(out_dir, f"{hpc_info['job_name']}_%j.txt")
 
     if hpc_info['cluster'] == 'GL':
-        job_time = hpc_info.get('time', '1:00:00')  # Set default time if not provided
-        mem_per_cpu = hpc_info.get('mem_per_cpu', '1000m')
-
         # Fill in the template of the job script(can be found in `templates.py`) with values from hpc_info, provided by the user
         job_script = gl_job_script.format(
-            job_name=hpc_info['job_name'],
-            nodes=hpc_info['nodes'],
-            nproc=hpc_info['nproc'],
-            mem_per_cpu=mem_per_cpu,
-            time=job_time,
-            account_name=hpc_info['account_name'],
-            email_id=hpc_info['email_id'],
+            job_name=hpc_info.get('job_name'),
+            account_name=hpc_info.get('account_name'),
+            partition=hpc_info.get('partition'),
+            time=hpc_info.get('time', '1:00:00'),
+            nodes=hpc_info.get('nodes'),
+            nproc=hpc_info.get('nproc'),
+            nproc_per_node=hpc_info.get('nproc_per_node'),
+            mem_per_cpu=hpc_info.get('mem_per_cpu', '1000m'),
+            mail_types=hpc_info.get('mail_types', 'NONE'),
+            email_id=hpc_info.get('email_id', 'NONE'),
             out_file=out_file,
             python_file_path=python_fname,
             yaml_file_path=yaml_file_path
@@ -298,8 +319,19 @@ def submit_job_on_hpc(sim_info, yaml_file_path, comm):
             with open(python_fname, "w") as file: # Write the python file(can be found in `templates.py`) to be run using the above created job script.
                 file.write(python_code_for_hpc)
             
-            subprocess.run(["sbatch", job_script_path]) # Subprocess to submit the job script on Great Lakes
-        return
+            subprocess_out = subprocess.run(["sbatch", job_script_path], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True) # Subprocess to submit the job script on Great Lakes
+            job_id = subprocess_out.stdout.strip().split()[-1]
+            print_msg(f"Job {job_id} submitted.", "notice", comm)
+
+            if wait_for_job:
+                while True:
+                    check_cmd = ["squeue", "--job", job_id]
+                    result = subprocess.run(check_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+                    if job_id not in result.stdout:
+                        print_msg(f"Job {job_id} completed.", 'notice', comm)
+                        break
+                    time.sleep(10)  # Check every 10 seconds
+        return job_id
     
 ################################################################################
 # Helper Functions for running the simulations as subprocesses
@@ -308,34 +340,26 @@ def run_as_subprocess(sim_info, case_info_fpath, scenario_info_fpath, ref_out_di
     """
     Executes a set of Angles of Attack using mpirun for local machine and srun for HPC(Great Lakes).
 
-    Inputs
-    ------
-    - **sim_info** : dict  
+    Parameters
+    -----------
+    sim_info: dict  
         Dictionary containing simulation details, such as output directory, job name, and nproc.
-    - **case_info_fpath** : str  
+    case_info_fpath: str  
         Path to the case info yaml file
-    - **scenario_info_fpath** : str  
+    scenario_info_fpath: str  
         Path to the scenario info yaml file
-    - **ref_out_dir** : str  
+    ref_out_dir: str  
         Path to the refinement level directory
-    - **aoa_csv_string** : str 
+    aoa_csv_string: str 
         A list of angles of attack, in the form of csv string, that to be simulated in this subprocess
-    - **aero_grid_fpath** : 
+    aero_grid_fpath: 
         Path to the aero grid file that to be used for this simulation.
-    - **struct_mesh_fpath**: str
+    struct_mesh_fpath: str
         Path to the structural mesh file that to be used. Pass str(None) when running aero problem.
-    - **comm** : MPI communicator  
+    comm: MPI communicator  
         An MPI communicator object to handle parallelism.
-    - **record_flag**: bool=False, Optional
-        Optional flag, strores ouput of the subprocess in a text file.
-
-    Outputs
-    -------
-    - **None**  
-        This function does not return any value but performs the following actions:
-        1. Creates necessary directories and input files.
-        2. Launches a subprocess to execute the simulation using `mpirun` or `srun`.
-        3. Prints standard output and error logs from the subprocess for debugging.
+    record_flag: bool=False, Optional
+        Optional flag, stores output of the subprocess in a text file.
 
     Notes
     -----
@@ -359,8 +383,7 @@ def run_as_subprocess(sim_info, case_info_fpath, scenario_info_fpath, ref_out_di
     python_version = sim_info.get('python_version', 'python') # Update python with user defined version or defaults to current python version
     if shutil.which(python_version) is None: # Check if the python executable exists
         python_version = 'python'
-        if comm.rank == 0:
-            print(f"Warning: {python_version} not found! Falling back to default 'python'.")
+        print_msg(f"{python_version} not found! Falling back to default 'python'.", 'warning', comm)
     if comm.rank==0:
         print_msg(f"Starting subprocess for the following aoa: {aoa_csv_string}", "notice", comm)
         if machine_type==MachineType.LOCAL:
@@ -389,5 +412,6 @@ def run_as_subprocess(sim_info, case_info_fpath, scenario_info_fpath, ref_out_di
             p.wait() # Wait for subprocess to end
         
         _, stderr = p.communicate()
-        print_msg(f"{stderr}", 'subprocess error', comm)
+        if stderr:
+            print_msg(f"{stderr}", 'subprocess error/warning', comm)
         print_msg(f"Subprocess completed", "notice", comm)

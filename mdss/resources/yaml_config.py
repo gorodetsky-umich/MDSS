@@ -6,15 +6,22 @@ import os
 import subprocess
 import niceplots
 
-from mdss.utils.helpers import ProblemType, MachineType
+from mdss.utils.helpers import ProblemType, MachineType, load_yaml_input
 
 class ref_hpc_info(BaseModel):
     cluster: str
     job_name: str
+    account_name: str
+    partition: str
+    time: Optional[str]
     nodes: int
     nproc: int
-    account_name: str
-    email_id: str
+    nproc_per_node: int
+    mem_per_cpu: Optional[str]
+    mail_types: Optional[str]
+    email_id: Optional[str]
+
+    
 
 class ref_geometry_info(BaseModel):
     chordRef: float
@@ -64,7 +71,7 @@ class ref_struct_properties(BaseModel):
     E: float=None       # Young's modulus in N/m^2
     nu: float=None      # Poisson's ratio
     kcorr: float=None   # Shear correction factor
-    ys: float=None      # Yeild stress
+    ys: float=None      # Yield stress
 
 class ref_load_info(BaseModel):
     g: Optional[list[float]]=None
@@ -90,7 +97,7 @@ class ref_case_info(BaseModel):
     scenarios: list[ref_scenario_info]
 
     @model_validator(mode = 'before')
-    def file_existance_checks(cls, values):
+    def file_existence_checks(cls, values):
         # To Check if correct problem type is assigned
         try:
             cls.problem_type = ProblemType.from_string(values.get('problem'))  # Convert string to enum
@@ -206,20 +213,20 @@ class ref_plot_options(BaseModel):
             )
         return values
 
-def check_input_yaml(yaml_file):
+def check_input_yaml(yaml_input):
     """
-    Validates the structure of the input YAML file against predefined templates.
+    Validates the structure of the input YAML file or raw yaml string against predefined templates.
 
-    This function checks whether the input YAML file conforms to the expected template structure. It validates each section, including simulation, HPC, hierarchies, cases, and scenarios.
+    This function checks whether the YAML input conforms to the expected template structure. It validates each section, including simulation, HPC, hierarchies, cases, and scenarios.
 
-    Inputs
+    Parameters
     ----------
-    - **yaml_file** : str
-        Path to the YAML file to be validated.
+    yaml_input: str
+        YAML string or Path to the YAML file to be validated.
 
-    Outputs
-    ------
-    **ValidationError**
+    Returns
+    -------
+    ValidationError
         If the YAML file does not conform to the expected structure.
 
     Notes
@@ -227,7 +234,6 @@ def check_input_yaml(yaml_file):
     - Uses `ref_sim_info` pydantic model for validation.
     - Ensures hierarchical consistency at all levels of the YAML structure.
     """
-    with open(yaml_file, 'r') as file:
-        sim_info = yaml.safe_load(file)
+    sim_info,_ = load_yaml_input(yaml_input)
     
     ref_sim_info.model_validate(sim_info)               

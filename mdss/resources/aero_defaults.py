@@ -24,10 +24,8 @@ default_aero_options_aerodynamic = {
     "CFLCoarse": 0.25,
     "MGCycle": "sg",
     "MGStartLevel": -1,
-    "nCyclesCoarse": 250,
     # ANK Solver Parameters
     "useANKSolver": True,
-    "nSubiterTurb": 5,
     # Termination Criteria
     "L2Convergence": 1e-12,
     "L2ConvergenceCoarse": 1e-2,

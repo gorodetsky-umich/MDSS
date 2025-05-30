@@ -12,7 +12,7 @@ from typing import Optional, Literal
 
 from mdss.src.main import simulation
 from mdss.utils.helpers import *
-from mdss.resources.yaml_config import check_input_yaml
+from mdss.resources.yaml_config import check_input_yaml, ref_scenario_info
 
 
 comm = MPI.COMM_WORLD
@@ -25,40 +25,39 @@ class RunFlag(Enum):
 ################################################################################
 # Functions to aid pre and post processing
 ################################################################################
-class update_info_file():
+class update_yaml_input():
     """
-    Modifies the input YAML file
+    Modifies the YAML input.
 
-    Methods
-    -------
-    **aero_options()**
-        Modifies the aero options in the input file
-
-    **aoa**
-        Appends, removes and modifies the Angles of Attack listed in `scenario`.
-
-    **write_mod_info_file()**
-        Writes the modified input file.
-
-    Inputs
-    ------
+    Parameters
+    ----------
     - **info_file** : str
         Path to the YAML file containing simulation configuration and information.
     """
 
-    def __init__(self, info_file):
-        check_input_yaml(info_file)
-        self.info_file = info_file
-        self.sim_info = load_yaml_file(self.info_file, comm)
+    def __init__(self, yaml_input):
+        check_input_yaml(yaml_input)
+
+        self.sim_info, self.yaml_input_type = load_yaml_input(yaml_input, comm)
+        self.out_dir = self.sim_info['out_dir']
+        if self.yaml_input_type == YAMLInputType.FILE:
+            self.info_file = yaml_input
+        elif self.yaml_input_type == YAMLInputType.STRING:
+            self.info_file = os.path.join(self.out_dir, "input.yaml")
+            with open(self.info_file, 'w') as f:
+                yaml.dump(self.sim_info, f, sort_keys=False)
+        
 
     def aero_options(self, aero_options_updt, case_names):
         """
-        Inputs
-        ------
-        - **aero_options_updt** : dict
-            A  dictionary containg the aero options to modify.
+        Modifies the aero options in the YAML input.
+
+        Parameters
+        ----------
+        aero_options_updt: dict
+            A  dictionary containing the aero options to modify.
         
-        - **case_names**: list[str]
+        case_names: list[str]
             A list containing the names of the cases to modify.
             
         """
@@ -70,27 +69,28 @@ class update_info_file():
     
     def aero_meshes(self, mesh_files, case_names, option,  meshes_folder_path=None):
         """
-        Adds mesh files to specifies cases and optionally modifies the path to the folder contating meshes, when provided.
-        Inputs
-        ------
-        - **mesh_files**: list[str]
+        Adds mesh files to specifies cases and optionally modifies the path to the folder containing meshes, when provided.
+        
+        Parameters
+        ----------
+        mesh_files: list[str]
             A list containing the mesh file names to append or modify or remove.
-        - **case_names**: list[str]
+        case_names: list[str]
             A list containing the names of the cases to modify.
-        - **option**: str
+        option: str
             'a' to append (add the given aoa to the existing list)
             'm' to modify the list (to overwrite)
             'r' to remove the aoa from the file.
-        - **meshes_folder_path**: str, optional
+        meshes_folder_path: Optional[str]
             Path to the folder containing meshes
         """
         for hierarchy, hierarchy_info in enumerate(self.sim_info['hierarchies']): # loop for Hierarchy level
             for case, case_info in enumerate(hierarchy_info['cases']): # loop for cases in hierarchy
                 if case_info['name'] in case_names:
                     if option == 'a':
-                        case_info['mesh_files'].append(mesh_files)
+                        case_info['mesh_files'].extend(mesh_files)
                     elif option == 'm':
-                        case_info['mesh_files'] = [mesh_file for mesh_file in case_info['mesh_files']]
+                        case_info['mesh_files'] = mesh_files
                     elif option == 'r':
                         case_info['mesh_files']= [mesh_file for mesh_file in case_info['mesh_files'] if mesh_file not in mesh_files]
                     if meshes_folder_path is not None:
@@ -99,18 +99,20 @@ class update_info_file():
     
     def aoa(self, aoa_list, case_names, scenario_names, option):
         """
-        Inputs
-        ------
-        - **aoa_list** : list
-            A list containg aoa to append or modify or remove.
+        Appends, removes and modifies the Angles of Attack listed in `scenario`.
+
+        Parameters
+        ----------
+        aoa_list: list
+            A list containing aoa to append or modify or remove.
         
-        - **case_names**: list[str]
+        case_names: list[str]
             A list containing the names of the cases to modify.
         
-        - **scenario_names**: list[int]
+        scenario_names: list[str]
             A list containing the name of the scenarios to modify.
 
-        - **option**: str
+        option: str
             'a' to append (add the given aoa to the existing list)
             'm' to modify the list (to overwrite)
             'r' to remove the aoa from the file.
@@ -123,15 +125,17 @@ class update_info_file():
                             if option == 'a':
                                 scenario_info['aoa_list'] = list(set(scenario_info['aoa_list']) | set(aoa_list))  # Convert both to sets to remove duplicates, then back to a list
                             elif option == 'm':
-                                scenario_info['aoa_list'] = [aoa for aoa in scenario_info['aoa_list']]
+                                scenario_info['aoa_list'] = aoa_list
                             elif option == 'r':
                                 scenario_info['aoa_list']= [aoa for aoa in scenario_info['aoa_list'] if aoa not in aoa_list]
-    
+
     def write_mod_info_file(self, new_fname=None):
         """
-        Inputs
-        ------
-        - **fname** : str, Optional
+         Writes the modified input file.
+
+        Parameters
+        ----------
+        new_fname: Optional[str]
             New file name along with the path. Overwrites the original file, when a new name is not provided.
         """
         if comm.rank == 0:
@@ -140,7 +144,25 @@ class update_info_file():
             with open(new_fname, 'w') as info_file_fhandle:
                 yaml.dump(self.sim_info, info_file_fhandle, sort_keys=False)
 
-def get_sim_data(info_file):
+    def return_yaml_string(self):
+        """
+        Returns
+        -------
+        Returns the YAML string representation of the simulation information.
+        """
+        return yaml.dump(self.sim_info, sort_keys=False)
+
+class update_sim_info(update_yaml_input):
+    def __init__(self, sim_info: dict):
+        check_input_yaml(yaml.dump(sim_info))
+        self.sim_info = sim_info
+        self.out_dir = self.sim_info['out_dir']
+        self.info_file = os.path.join(self.out_dir, "input.yaml")
+        with open(self.info_file, 'w') as f:
+            yaml.dump(self.sim_info, f, sort_keys=False)
+        
+
+def get_sim_data(yaml_input):
     """
     Generates a dictionary containing simulation data organized hierarchically.
 
@@ -148,47 +170,34 @@ def get_sim_data(info_file):
     nested dictionary (`sim_data`) with details about simulation hierarchies, cases,
     scenarios, refinement levels, and angles of attack.
 
-    Inputs
-    ------
-    - **info_file** : str
-        Path to the input YAML file containing simulation information or configuration.
+    Parameters
+    ----------
+    yaml_input: str
+        Path to the input YAML file or raw YAML string containing simulation information or configuration.
 
-    Outputs
+    Returns
     -------
-    **sim_data**: dict
-        A dictionary contating simulation data.
+    sim_data: dict
+        A dictionary containing simulation data.
     """
-    check_input_yaml(info_file)
-    if comm.rank == 0:
-        print(f"{'-' * 50}")
-        print("YAML file validation is successful")
-        print(f"{'-' * 50}")
-    info = load_yaml_file(info_file, comm)
+    check_input_yaml(yaml_input)
+    msg = f"YAML file validation is successful"
+    print_msg(msg, 'notice', comm)
+    sim_info,_ = load_yaml_input(yaml_input, comm)
     sim_data = {} # Initiating a dictionary to store simulation data
 
-    try:  # Check if the file is overall sim info file and stores the simulation info
-        overall_sim_info = info["overall_sim_info"]
-        sim_info = copy.deepcopy(info)
-        print(f"{'-' * 50}")
-        print(f"File provided is an ouput yaml file. Continuing to read data")
-        print(f"{'-' * 50}")
-
-    except KeyError:  # if the file is input info file, loads the overall_sim_info.yaml if the simulation is run already
-        if comm.rank == 0:
-            print(f"{'-' * 50}")
-            print(f"File provided is an input yaml file. Checking for existing simulation results in {info['out_dir']}")
-            print(f"{'-' * 50}")
-        out_yaml_file_path = f"{info['out_dir']}/overall_sim_info.yaml"
-
+    if 'overall_sim_info' in sim_info.keys():  # if the file is output info file, loads the overall_sim_info.yaml
+        print_msg(f"File provided is an output yaml file. Continuing to read data", 'notice', comm)
+        overall_sim_info = sim_info
+    else:
+        print_msg(f"File provided is an input yaml file. Checking for existing simulation results in {sim_info['out_dir']}", 'notice', comm)
+        out_yaml_file_path = f"{sim_info['out_dir']}/overall_sim_info.yaml"
         if os.path.isfile(out_yaml_file_path):
-            overall_sim_info = load_yaml_file(f"{info['out_dir']}/overall_sim_info.yaml", comm)
+            overall_sim_info,_ = load_yaml_input(f"{sim_info['out_dir']}/overall_sim_info.yaml", comm)
         else:
-            if comm.rank == 0:
-                print(f"{'-' * 50}")
-                print(f"No existing simulation found in {info['out_dir']}")
-                print(f"{'-' * 50}")
-        
-    
+            raise FileNotFoundError(f"File {out_yaml_file_path} simulation results not found. Please run the simulation.")
+
+    sim_data['overall_sim_info'] = overall_sim_info.get('overall_sim_info', {})
     # Loop through hierarchy levels
     for hierarchy_index, hierarchy_info in enumerate(overall_sim_info['hierarchies']):
         hierarchy_name = hierarchy_info['name']
@@ -209,204 +218,19 @@ def get_sim_data(info_file):
 
                 # Loop through mesh files
                 for ii, mesh_file in enumerate(case_info['mesh_files']):
-                    refinement_level = f"L{ii}"
-                    failed_aoa = scenario_info['sim_info'][refinement_level]['failed_aoa']
-                    if refinement_level not in sim_data[hierarchy_name][case_name][scenario_name]:
-                        sim_data[hierarchy_name][case_name][scenario_name][refinement_level] = {}
+                    failed_aoa = scenario_info['sim_info'][mesh_file]['failed_aoa']
+                    if mesh_file not in sim_data[hierarchy_name][case_name][scenario_name]:
+                        sim_data[hierarchy_name][case_name][scenario_name][mesh_file] = {}
 
                     # Loop through angles of attack
                     for aoa in scenario_info['aoa_list']:
                         if aoa not in failed_aoa:
                             aoa_key = f"aoa_{float(aoa)}"
-                            cl = scenario_info['sim_info'][refinement_level][aoa_key].get("cl")
-                            cd = scenario_info['sim_info'][refinement_level][aoa_key].get("cd")
+                            sim_data[hierarchy_name][case_name][scenario_name][mesh_file][aoa_key]= scenario_info['sim_info'][mesh_file].get(aoa_key,{})
 
-                            # Populate the dictionary
-                            if aoa_key not in sim_data[hierarchy_name][case_name][scenario_name][refinement_level]:
-                                sim_data[hierarchy_name][case_name][scenario_name][refinement_level][aoa_key] = {}
-
-                            sim_data[hierarchy_name][case_name][scenario_name][refinement_level][aoa_key]['cl'] = cl
-                            sim_data[hierarchy_name][case_name][scenario_name][refinement_level][aoa_key]['cd'] = cd
-                    sim_data[hierarchy_name][case_name][scenario_name][refinement_level]['failed_aoa'] = failed_aoa
+                    sim_data[hierarchy_name][case_name][scenario_name][mesh_file]['failed_aoa'] = failed_aoa
 
     return sim_data
-
-################################################################################
-# Functions to run predetermined simulations
-################################################################################
-
-class ref_case_info(BaseModel):
-    hpc: Optional[Literal['yes', 'no']]='no'
-    hpc_info: Optional[dict]=None
-    meshes_folder_path: str
-    mesh_files: list[str]
-    aoa_list: list[float]
-    solver_parameters: Optional[dict]=None
-
-class ref_hpc_info:
-    job_name: Optional[str]
-    nodes: Optional[int]
-    nproc: Optional[int]
-    account_name: str
-    email_id: str
-
-
-def run_case(case, case_info):
-    """
-    Run a predefined case simulation.
-
-    This function sets up and executes a simulation based on the provided case information.
-    It validates the input, prepares a temporary directory for files, and cleans up after the run.
-
-    Inputs
-    ------
-    - **case**: str
-        The name of the simulation case to run (e.g., 'naca0012', '30p-30n').
-    - **case_info**: dict
-        A dictionary containing the case information. It should follow the structure defined by the `ref_case_info` class:
-        - `hpc` Optional(Literal['yes', 'no'])): Indicates whether to run on an HPC cluster ('yes') or locally ('no'). Defatlts to 'no'
-        - `hpc_info` (Optional[dict]): If `hpc` is 'yes', this should be a dictionary following the structure of `ref_hpc_info`:
-            - `job_name` (Optional[str]): Name of the job.
-            - `nodes` (Optional[str]): Number of nodes for the job.
-            - `nproc` (Optional[str]): Number of processors for the job.
-            - `account_name` (str): HPC account name.
-            - `email_id` (str): Email for job notifications.
-        - `meshes_folder_path` (str): Path to the directory containing mesh files.
-        - `mesh_files` (list[str]): List of mesh file names.
-        - `aoa_list` (list[float]): List of angles of attack for the simulation.
-        - `solver_parameters` (Optional[dict]): Dictionary of solver-specific parameters (optional).
-
-    Outputs
-    -------
-    - **sim_data**: dict
-        Simulation results and associated data.
-
-    Notes
-    ------
-    - Creates a temporary directory for the simulation input and output files.
-    - Deletes the temporary directory after the simulation run.
-    """
-    ref_case_info.model_validate(case_info)
-    # Validate or set default for 'hpc'
-    if 'hpc' not in case_info:
-        case_info['hpc'] = 'no'
-
-    if case_info['hpc'] == 'yes':
-        ref_hpc_info.model_validate(case_info['hpc_info'])
-    
-    if comm.rank == 0:
-        randn = random.randint(1000, 9999)
-    else:
-        # Other processes initialize the variable
-        randn = None
-    
-    # Broadcast the random number to all processes
-    randn = comm.bcast(randn, root=0)
-    
-    cwd = os.getcwd()
-    temp_dir = f"{cwd}/temp_{randn}"
-    if comm.rank == 0:
-        print(f"{'-' * 50}")
-        print("Creating a the temporary folder to run simulations")
-        print(f"{'-' * 50}")
-        os.mkdir(temp_dir)
-
-
-    input_file  = f"{case}_simInfo.yaml"
-    with pkg_resources.open_text('mdss.resources', input_file) as f:
-        sim_info = yaml.safe_load(f)
-    try:
-        sim_info['hpc'] = case_info['hpc']
-    except:
-        if comm.rank == 0 and case_info['hpc'] == 'yes':
-            print(f"{'-' * 50}")
-            print("HPC options are not being updated. Which may cause errors in submission of jobs")
-            print(f"{'-' * 50}")
-
-    sim_info['hierarchies'][0]['cases'][0]['meshes_folder_path'] = case_info['meshes_folder_path']
-    sim_info['hierarchies'][0]['cases'][0]['mesh_files'] = case_info['mesh_files']
-    sim_info['hierarchies'][0]['cases'][0]['scenarios'][0]['aoa_list'] = case_info['aoa_list']
-    try: # As solver parameters are optional.
-        sim_info['hierarchies'][0]['cases'][0]['meshes_folder_path'].update(case_info['solver_parameters'])
-    except:
-        if comm.rank == 0:
-            print(f"{'-' * 50}")
-            print("Solver parameters are not being updated")
-            print(f"{'-' * 50}")
-    
-    
-    
-    comm.Barrier()
-
-    if 'out_dir' in case_info:
-        sim_info['out_dir'] = case_info['out_dir']
-    else:
-        sim_info['out_dir'] = f"{cwd}/{temp_dir}/output"
-    
-    new_input_file = f"{temp_dir}/input.yaml"
-    with open(new_input_file, 'w') as f:
-        yaml.safe_dump(sim_info, f)
-
-    comm.Barrier()
-
-    # Execute simulation
-    sim = simulation(new_input_file)
-    sim.run()
-    sim_data = get_sim_data(new_input_file, run_flag=RunFlag.skip)
-
-    comm.Barrier()
-    if comm.rank == 0:
-        print(f"{'-' * 50}")
-        print("Deleting the temporary folder")
-        print(f"{'-' * 50}")
-        shutil.rmtree(temp_dir)
-
-    return sim_data
-
-def run_naca0012(case_info):
-    """
-    Run the NACA 0012 simulation case.
-
-    Inputs
-    ------
-    - **case_info**: dict
-        A dictionary containing the case information. 
-
-    Outputs
-    -------
-    - **sim_data**: dict
-        Simulation results and associated data for the NACA 0012 case.
-
-    Notes
-    ------
-    - Uses the `run_case` function with 'naca0012' as the case name.
-    """
-    sim_data = run_case('naca0012', case_info)
-    case_data = sim_data['2d_clean']['NACA0012']['cruise_1']
-    return case_data
-
-def run_30p30n(case_info):
-    """
-    Run the 30p30n simulation case.
-
-    Inputs
-    ------
-    case_info : dict
-        A dictionary containing the case information.
-
-    Outputs
-    -------
-    sim_data : dict
-        Simulation results and associated data for the 30p30n case.
-
-    Notes
-    ------
-    - Uses the `run_case` function with '30p-30n' as the case name.
-    """
-    sim_data = run_case('30p-30n', case_info)
-    case_data = sim_data['2d_high_lift']['30p-30n']['cruise_1']
-
-    return case_data
 
 ################################################################################
 # Functions to run predetermined simulations
@@ -414,70 +238,44 @@ def run_30p30n(case_info):
 
 class ref_case_info(BaseModel):
     out_dir: str=None
-    meshes_folder_path: str
-    mesh_files: list[str]
+    meshes_folder_path: Optional[str]=None
+    mesh_files: Optional[list[str]]=None
     aoa_list: list[float]
     aero_options: Optional[dict]=None
-    struct_options: dict=None
+    struct_options: Optional[dict]=None
     
-class run_custom_sim():
+class custom_sim(simulation):
     """
     Class to Run a predefined case simulation
 
     It sets up and executes a simulation based on the provided case information.
     It validates the input, prepares a temporary directory for files, and cleans up after the run.
 
-    Inputs
-    ------
-    - **case**: str
-        The name of the simulation case to run (e.g., 'naca0012', '30p-30n').
-    - **case_info**: dict
-        A dictionary containing the case information. It should follow the structure defined by the `ref_case_info` class:
-        - `hpc` Optional(Literal['yes', 'no'])): Indicates whether to run on an HPC cluster ('yes') or locally ('no'). Defatlts to 'no'
-        - `hpc_info` (Optional[dict]): If `hpc` is 'yes', this should be a dictionary following the structure of `ref_hpc_info`:
-            - `job_name` (Optional[str]): Name of the job.
-            - `nodes` (Optional[str]): Number of nodes for the job.
-            - `nproc` (Optional[str]): Number of processors for the job.
-            - `account_name` (str): HPC account name.
-            - `email_id` (str): Email for job notifications.
-        - `meshes_folder_path` (str): Path to the directory containing mesh files.
-        - `mesh_files` (list[str]): List of mesh file names.
-        - `aoa_list` (list[float]): List of angles of attack for the simulation.
-        - `solver_parameters` (Optional[dict]): Dictionary of solver-specific parameters (optional).
-
-    Outputs
-    -------
-    - **sim_data**: dict
-        Simulation results and associated data.
+    Parameters
+    ----------
+    yaml_input: str
+        The YAML file path or raw YAML string for the simulation.
 
     Notes
     ------
     - Creates a temporary directory for the simulation input and output files.
     - Deletes the temporary directory after the simulation run.
     """
-    def __init__(self, name):
-        self.resources_dir = None
-        if self.resources_dir is None:
-            input_file  = f"{name}_simInfo.yaml"
-            try:
-                with pkg_resources.open_text('mdss.resources', input_file) as f:
-                    sim_info = yaml.safe_load(f)
-            except:
-                err_msg = f"Error: The Simulation Info file for {name} is not available in the package.\nPlease provide a local resources directory path."
-                raise FileNotFoundError(err_msg)
-        else:
-            input_file = os.path.join(os.path.abs(self.resources_dir), f"{name}_simInfo.yaml")
-            check_input_yaml(input_file)
-            sim_info = load_yaml_file(input_file)
-            
-        self.sim_info = sim_info
+    def __init__(self, yaml_input:str, out_dir:str=None):
+        self.yaml_input = yaml_input
+        super().__init__(yaml_input)  # Leverages validation, parsing, and setup from `simulation`
+        if comm.rank == 0:
+            if os.path.exists(self.sim_info['out_dir']) and not os.listdir(self.sim_info['out_dir']):  # Check if the output directory exits and is empty
+                os.rmdir(self.sim_info['out_dir'])  # Remove the directory only if it is empty
     
     def run(self, case_info):
         """
-        Inputs
+        Parameters
         ----------
-        - **case_info**: dict
+        case_info: dict
             A dictionary containing the case information. It should follow the structure defined by the `ref_case_info` class:
+            
+            - `out_dir` (str): Path to the output directory.
             - `meshes_folder_path` (str): Path to the directory containing mesh files.
             - `mesh_files` (list[str]): List of mesh file names.
             - `aoa_list` (list[float]): List of angles of attack for the simulation.
@@ -485,15 +283,30 @@ class run_custom_sim():
             - `struct_options` (Optional[dict]): Dictionary containing structural info for aero structural problem (optional).
         """
         ref_case_info.model_validate(case_info)
-        # Update Info
-        self.sim_info['hierarchies'][0]['cases'][0]['meshes_folder_path'] = case_info['meshes_folder_path']
-        self.sim_info['hierarchies'][0]['cases'][0]['mesh_files'] = case_info['mesh_files']
-        self.sim_info['hierarchies'][0]['cases'][0]['scenarios'][0]['aoa_list'] = case_info['aoa_list']
-        if 'aero_options' in case_info.keys():
-            self.sim_info['hierarchies'][0]['cases'][0]['aero_options'].update(case_info['aero_options'])
-        if 'struct_options' in case_info.keys():
-            self.sim_info['hierarchies'][0]['cases'][0]['struct_options'].update(case_info['struct_options'])
+        
+        case = self.sim_info['hierarchies'][0]['cases'][0]
+        case_info['aoa_list'] = [float(aoa) for aoa in case_info['aoa_list']]  # Ensures all angles of attack to float and converts a numpy array to a list
+        # Extract only fields that were explicitly provided (non-None)
+        for key, value in case_info.items():
+            if value is None or key in ['out_dir', 'aoa_list']:
+                continue  # Skip unset or None fields
+            elif key in {'aero_options', 'struct_options'}:
+                case.setdefault(key, {}).update(value)
+            else:
+                case[key] = value
 
+        # Update the angle of attack in the scenario and scenario information
+        scenario = case['scenarios'][0]
+        scenario['aoa_list'] = case_info['aoa_list']
+        ref_scenario_info.model_validate(scenario)
+        # Update the scenario information in the case
+        for key, value in scenario.items():
+            if value is None or key in ['name', 'aoa_list', 'exp_data']:
+                continue
+            else:
+                scenario[key] = float(value)  # Convert all the other values to float
+        
+        
         if comm.rank == 0:
             randn = random.randint(1000, 9999)
         else:
@@ -503,32 +316,56 @@ class run_custom_sim():
         # Broadcast the random number to all processes
         randn = comm.bcast(randn, root=0)
         cwd = os.getcwd()
-        temp_dir = os.path.join(cwd, f"temp_{randn}")
-        if comm.rank == 0:
-            print(f"{'-' * 50}")
-            print("Creating a the temporary folder to run simulations")
-            print(f"{'-' * 50}")
-            os.mkdir(temp_dir)
-        comm.Barrier()
         if 'out_dir' in case_info.keys():
+            if not os.path.exists(case_info['out_dir']) and comm.rank == 0:
+                os.mkdir(case_info['out_dir'])
             self.sim_info['out_dir'] = case_info['out_dir']
+            self.out_dir = case_info['out_dir']
         else:
+            temp_dir = os.path.join(cwd, f"temp_{randn}")
+            msg = f"Creating a temporary folder to run simulations: {temp_dir}"
+            print_msg(msg, 'notice', comm)
+            if comm.rank == 0:
+                os.mkdir(temp_dir)
             self.sim_info['out_dir'] = temp_dir
+            self.out_dir = temp_dir
+        comm.Barrier()
+        self.final_out_file = os.path.join(self.out_dir, "overall_sim_info.yaml")  # Set the final output file path
+        modified_yaml_input = yaml.dump(self.sim_info, sort_keys=False)
+        check_input_yaml(modified_yaml_input)  # Validate the modified YAML input
+        # Write the modified YAML input to a file
+        if not os.path.exists(self.out_dir):
+            if comm.rank == 0:
+                os.mkdir(self.out_dir)
+        self.info_file = os.path.join(self.out_dir, "input.yaml")  # Set the path for the input YAML file
+        with open(self.info_file, 'w') as f:
+            yaml.dump(self.sim_info, f, sort_keys=False)
+
+        if self.machine_type == MachineType.HPC:
+            self.wait_for_job = True # To toggle to wait for the job to finish.
+            
+        # Call the parent class's run method to execute the simulation
+        super().run()  
+
+        comm.Barrier() 
+
+        # Read the simulation data from the final output file
+        if os.path.exists(self.final_out_file):
+            sim_data = get_sim_data(self.final_out_file)
+        else:
+            raise FileNotFoundError(f"Expected output file not found: {self.final_out_file}")
+
+        sim_data = comm.bcast(sim_data, root=0)
+        comm.Barrier()  # Ensure all ranks are done reading
         
-        new_input_file = f"{temp_dir}/input.yaml"
-        with open(new_input_file, 'w') as f:
-            yaml.safe_dump(self.sim_info, f)
+        # Cleanup temp directory if created
+        if 'out_dir' not in case_info and comm.rank == 0:
+            shutil.rmtree(self.out_dir)
 
-        comm.Barrier()
-        # Execute simulation
-        sim = simulation(new_input_file)
-        sim.subprocess_flag = 0 
-        sim.run()
-        sim_data = get_sim_data(new_input_file)
-
-        comm.Barrier()
-        if comm.rank == 0:
-            shutil.rmtree(temp_dir)
-
+        # Reset sim_info
+        self.sim_info, self.yaml_input_type = load_yaml_input(self.yaml_input, comm)
+        self.sim_info['out_dir'] = os.path.abspath(self.sim_info['out_dir'])
+        self.out_dir = self.sim_info['out_dir']
+        
         return sim_data
         

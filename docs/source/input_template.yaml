@@ -1,0 +1,82 @@
+out_dir:                                                # str, path to the output directory
+python_version:  /usr/bin/python                        # Optional[str], path to the python env to use
+machine_type: local                                     # str, local/hpc
+nproc: 8                                                # int, number of processors, required when machine_type is local
+
+######################################################################################
+# `hpc_info` is required only if machine_type is hpc
+######################################################################################
+hpc_info:                                               # dict, required only if machine_type is hpc
+  cluster: GL                                           # str, name of the cluster. GL for Great Lakes
+  job_name: example                                     # str, name of the job
+  account_name: test_account                            # str, account name
+  partition: standard                                   # str, partition name
+  time:   01:00:00                                      # str, time in D-H:M:S format
+  nodes:  1                                             # int, number of nodes
+  nproc:  10                                            # int, total number of processors
+  nproc_per_node: 10                                    # int, number of processors per node
+  mem_per_cpu: 1000mb                                   # Optional[str], memory per cpu
+  mail_types: NONE                                      # Optional[str], mail types
+  email_id:  example@test.com                           # Optional[str], email id
+
+hierarchies:                                            # list[dict], List of hierarchies
+
+# First hierarchy
+- name: first_hierarchy                                 # str, name of the hierarchy
+
+  cases:                                                # list[dict], list of cases in this hierarchy
+
+  # First case in the hierarchy
+  - name:  first_case                                   # str, name of the case
+    meshes_folder_path: grids/                          # str, path to the folder containing the mesh files for this case
+    mesh_files:                                         # list[str], list of mesh file names
+    - mesh_L0.cgns                                      # str, name of the first mesh file
+    - mesh_L1.cgns                                      # str, name of the second mesh file
+
+    geometry_info:                                      # dict, dictionary of geometry info
+      chordRef: 1.0                                     # float, reference chord length
+      areaRef: 1.0                                      # float, reference area
+
+    aero_options:                                       # Optional[dict], dictionary of ADflow solver parameters. For more information see aero options section
+      # ......
+  
+    scenarios:                                          # list[dict], list of dictionaries containing scenario info
+   
+    # First experimental set in current case
+    - name:  cruise                                     # str, name of the scenario
+      aoa_list:                                         # list[float], list of angle of attacks(AoA) to run in with the experimental info
+      - 0.0
+      - 2.0
+      reynolds: 9.0e6                                   # float, Reynold's number 
+      mach: 0.2                                         # float, Mach number
+      Temp: 298                                         # float, Temperature in Kelvin scale
+      exp_data: exp_data/first_case.csv                 # str, path to experimental data
+    
+    # Second scenario in current case
+
+    ######################################################################################
+    # The following structural options are required only for Aero-structural problems
+    ######################################################################################
+    struct_options:                                     # dict, structural options,
+      isym: 1                                           # int, direction of symmetry. 1 for y-symmetry, 2 for z-symmetry
+      t: 0.005                                          # float, Shell Thickness in m
+      mesh_fpath: /path/to/structural/mesh              # str, path to the structural mesh file
+
+      struct_properties:                                # Optional[dict], a dictionary containing structural properties
+        rho: 2500.0                                     # Optional[float], Density in kg/m^3
+        E: 70.0e9                                       # Optional[float], Young's modulus in N/m^2
+        nu: 0.30                                        # Optional[float], Poisson's ratio
+        kcorr: 0.83333                                  # Optional[float}, Shear correction factor
+        ys: 350.0e6                                     # Optional[float], Yield stress in N/m^2
+
+      load_info:                                        # Optional[dict], a dictionary containing load info 
+        g: [0.0, -9.81, 0.0]                            # Optional[list[float]], g-vector in m/s^2, the default is [0, -9.81, 0]
+        inertial_load_factor: 1.0                       # optional[float], times of 'g'.
+
+      solver_options:                                   # Optional[dict], solver options for coupling. Check solver options section for more info
+        linear_solver_options:                          # Optional[dict], linear solver options, see documentation for more info.
+        nonlinear_solver_options:                       # Optional[dict], nonlinear solver options, see documentation for more info.
+                      
+  # Second case in current hierarchy
+
+# Second hierarchy

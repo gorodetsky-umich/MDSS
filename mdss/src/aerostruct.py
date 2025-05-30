@@ -17,7 +17,7 @@ except:
     pass
 import openmdao.api as om
 
-from mdss.utils.helpers import ProblemType, load_yaml_file, print_msg, update_om_instance, get_restart_file
+from mdss.utils.helpers import ProblemType, load_yaml_input, print_msg, update_om_instance, get_restart_file
 from mdss.resources.aero_defaults import default_aero_options_aerodynamic
 from mdss.resources.aerostruct_defaults import *
 
@@ -150,9 +150,9 @@ class Top(Multipoint):
             
     def configure(self): # Set Angle of attack
         super().configure() # Updates solver options to the problem
-        scenario_attr = getattr(self, self.sim_info['scenario_name']) # get a common atrribute for scenarios
+        scenario_attr = getattr(self, self.sim_info['scenario_name']) # get a common attribute for scenarios
         ################################################################################
-        # Aeroproblem setup
+        # Aero problem setup
         ################################################################################
         aoa = 0.0 # Set Angle of attack. Will be changed when running the problem
         ap_inputs = {
@@ -192,20 +192,20 @@ class Problem:
 
     def __init__(self, case_info_fpath, scenario_info_fpath, ref_level_dir, aoa_csv_str, aero_grid_fpath, struct_mesh_fpath=None):
 
-        # Extarct the required info
-        case_info = load_yaml_file(case_info_fpath, comm)
+        # Extract the required info
+        case_info,_ = load_yaml_input(case_info_fpath, comm)
         self.case_info = case_info
 
-        scenario_info = load_yaml_file(scenario_info_fpath, comm)
+        scenario_info,_ = load_yaml_input(scenario_info_fpath, comm)
         self.scenario_info = scenario_info
         
-        aoa_list = [float(x) for x in aoa_csv_str.split(',')]
+        aoa_list = [float(x) for x in aoa_csv_str.strip('"').split(',')]
         self.aoa_list = aoa_list
         
         problem_type = ProblemType.from_string(case_info['problem'])  # Convert string to enum
         self.problem_type = problem_type
 
-        # Initialize the structrual info dictionaries which remains empty for aerodynamic problems
+        # Initialize the structural info dictionaries which remains empty for aerodynamic problems
         structural_properties = {}
         load_info = {}
         solver_options = {}
@@ -283,7 +283,7 @@ class Problem:
             prob_updt.outdir(aoa_out_dir)
             
             ################################################################################
-            # Checking for existing sucessful simualtion info
+            # Checking for existing successful simulation info
             ################################################################################ 
             if os.path.exists(aoa_info_file):
                 with open(aoa_info_file, 'r') as aoa_file:
@@ -297,7 +297,7 @@ class Problem:
                 if comm.rank == 0:
                     os.makedirs(aoa_out_dir)
             ################################################################################
-            # Run sim when a succesful simulation is not found
+            # Run sim when a successful simulation is not found
             ################################################################################
             fail_flag = 0
             # Run the model
@@ -320,15 +320,16 @@ class Problem:
             aoa_out_dic = {
                 # 'refinement_level': refinement_level, # Decide on this later
                 'AOA': float(aoa),
+                'out_dir': aoa_out_dir,
                 'fail_flag': int(fail_flag),
                 'case': self.case_info['name'],
                 'problem': self.case_info['problem'],
-                'aero_mesh_fpath': self.sim_info.get('aero_grid_fpath'),
+                'aero_mesh_fpath': self.sim_info.get('aero_options', {}).get('gridFile', None),
                 'scenario_info': self.scenario_info,
                 'cl': float(self.prob[f"{self.sim_info['scenario_name']}.aero_post.cl"][0]),
                 'cd': float(self.prob[f"{self.sim_info['scenario_name']}.aero_post.cd"][0]),
                 'wall_time': f"{aoa_run_time:.2f} sec",
-                'out_dir': aoa_out_dir,
+                'aero_options': self.sim_info['aero_options'],
             }
             try:
                 aoa_out_dic['scenario_info']['exp_data'] = self.scenario_info['exp_data']
