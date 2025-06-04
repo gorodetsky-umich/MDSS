@@ -81,7 +81,6 @@ class simulation():
         elif self.machine_type == MachineType.HPC: # Running on a HPC currently supports Great Lakes.
             if self.submit_job:
                 job_id, simulation_results = submit_job_on_hpc(sim_info_copy, self.info_file, self.wait_for_job, comm) # Submit job script
-                print(simulation_results)
             else:
                 simulation_results = execute(self)
         
