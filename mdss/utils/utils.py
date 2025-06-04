@@ -332,7 +332,7 @@ class custom_sim(simulation):
             self.wait_for_job = True # To toggle to wait for the job to finish.
             
         # Call the parent class's run method to execute the simulation
-        simulation_results, _ = super().run()  
+        simulation_results = super().run()  
 
         comm.Barrier() 
         
