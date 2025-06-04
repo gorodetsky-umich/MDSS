@@ -28,7 +28,9 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--inputFile", type=str)
 args = parser.parse_args()
 sim = simulation(args.inputFile) # Input the simulation info and output dir
-simulation_results = execute(sim) # Run the simulation
+sim.submit_job = False
+simulation_results = sim.run()
+print("::RESULT::" + json.dumps(problem_results) + "::RESULT::")
 """
 
 ################################################################################

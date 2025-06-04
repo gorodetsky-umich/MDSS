@@ -76,15 +76,15 @@ class simulation():
         """
         sim_info_copy = copy.deepcopy(self.sim_info)
         if self.machine_type == MachineType.LOCAL: # Running on a local machine
-            simulation_results, out_file = execute(self)
+            simulation_results = execute(self)
 
         elif self.machine_type == MachineType.HPC: # Running on a HPC currently supports Great Lakes.
             if self.submit_job:
-                job_id = submit_job_on_hpc(sim_info_copy, self.info_file, self.wait_for_job, comm) # Submit job script
+                job_id, simulation_results = submit_job_on_hpc(sim_info_copy, self.info_file, self.wait_for_job, comm) # Submit job script
             else:
-                simulation_results, out_file = execute(self)
+                simulation_results = execute(self)
         
-        return simulation_results, out_file
+        return simulation_results
                        
 ################################################################################
 # Code for Post Processing
