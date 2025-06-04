@@ -42,12 +42,11 @@ class simulation():
         if self.yaml_input_type == YAMLInputType.FILE:
             self.info_file = yaml_input
         elif self.yaml_input_type == YAMLInputType.STRING:
-            self.info_file = os.path.join(self.out_dir, "input.yaml")
-            with open(self.info_file, 'w') as f:
-                yaml.dump(self.sim_info, f, sort_keys=False)
+            self.info_file = os.path.join(self.out_dir, "input_file.yaml")
 
         self.machine_type = MachineType.from_string(self.sim_info['machine_type'])  # Convert string to enum
         # Additional options
+        self.write_mdss_files = True # To toggle writing MDSS files.
         self.final_out_file = os.path.join(self.out_dir, "overall_sim_info.yaml") # Set the overall simulation info file name.
         self.subprocess_flag = True # To toggle opting subprocess.
         self.record_subprocess = False # To toggle to record subprocess output.
@@ -77,14 +76,15 @@ class simulation():
         """
         sim_info_copy = copy.deepcopy(self.sim_info)
         if self.machine_type == MachineType.LOCAL: # Running on a local machine
-            execute(self)
+            simulation_results, out_file = execute(self)
 
         elif self.machine_type == MachineType.HPC: # Running on a HPC currently supports Great Lakes.
             if self.submit_job:
                 job_id = submit_job_on_hpc(sim_info_copy, self.info_file, self.wait_for_job, comm) # Submit job script
             else:
-                execute(self)
-
+                simulation_results, out_file = execute(self)
+        
+        return simulation_results, out_file
                        
 ################################################################################
 # Code for Post Processing

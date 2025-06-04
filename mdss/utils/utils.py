@@ -1,14 +1,10 @@
-import copy
-
-from mpi4py import MPI
 from enum import Enum
-import os
-import shutil
-import yaml
-import importlib.resources as pkg_resources
+import os, shutil, yaml, tempfile
 import random
 from pydantic import BaseModel
-from typing import Optional, Literal
+from typing import Optional
+
+from mpi4py import MPI
 
 from mdss.src.main import simulation
 from mdss.utils.helpers import *
@@ -305,16 +301,8 @@ class custom_sim(simulation):
                 continue
             else:
                 scenario[key] = float(value)  # Convert all the other values to float
-        
-        
-        if comm.rank == 0:
-            randn = random.randint(1000, 9999)
-        else:
-            # Other processes initialize the variable
-            randn = None
-        
-        # Broadcast the random number to all processes
-        randn = comm.bcast(randn, root=0)
+
+        temp_dir_obj = None
         cwd = os.getcwd()
         if 'out_dir' in case_info.keys():
             if not os.path.exists(case_info['out_dir']) and comm.rank == 0:
@@ -322,11 +310,10 @@ class custom_sim(simulation):
             self.sim_info['out_dir'] = case_info['out_dir']
             self.out_dir = case_info['out_dir']
         else:
-            temp_dir = os.path.join(cwd, f"temp_{randn}")
-            msg = f"Creating a temporary folder to run simulations: {temp_dir}"
-            print_msg(msg, 'notice', comm)
             if comm.rank == 0:
-                os.mkdir(temp_dir)
+                temp_dir_obj = tempfile.TemporaryDirectory(dir = cwd ,prefix=f"mdss_temp_")
+                temp_dir = temp_dir_obj.name
+            temp_dir = comm.bcast(temp_dir, root=0) # Broadcast the temporary directory path to all ranks
             self.sim_info['out_dir'] = temp_dir
             self.out_dir = temp_dir
         comm.Barrier()
@@ -345,27 +332,18 @@ class custom_sim(simulation):
             self.wait_for_job = True # To toggle to wait for the job to finish.
             
         # Call the parent class's run method to execute the simulation
-        super().run()  
+        simulation_results, _ = super().run()  
 
         comm.Barrier() 
-
-        # Read the simulation data from the final output file
-        if os.path.exists(self.final_out_file):
-            sim_data = get_sim_data(self.final_out_file)
-        else:
-            raise FileNotFoundError(f"Expected output file not found: {self.final_out_file}")
-
-        sim_data = comm.bcast(sim_data, root=0)
-        comm.Barrier()  # Ensure all ranks are done reading
         
         # Cleanup temp directory if created
-        if 'out_dir' not in case_info and comm.rank == 0:
-            shutil.rmtree(self.out_dir)
+        if comm.rank == 0 and temp_dir_obj is not None:
+            temp_dir_obj.cleanup()
 
         # Reset sim_info
         self.sim_info, self.yaml_input_type = load_yaml_input(self.yaml_input, comm)
         self.sim_info['out_dir'] = os.path.abspath(self.sim_info['out_dir'])
         self.out_dir = self.sim_info['out_dir']
         
-        return sim_data
+        return simulation_results
         

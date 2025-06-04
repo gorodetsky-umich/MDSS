@@ -1,5 +1,5 @@
 # Imports
-import os, time, yaml
+import os, time, yaml, json
 from mpi4py import MPI
 
 # MDO tool imports
@@ -17,7 +17,7 @@ except:
     pass
 import openmdao.api as om
 
-from mdss.utils.helpers import ProblemType, load_yaml_input, print_msg, update_om_instance, get_restart_file
+from mdss.utils.helpers import ProblemType, load_yaml_input, print_msg, update_om_instance, get_restart_file, ensure_dict
 from mdss.resources.aero_defaults import default_aero_options_aerodynamic
 from mdss.resources.aerostruct_defaults import *
 
@@ -31,39 +31,32 @@ class Top(Multipoint):
 
     This class is designed to integrate ADflow and TACS using MPhys to perform aerodynamic or aerostructural simulations. It sets up the problem environment, manages inputs and outputs, and configures scenarios for simulation.
 
-    Methods
-    --------
-    **setup()**
-        Initializes and sets up the required subsystems and scenarios.
-
-    **configure()**
-        Configures the aerodynamic problem (e.g., reference area, chord, angle of attack) and connects design variables to the system.
-
-    Inputs
-    -------
-    - **sim_info** : dict
+    Parameters
+    ----------
+    sim_info: dict
         Dictionary containing geometry and configuration details for the case being analyzed. The structure of `sim_info` is as follows:
-        ```python
-        sim_info = {
-            'problem': # str, Name of the problem Aerodynamic/Aerostructural
-            'aero_options': # dict, Dictionary containing ADflow solver options
-            'chordRef': # float, Reference chord length
-            'areaRef': # float, Reference area
-            'mach': # float, Mach Number
-            'Re': # float, Reynold's Number
-            'Temp': # float, Temperature in Kelvin
-            
-            # Add Structural Info
-            'tacs_out_dir': # str, Path to the output directory for TACS. Can be left empty for aerodynamic problems
-            'struct_mesh_fpath': # str, Path to the structural mesh file. Can be left empty for aerodynamic problems
-            'structural_properties': # dict, includes material properties - E, ro, nu, kcorr, ys, and thickness of the shell.
-            'load_info': # dict, load type - Cruise/Maneuver, gravity flag, inertial load factor for maneuver loads.
-            'solver_options': # dict, solver options in openMDAO
-        }
-        ```
 
-    Outputs
-    --------
+        .. code:: python
+
+            sim_info = {
+                'problem': # str, Name of the problem Aerodynamic/Aerostructural
+                'aero_options': # dict, Dictionary containing ADflow solver options
+                'chordRef': # float, Reference chord length
+                'areaRef': # float, Reference area
+                'mach': # float, Mach Number
+                'Re': # float, Reynold's Number
+                'Temp': # float, Temperature in Kelvin
+                
+                # Add Structural Info
+                'tacs_out_dir': # str, Path to the output directory for TACS. Can be left empty for aerodynamic problems
+                'struct_mesh_fpath': # str, Path to the structural mesh file. Can be left empty for aerodynamic problems
+                'structural_properties': # dict, includes material properties - E, ro, nu, kcorr, ys, and thickness of the shell.
+                'load_info': # dict, load type - Cruise/Maneuver, gravity flag, inertial load factor for maneuver loads.
+                'solver_options': # dict, solver options in openMDAO
+            }
+
+    Returns
+    -------
     None. This class directly modifies the OpenMDAO problem structure to include aerodynamic or aerostructural analysis subsystems.
 
     """
@@ -73,6 +66,9 @@ class Top(Multipoint):
         self.problem_type = ProblemType.from_string(sim_info['problem'])  # Convert string to enum
 
     def setup(self):
+        """
+        Initializes and sets up the required subsystems and scenarios.
+        """
         if self.problem_type == ProblemType.AEROSTRUCTURAL: # TACS setup only for aerostructural scenario
             ################################################################################
             # ADflow Setup
@@ -149,6 +145,9 @@ class Top(Multipoint):
             self.connect(f"mesh_aero.{MPhysVariables.Aerodynamics.Surface.Mesh.COORDINATES}", f"{self.sim_info['scenario_name']}.x_aero")
             
     def configure(self): # Set Angle of attack
+        """
+        Configures the openMDAO problem (e.g., reference area, chord, angle of attack) and connects the MPhys variables.
+        """
         super().configure() # Updates solver options to the problem
         scenario_attr = getattr(self, self.sim_info['scenario_name']) # get a common attribute for scenarios
         ################################################################################
@@ -189,20 +188,42 @@ class Top(Multipoint):
         self.connect("aoa", [variable_to_connect, f"{self.sim_info['scenario_name']}.aero_post.aoa"])
     
 class Problem:
+    """
+    A class to run aerodynamic or aerostructural simulations using OpenMDAO and MPhys.
 
-    def __init__(self, case_info_fpath, scenario_info_fpath, ref_level_dir, aoa_csv_str, aero_grid_fpath, struct_mesh_fpath=None):
+    Parameters
+    ----------
+    problem_info: dict or str
+        A dictionary or JSON string containing the problem configuration. The structure of `problem_info` is as follows:
+
+        .. code:: python
+
+            problem_info = {
+                'case_info': { # See documentation for case_info structure}
+                'scenario_info': { # See documentation for scenario_info structure}
+                'ref_level_dir': str, # Directory for reference level outputs
+                'aero_grid_fpath': str, # Path to the aerodynamic grid file
+                'struct_mesh_fpath': str, # Optional path to the structural mesh file
+                'aoa_csv_str': str, # Comma-separated string of angles of attack (e.g., '"0.0,5.0,10.0"')
+            }                                                                    
+    """
+    
+    def __init__(self, problem_info):
+
+        problem_info = ensure_dict(problem_info)  # Ensure problem_info is a dictionary (Also converts from json)
+        self.write_mdss_files = True
 
         # Extract the required info
-        case_info,_ = load_yaml_input(case_info_fpath, comm)
-        self.case_info = case_info
-
-        scenario_info,_ = load_yaml_input(scenario_info_fpath, comm)
-        self.scenario_info = scenario_info
+        self.case_info = problem_info['case_info']
+        self.scenario_info = problem_info['scenario_info']
+        ref_level_dir = problem_info['ref_level_dir']
+        aero_grid_fpath = problem_info['aero_grid_fpath']
+        struct_mesh_fpath = problem_info.get('struct_mesh_fpath', None) # Optional structural mesh file path
         
-        aoa_list = [float(x) for x in aoa_csv_str.strip('"').split(',')]
+        aoa_list = [float(x) for x in problem_info['aoa_csv_str'].strip('"').split(',')]
         self.aoa_list = aoa_list
         
-        problem_type = ProblemType.from_string(case_info['problem'])  # Convert string to enum
+        problem_type = ProblemType.from_string(self.case_info['problem'])  # Convert string to enum
         self.problem_type = problem_type
 
         # Initialize the structural info dictionaries which remains empty for aerodynamic problems
@@ -216,29 +237,29 @@ class Problem:
         if problem_type == ProblemType.AERODYNAMIC:
             aero_options = default_aero_options_aerodynamic.copy() # Assign default options for aerodynamic case
         elif problem_type == ProblemType.AEROSTRUCTURAL:
-            isym = case_info['struct_options']['isym']
+            isym = self.case_info['struct_options']['isym']
             solver_options = default_solver_options
             aero_options = default_aero_options_aerostructural.copy() # Assign default aero_options for aerostructural case
             structural_properties.update(default_struct_properties.copy()) # Assign default structural properties
             load_info = default_load_info.copy()
-            structural_properties.update({'t': case_info['struct_options']['t']}) # Update thickness with user given values
+            structural_properties.update({'t': self.case_info['struct_options']['t']}) # Update thickness with user given values
             # Update default values with user given data 
-            struct_options = case_info.get('struct_options', {})
+            struct_options = self.case_info.get('struct_options', {})
             structural_properties.update(struct_options.get('properties', {}))
             load_info.update(struct_options.get('load_info', {}))
             solver_options_updt = struct_options.get('solver_options', {})
             solver_options['linear_solver_options'].update(solver_options_updt.get('linear_solver_options', {}))
             solver_options['nonlinear_solver_options'].update(solver_options_updt.get('nonlinear_solver_options', {}))
 
-        geometry_info = case_info['geometry_info']
+        geometry_info = self.case_info['geometry_info']
 
         # Update aero_options file
-        aero_options.update(case_info.get('aero_options', {}))
+        aero_options.update(self.case_info.get('aero_options', {}))
         aero_options['gridFile'] = aero_grid_fpath # Add aero_grid file path to aero_options
         
         # Update restart angle if provided
-        if case_info.get('restart_angle', None) is not None:
-            restart_angle = float(case_info['restart_angle'])
+        if self.case_info.get('restart_angle', None) is not None:
+            restart_angle = float(self.case_info['restart_angle'])
             restart_angle_dir = os.path.join(ref_level_dir, f"aoa_{restart_angle}")
             restart_mesh_file = get_restart_file(restart_angle_dir)
             if restart_mesh_file is not None:
@@ -246,12 +267,12 @@ class Problem:
         sim_info = {
                 'aoa_list': aoa_list,
                 'ref_level_dir': ref_level_dir,
-                'problem': case_info['problem'],
-                'scenario_name': scenario_info['name'],
+                'problem': self.case_info['problem'],
+                'scenario_name': self.scenario_info['name'],
                 'aero_options': aero_options,
                 'chordRef': geometry_info['chordRef'],
                 'areaRef': geometry_info['areaRef'],
-                'scenario_info': scenario_info,
+                'scenario_info': self.scenario_info,
                 
                 # Add Structural Info
                 'isym': isym,
@@ -273,7 +294,18 @@ class Problem:
         self.sim_info = sim_info
 
     def run(self):
+        """
+        Runs the OpenMDAO problem for each angle of attack specified in ``problem_info``.
+
+        Returns
+        -------
+        problem_results: dict
+            A dictionary containing the results of the problem for each angle of attack.
+
+        """
+        problem_results = {} # Dictionary to store results of the problem
         for aoa in self.aoa_list:
+            aoa_key = f"aoa_{aoa}"
             self.prob["aoa"] = float(aoa) # Set Angle of attack
             aoa_out_dir = os.path.join(self.sim_info.get('ref_level_dir'), f"aoa_{aoa}") # name of the aoa output directory
             aoa_out_dir = os.path.abspath(aoa_out_dir)
@@ -316,6 +348,14 @@ class Problem:
             self.prob.model.list_inputs(units=True)
             self.prob.model.list_outputs(units=True)
 
+            problem_results[aoa_key] = {
+                'cl': self.prob[f"{self.sim_info['scenario_name']}.aero_post.cl"][0],
+                'cd': self.prob[f"{self.sim_info['scenario_name']}.aero_post.cd"][0],
+            }
+
+            if  not self.write_mdss_files:
+                continue # Skip writing mdss files if write_mdss_files is False
+
             # Store a Yaml file at this level
             aoa_out_dic = {
                 # 'refinement_level': refinement_level, # Decide on this later
@@ -346,3 +386,5 @@ class Problem:
                 aoa_out_dic.update(struct_info_dict)
             with open(aoa_info_file, 'w') as interim_out_yaml:
                 yaml.dump(aoa_out_dic, interim_out_yaml, sort_keys=False)
+        
+        return problem_results

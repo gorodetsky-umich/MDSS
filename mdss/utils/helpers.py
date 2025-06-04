@@ -1,5 +1,5 @@
 # Imports
-import yaml, os
+import yaml, os, json
 import pandas as pd
 from enum import Enum
 from pathlib import Path
@@ -355,6 +355,43 @@ def get_restart_file(search_dir):
     vol_cgns_path = preferred_files[0] if preferred_files else (failed_files[0] if failed_files else None)
     
     return str(vol_cgns_path)
+
+################################################################################
+# Function to check if input is a dict or a JSON string
+################################################################################
+def ensure_dict(value):
+    """
+    Ensures the input is a Python dictionary.
+    
+    Parameters
+    ----------
+    value : dict or str
+        A dictionary or a JSON-formatted string representing a dictionary.
+    
+    Returns
+    -------
+    dict
+        The parsed dictionary.
+    
+    Raises
+    ------
+    ValueError
+        If the input is not a dict or a valid JSON string representing a dict.
+    """
+    if isinstance(value, dict):
+        return value
+    elif isinstance(value, str):
+        try:
+            parsed = json.loads(value)
+            if isinstance(parsed, dict):
+                return parsed
+            else:
+                raise ValueError("JSON string does not represent a dictionary.")
+        except json.JSONDecodeError:
+            raise ValueError("Invalid JSON string.")
+    else:
+        raise ValueError("Input must be a dictionary or JSON string.")
+
     
 ################################################################################
 # Additional Data Types
