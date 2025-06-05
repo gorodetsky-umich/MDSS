@@ -348,10 +348,11 @@ class Problem:
             self.prob.model.list_inputs(units=True)
             self.prob.model.list_outputs(units=True)
 
-            problem_results[aoa_key] = {
-                'cl': self.prob[f"{self.sim_info['scenario_name']}.aero_post.cl"][0],
-                'cd': self.prob[f"{self.sim_info['scenario_name']}.aero_post.cd"][0],
-            }
+            if fail_flag == 0:
+                problem_results[aoa_key] = {
+                    'cl': self.prob[f"{self.sim_info['scenario_name']}.aero_post.cl"][0],
+                    'cd': self.prob[f"{self.sim_info['scenario_name']}.aero_post.cd"][0],
+                }
 
             if  not self.write_mdss_files:
                 continue # Skip writing mdss files if write_mdss_files is False
